@@ -2,7 +2,7 @@
 // small tables for the page to display. Every number here comes from engine/rules.js; nothing in
 // this file decides an answer, and nothing in it touches the page.
 
-import { evaluate, evaluateOption, evaluateRound, pathsOf, windowOf, cardMilli } from './rules.js';
+import { evaluate, evaluateOption, evaluateRound, pathsOf, windowOf, cardMilli, tracesOf, toMilli } from './rules.js';
 import {
   fill, globalScope, roundScope, optionScope, fmtLoss, fmtNumber, fmtLimit, fmtPlain, fmtKm, ratioText,
 } from './tokens.js';
@@ -21,6 +21,11 @@ const NEXT_STEPS = {
   'over-and-under': 'Next step: look for a change that reaches only the ONT that needs it.',
   'valid-not-best': 'Next step: test a larger option against the ONT with the highest loss.',
 };
+
+/** A label written as a title, for use inside a sentence: "Remote OLT port" becomes "remote OLT port". */
+function inSentence(label) {
+  return /^[A-Z][a-z]/.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label;
+}
 
 function listOf(names) {
   if (names.length <= 1) return names.join('');
@@ -145,7 +150,7 @@ export function describeResult(content, round, result) {
   const outcome = result.reasonCode;
 
   let headline;
-  if (outcome === 'best-valid') headline = onts.length === 1 ? `${onts[0].label} is inside the window.` : 'Every ONT is inside the window.';
+  if (outcome === 'best-valid') headline = onts.length === 1 ? `Correct. ${onts[0].label} is inside the window.` : 'Correct. Every ONT is inside the window.';
   else if (outcome === 'valid-not-best') headline = 'This design works, and a larger one also fits.';
   else if (outcome === 'over-max') headline = `Too dark at ${listOf(dark)}.`;
   else if (outcome === 'under-min') headline = `Too bright at ${listOf(bright)}.`;
@@ -245,4 +250,103 @@ export function describeModel(content) {
     classes,
     sources: content.sources,
   };
+}
+
+/** One step of a loss trace in words, for a tooltip and for the table view. */
+function describeStep(step, card) {
+  const loss = fmtLoss(step.lossMilli);
+  if (step.kind === 'fiber') return `Fiber, ${fmtKm(step.quantity)}: ${loss}`;
+  if (step.kind === 'connectors') return `${step.quantity} connector ${step.quantity === 1 ? 'pair' : 'pairs'}: ${loss}`;
+  if (step.kind === 'splices') return `${step.quantity} ${step.quantity === 1 ? 'splice' : 'splices'}: ${loss}`;
+  if (step.kind === 'splitter') return `${ratioText(step.ratio)} splitter, ${step.chosen ? 'chosen' : 'installed'}: ${loss}`;
+  return `Attenuator ${step.at === 'olt' ? 'at the OLT port' : 'at this ONT'}: ${loss}`;
+}
+
+/**
+ * The loss trace of a design: for each ONT the losses in the order light meets them, with the
+ * running total after each. `option` may be null: then only the scale and the window are returned.
+ */
+export function describeTrace(content, round, option) {
+  const window = windowOf(content, round.class);
+  const card = cardMilli(content.lossCard);
+  const base = {
+    className: round.class,
+    minMilli: window.minMilli,
+    maxMilli: window.maxMilli,
+    minText: fmtLimit(window.minMilli),
+    maxText: fmtLimit(window.maxMilli),
+    windowText: windowText(window),
+    series: [],
+  };
+  if (!option) return { ...base, hasShared: false, domainMaxMilli: Math.max(40000, Math.ceil((window.maxMilli + 2000) / 5000) * 5000) };
+
+  const evaluated = evaluateOption(content, round, option);
+  const traces = tracesOf(content, round, option);
+  // A step that lies on the path of several ONTs is drawn once. Record who shares it.
+  const users = new Map();
+  for (const trace of traces) {
+    for (const step of trace.steps) users.set(step.key, [...(users.get(step.key) || []), trace]);
+  }
+  const series = traces.map((trace) => {
+    const ont = evaluated.onts.find((o) => o.id === trace.ontId);
+    let running = 0;
+    const steps = trace.steps.map((step) => {
+      const fromMilli = running;
+      running += step.lossMilli;
+      const sharers = users.get(step.key);
+      const who = traces.length === 1 ? '' : `${sharers.length === traces.length ? 'Every ONT' : listOf(sharers.map((t) => t.label))}: `;
+      return {
+        key: step.key,
+        kind: step.kind,
+        fromMilli,
+        toMilli: running,
+        sharedBy: sharers.map((t) => t.ontId),
+        text: `${who}${describeStep(step, card)}. Total so far ${fmtLoss(running)}.`,
+      };
+    });
+    return {
+      ontId: trace.ontId,
+      label: trace.label,
+      state: ont.state,
+      stateWord: STATE_WORDS[ont.state],
+      totalMilli: ont.totalMilli,
+      totalText: fmtLoss(ont.totalMilli),
+      steps,
+    };
+  });
+  const highest = Math.max(window.maxMilli, ...series.map((s) => s.totalMilli));
+  return {
+    ...base,
+    series,
+    hasShared: series.some((line) => line.steps.some((step) => step.sharedBy.length > 1)),
+    domainMaxMilli: Math.max(40000, Math.ceil((highest + 2000) / 5000) * 5000),
+  };
+}
+
+/** The plant in one sentence for each ONT, as the text equivalent of the diagram. */
+export function describePlant(content, round, option = null) {
+  const sentences = [];
+  const partsOf = (segment) => {
+    const bits = [];
+    const milliKm = toMilli(segment.fiberKm);
+    if (milliKm > 0) bits.push(`${fmtKm(milliKm)} of fiber`);
+    if (segment.connectorPairs > 0) bits.push(`${segment.connectorPairs} connector ${segment.connectorPairs === 1 ? 'pair' : 'pairs'}`);
+    if (segment.splices > 0) bits.push(`${segment.splices} ${segment.splices === 1 ? 'splice' : 'splices'}`);
+    return bits.length ? listOf(bits) : 'a direct connection';
+  };
+  const walk = (segment, trail) => {
+    const node = segment.to;
+    const here = [...trail, partsOf(segment)];
+    if (node.type === 'ont') {
+      sentences.push(`${node.label}${node.note ? `, ${node.note}` : ''}: from the ${inSentence(round.plant.oltLabel)}, ${here.join(', then ')}.`);
+      return;
+    }
+    let name;
+    if (node.ratio !== null) name = `the installed ${ratioText(node.ratio)} splitter`;
+    else if (option && option.splitters && option.splitters[node.id]) name = `the ${ratioText(option.splitters[node.id])} splitter you chose`;
+    else name = 'the splitter you choose';
+    for (const leg of node.legs) walk(leg, [...here.slice(0, -1), `${here[here.length - 1]} to ${name}`]);
+  };
+  walk(round.plant.trunk, []);
+  return sentences.join(' ');
 }

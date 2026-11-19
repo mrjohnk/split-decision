@@ -3,7 +3,7 @@
 // cases of the specification. They are never computed by the code under test.
 
 import {
-  toMilli, pathsOf, fixedLosses, evaluateOption, evaluateRound, outcomeOf, evaluate,
+  toMilli, pathsOf, fixedLosses, evaluateOption, evaluateRound, outcomeOf, evaluate, tracesOf,
 } from '../engine/rules.js';
 import { clone, deepFreeze } from './harness.js';
 
@@ -189,6 +189,53 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
       }
     }
     assertEqual(compared, 37, 'ONT results compared');
+  });
+
+  test('rules/the loss trace of every option adds up to the ledger total, step by step', () => {
+    let traces = 0;
+    for (const level of content.levels) {
+      for (const round of level.rounds) {
+        for (const option of round.options) {
+          const result = evaluateOption(content, round, option);
+          const drawn = tracesOf(content, round, option);
+          assertEqual(drawn.length, result.onts.length, `${round.id}/${option.id}`);
+          for (const trace of drawn) {
+            const ont = result.onts.find((o) => o.id === trace.ontId);
+            assertEqual(trace.totalMilli, ont.totalMilli, `${round.id}/${option.id}/${trace.ontId} total`);
+            const byKind = (lines, kind) => lines.filter((l) => l.kind === kind).reduce((sum, l) => sum + l.lossMilli, 0);
+            for (const kind of ['fiber', 'connectors', 'splices', 'splitter', 'attenuator']) {
+              assertEqual(byKind(trace.steps, kind), byKind(ont.ledger, kind), `${round.id}/${option.id}/${trace.ontId} ${kind}`);
+            }
+            assertTrue(trace.steps.every((step) => step.lossMilli > 0), 'every step loses something');
+            traces += 1;
+          }
+        }
+      }
+    }
+    assertEqual(traces, 37);
+  });
+
+  test('rules/ONTs that share a feeder share the first steps of their traces', () => {
+    const round = findRound(content, 'r2-1');
+    const [a, b, c] = tracesOf(content, round, round.options[1]);
+    const shared = (x, y) => { let n = 0; while (n < x.steps.length && n < y.steps.length && x.steps[n].key === y.steps[n].key) n += 1; return n; };
+    assertEqual(shared(a, b), 4, 'feeder fiber, connectors, splices and the splitter');
+    assertEqual(shared(b, c), 4);
+    assertTrue(a.steps[4].key !== b.steps[4].key, 'the drops differ');
+  });
+
+  // ITU-T G.9807.1 (02/2023) Annex B limits the difference between two paths on one PON to 15 dB
+  // (reference R2). The game does not grade that limit, and says so in Model and sources, where it
+  // also says that every answer is within it. This test is what makes that sentence true.
+  test('rules/every answer keeps the paths of its PON within 15 dB of each other', () => {
+    for (const level of content.levels) {
+      for (const round of level.rounds) {
+        const answer = round.options.find((option) => option.id === key.rounds[round.id].answer);
+        const totals = evaluateOption(content, round, answer).onts.map((ont) => ont.totalMilli);
+        const spread = Math.max(...totals) - Math.min(...totals);
+        assertTrue(spread <= milli(15), `${round.id}: the answer's paths differ by ${spread / 1000} dB`);
+      }
+    }
   });
 
   test('rules/the evaluator is pure: equal results, inputs unchanged', () => {

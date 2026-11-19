@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split Decision: an XGS-PON loss-budget puzzle</title>
+  <meta name="description" content="Choose the splitter or the attenuator so every ONT on the PON gets neither too little light nor too much. A browser game for practicing XGS-PON optical loss budgeting.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the work order</a>
+
+  <header class="masthead">
+    <div class="brand">
+      <p class="brand-name">Split Decision</p>
+      <p class="brand-line">An XGS-PON loss-budget puzzle</p>
+    </div>
+    <div class="progress" id="progress" data-testid="progress"></div>
+    <nav class="tools" aria-label="Game controls">
+      <button type="button" class="quiet" id="open-briefing" data-testid="open-briefing">Review briefing</button>
+      <button type="button" class="quiet" id="open-model" data-testid="open-model">Model and sources</button>
+      <button type="button" class="quiet" id="restart" data-testid="restart">Restart</button>
+    </nav>
+  </header>
+
+  <main id="main" tabindex="-1" data-testid="view" data-view="loading">
+    <p class="loading">Loading the work orders…</p>
+  </main>
+
+  <!-- Feedback and guidance are announced here, without moving focus. -->
+  <div id="announcer" class="visually-hidden" role="status" aria-live="polite" data-testid="announcer"></div>
+
+  <dialog id="briefing-dialog" class="sheet-dialog" aria-labelledby="briefing-dialog-title" data-testid="briefing-dialog"></dialog>
+  <dialog id="model-dialog" class="sheet-dialog" aria-labelledby="model-dialog-title" data-testid="model-dialog"></dialog>
+  <dialog id="restart-dialog" class="small-dialog" aria-labelledby="restart-dialog-title" data-testid="restart-dialog">
+    <h2 id="restart-dialog-title">Restart the game?</h2>
+    <p>Your attempts, hints and solved work orders will be cleared, and you will go back to the first briefing.</p>
+    <div class="actions">
+      <button type="button" class="primary" data-testid="confirm-restart" id="confirm-restart">Restart the game</button>
+      <button type="button" data-testid="cancel-restart" id="cancel-restart" autofocus>Keep playing</button>
+    </div>
+  </dialog>
+
+  <noscript>
+    <p class="noscript">Split Decision needs JavaScript. It runs entirely in your browser and sends nothing anywhere.</p>
+  </noscript>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

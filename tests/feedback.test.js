@@ -3,7 +3,7 @@
 
 import { evaluate } from '../engine/rules.js';
 import {
-  describeResult, describeSolution, describeHints, describeRound, describeBriefing, describeModel, GUIDANCE,
+  describeResult, describeSolution, describeHints, describeRound, describeBriefing, describeModel, describeTrace, GUIDANCE,
 } from '../engine/feedback.js';
 
 const db = (value) => `${value.toFixed(1)} dB`;
@@ -201,5 +201,59 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
     assertEqual(model.sources.length, content.sources.length);
     assertEqual(model.lossCard.length, 9, 'fiber, connector pair, splice and six splitters');
     assertIncludes(model.lossCard.map((row) => `${row.label} ${row.value}`).join('; '), '1:32 splitter 17.5 dB');
+  });
+
+  test('feedback/only the answer gets a headline that says Correct', () => {
+    for (const round of rounds) {
+      for (const option of round.options) {
+        const result = evaluate(content, round, option.id);
+        const description = describeResult(content, round, { ...result, optionId: option.id });
+        const saysCorrect = description.headline.startsWith('Correct.');
+        assertEqual(saysCorrect, option.id === key.rounds[round.id].answer, `${round.id}/${option.id}: ${description.headline}`);
+      }
+    }
+  });
+
+  test('feedback/the trace ends at each ONT\'s total and climbs by exactly each step', () => {
+    for (const round of rounds) {
+      for (const option of round.options) {
+        const trace = describeTrace(content, round, option);
+        const expected = key.rounds[round.id].options[option.id].onts;
+        assertEqual(trace.series.length, Object.keys(expected).length, `${round.id}/${option.id}: one line for each ONT`);
+        for (const line of trace.series) {
+          assertEqual(line.totalText, db(expected[line.ontId].total), `${round.id}/${option.id}/${line.ontId}`);
+          assertEqual(line.steps[0].fromMilli, 0, 'a trace starts at no loss');
+          line.steps.forEach((step, index) => {
+            if (index > 0) assertEqual(step.fromMilli, line.steps[index - 1].toMilli, 'each step starts where the last one ended');
+            assertTrue(step.toMilli > step.fromMilli, 'loss only adds up');
+          });
+          assertEqual(line.steps[line.steps.length - 1].toMilli, line.totalMilli, 'the last step ends at the total');
+          assertTrue(trace.domainMaxMilli > line.totalMilli, 'the scale reaches past every total');
+        }
+      }
+    }
+  });
+
+  test('feedback/a stretch of path used by several ONTs is marked as shared by them', () => {
+    const loop = rounds.find((r) => r.id === 'r2-1');
+    const trace = describeTrace(content, loop, loop.options[0]);
+    assertEqual(trace.hasShared, true);
+    const [a, b, c] = trace.series;
+    assertEqual(a.steps[0].sharedBy.join(','), 'A,B,C', 'the trunk is on every path');
+    assertEqual(a.steps[0].key, c.steps[0].key);
+    assertIncludes(a.steps[0].text, 'Every ONT: ');
+    const lastA = a.steps[a.steps.length - 1];
+    assertEqual(lastA.sharedBy.join(','), 'A', 'the last stretch to ONT A is its own');
+    assertIncludes(lastA.text, 'ONT A: ');
+    assertTrue(b.steps.some((step) => step.sharedBy.join(',') === 'B'), 'ONT B has a stretch of its own');
+
+    const single = rounds.find((r) => r.id === 'r1-1');
+    const one = describeTrace(content, single, single.options[0]);
+    assertEqual(one.hasShared, false);
+    assertTrue(one.series[0].steps.every((step) => step.sharedBy.length === 1 && !step.text.startsWith('ONT')), 'one ONT: nothing shared, no name needed');
+
+    const unlit = describeTrace(content, single, null);
+    assertEqual(unlit.series.length, 0);
+    assertEqual(unlit.hasShared, false);
   });
 }

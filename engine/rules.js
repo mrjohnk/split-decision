@@ -140,6 +140,46 @@ export function fixedLosses(content, round) {
   return out;
 }
 
+/**
+ * The same losses as the ledger, in the order light meets them on the way from the OLT port to
+ * each ONT. Used to draw the loss trace. For every ONT the steps add up to the ledger's total.
+ */
+export function tracesOf(content, round, option) {
+  const card = cardMilli(content.lossCard);
+  const attenuators = option.attenuators || [];
+  const traces = [];
+  const walk = (segment, steps, place) => {
+    const here = [...steps];
+    const fiberMilliKm = toMilli(segment.fiberKm);
+    if (fiberMilliKm > 0) {
+      here.push({ key: `${place}/fiber`, kind: 'fiber', quantity: fiberMilliKm, lossMilli: (fiberMilliKm * card.fiberPerKm) / 1000 });
+    }
+    if (segment.connectorPairs > 0) {
+      here.push({ key: `${place}/connectors`, kind: 'connectors', quantity: segment.connectorPairs, lossMilli: segment.connectorPairs * card.connectorPair });
+    }
+    if (segment.splices > 0) {
+      here.push({ key: `${place}/splices`, kind: 'splices', quantity: segment.splices, lossMilli: segment.splices * card.splice });
+    }
+    const node = segment.to;
+    if (node.type === 'ont') {
+      for (const attenuator of attenuators) {
+        if (attenuator.at === node.id) here.push({ key: `${place}/attenuator`, kind: 'attenuator', at: node.id, chosen: true, lossMilli: toMilli(attenuator.db) });
+      }
+      traces.push({ ontId: node.id, label: node.label, steps: here, totalMilli: here.reduce((sum, step) => sum + step.lossMilli, 0) });
+      return;
+    }
+    const chosen = node.ratio === null;
+    const ratio = chosen ? option.splitters[node.id] : node.ratio;
+    here.push({ key: `${place}/${node.id}`, kind: 'splitter', splitterId: node.id, ratio, chosen, lossMilli: card.splitter[String(ratio)] });
+    node.legs.forEach((leg, index) => walk(leg, here, `${place}/${node.id}.${index}`));
+  };
+  const start = attenuators
+    .filter((attenuator) => attenuator.at === 'olt')
+    .map((attenuator, index) => ({ key: `olt/attenuator.${index}`, kind: 'attenuator', at: 'olt', chosen: true, lossMilli: toMilli(attenuator.db) }));
+  walk(round.plant.trunk, start, 'trunk');
+  return traces;
+}
+
 /** Evaluate one option: every ONT's ledger, total and state, and whether the option is valid. */
 export function evaluateOption(content, round, option) {
   const card = cardMilli(content.lossCard);

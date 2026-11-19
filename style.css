@@ -1,0 +1,450 @@
+/* Split Decision
+   Paper decides, the instrument answers: light work-order sheets on a desk, the designer's marks
+   in conduit orange, and one dark instrument panel that shows the loss trace.
+   Barlow and Barlow Condensed are vendored under assets/fonts (SIL Open Font License). */
+
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: swap; src: url("assets/fonts/barlow-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: swap; src: url("assets/fonts/barlow-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: swap; src: url("assets/fonts/barlow-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 500; font-display: swap; src: url("assets/fonts/barlow-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "Barlow Condensed"; font-style: normal; font-weight: 600; font-display: swap; src: url("assets/fonts/barlow-condensed-latin-600-normal.woff2") format("woff2"); }
+
+:root {
+  /* The desk and the paper */
+  --desk: #D9E0DF;
+  --paper: #F5F7F6;
+  --paper-2: #FBFCFC;
+  --ink: #14263A;
+  --ink-2: #45586A;
+  --rule: #B4C0C2;
+
+  /* The designer's marks: conduit orange, the color code for communication lines */
+  --mark: #F26A1B;
+  --mark-hover: #FF8038;
+  --mark-deep: #A8400A;
+  --mark-wash: #FCE7D9;
+
+  /* The instrument */
+  --screen: #10323F;
+  --screen-ink: #EAF4F3;
+  --screen-ink-2: #A8C4C8;
+  --screen-grid: #25505E;
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+
+  --font-text: "Barlow", "Helvetica Neue", Arial, sans-serif;
+  --font-title: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --page: 1280px;
+  --gutter: clamp(12px, 3vw, 32px);
+  --sheet-pad: clamp(16px, 2.4vw, 30px);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+/* Room for the bar that stays at the bottom of a briefing, so a focused link never hides under it. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-bottom: 96px; }
+
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font: 400 1.0625rem/1.5 var(--font-text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: break-word;
+}
+
+h1, h2, h3, h4, p, figure, dl, dd, ul, ol { margin: 0; }
+ul, ol { padding: 0; }
+
+a { color: var(--ink); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+/* Headings and <main> take focus from the script only, to tell a screen reader where it is. */
+[tabindex="-1"]:focus { outline: none; }
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute; left: 12px; top: -80px; z-index: 10;
+  padding: 10px 14px; background: var(--paper); border: 1.5px solid var(--ink); border-radius: 4px;
+}
+.skip-link:focus { top: 10px; }
+
+/* ----------------------------------------------------------------------------------------------
+   Buttons
+   ---------------------------------------------------------------------------------------------- */
+
+button {
+  font: 500 1rem/1.2 var(--font-text);
+  color: var(--ink);
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  padding: 10px 16px;
+  min-height: 44px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: #fff; }
+button.primary { background: var(--mark); font-weight: 600; }
+button.primary:hover:not(:disabled) { background: var(--mark-hover); }
+button:disabled, button.primary:disabled {
+  color: var(--ink-2); background: transparent; border: 1.5px dashed var(--rule); cursor: not-allowed;
+}
+button.quiet {
+  background: transparent; border-color: transparent; padding: 8px 10px;
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px;
+}
+button.quiet:hover:not(:disabled) { background: transparent; text-decoration-thickness: 2px; }
+button.quiet:disabled { border-color: transparent; text-decoration: none; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+.help-actions { margin-top: 10px; }
+.help-actions button { min-height: 40px; padding: 8px 14px; font-size: 1rem; }
+
+/* ----------------------------------------------------------------------------------------------
+   The masthead and the progress tube
+   ---------------------------------------------------------------------------------------------- */
+
+.masthead {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 28px;
+  max-width: var(--page); margin: 0 auto; padding: 14px var(--gutter) 12px;
+}
+.brand { margin-right: auto; }
+.brand-name { font: 600 1.75rem/1 var(--font-title); letter-spacing: 0.005em; }
+.brand-line { margin-top: 3px; color: var(--ink-2); font-size: 1rem; line-height: 1.3; }
+
+.progress { display: flex; align-items: center; gap: 10px; min-height: 30px; }
+.tube-label { color: var(--ink-2); font-size: 1rem; white-space: nowrap; }
+
+/* Six work orders drawn as the six fibers of a buffer tube, in the standard fiber color order:
+   blue, orange, green, brown, slate, white. A solved fiber is drawn full size; the text beside
+   the tube and each fiber's own label say the same thing without color. */
+.tube {
+  list-style: none; display: flex; gap: 5px;
+  padding: 5px 10px; background: var(--paper); border: 1.5px solid var(--ink-2); border-radius: 999px;
+}
+.fiber { --fiber: var(--ink-2); display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; }
+.fiber::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--fiber); box-shadow: 0 0 0 1px var(--ink-2);
+}
+.fiber.is-solved::before { width: 15px; height: 15px; box-shadow: 0 0 0 1.5px var(--ink); }
+.fiber.is-current { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
+.fiber-1 { --fiber: #1F6FB5; }
+.fiber-2 { --fiber: #F26A1B; }
+.fiber-3 { --fiber: #2E9A4E; }
+.fiber-4 { --fiber: #7A4A21; }
+.fiber-5 { --fiber: #7C8A93; }
+.fiber-6 { --fiber: #FFFFFF; }
+
+.tools { display: flex; flex-wrap: wrap; gap: 0 2px; margin-right: -10px; }
+
+/* ----------------------------------------------------------------------------------------------
+   Page and sheets
+   ---------------------------------------------------------------------------------------------- */
+
+main { max-width: var(--page); margin: 0 auto; padding: 6px var(--gutter) 56px; }
+.loading { padding: 48px 0; text-align: center; color: var(--ink-2); }
+
+.sheet, .decide {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: var(--sheet-pad);
+  box-shadow: 0 1px 0 #C2CCCC, 0 10px 22px -18px rgba(20, 38, 58, 0.55);
+  min-width: 0;
+}
+
+.round { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (min-width: 960px) {
+  .round { grid-template-columns: minmax(0, 11fr) minmax(0, 10fr); gap: 22px; }
+}
+
+.level-count, .place { color: var(--ink-2); font-size: 1rem; margin-bottom: 4px; }
+.view-title {
+  font: 600 clamp(1.9rem, 1.25rem + 2.3vw, 2.75rem)/1.05 var(--font-title);
+  letter-spacing: 0.003em; text-wrap: balance; margin-bottom: 12px;
+}
+.outcome { font-size: 1.1875rem; line-height: 1.45; max-width: 62ch; margin-bottom: 22px; }
+
+/* ----------------------------------------------------------------------------------------------
+   Tables
+   ---------------------------------------------------------------------------------------------- */
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; line-height: 1.35; }
+caption { text-align: left; padding-bottom: 4px; font: 600 1.125rem/1.25 var(--font-title); }
+th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--rule); font-weight: 400; }
+th:last-child, td:last-child { padding-right: 0; }
+thead th { font-weight: 500; color: var(--ink-2); border-bottom: 1.5px solid var(--ink); vertical-align: bottom; }
+tbody th { font-weight: 500; }
+tfoot th, tfoot td { font-weight: 600; border-top: 1.5px solid var(--ink); border-bottom: 0; }
+th.num, td.num { text-align: right; }
+td.num, tbody th.num, tfoot th.num { white-space: nowrap; }
+@media (max-width: 520px) {
+  th, td { padding-right: 8px; }
+}
+.row-note { color: var(--ink-2); font-weight: 400; }
+
+.table-title { font: 600 1.25rem/1.2 var(--font-title); margin: 22px 0 6px; }
+
+/* The loss card: nine name-and-value pairs, three to a row where there is room. */
+.losscard { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; font-size: 1rem; line-height: 1.35; }
+.losscard > div { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--rule); }
+.losscard dt { font-weight: 500; }
+.losscard dd { white-space: nowrap; }
+@media (max-width: 560px) { .losscard { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 360px) { .losscard { grid-template-columns: minmax(0, 1fr); } }
+.card-note { color: var(--ink-2); font-size: 1rem; margin-top: 8px; max-width: 70ch; }
+
+.ledgers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px 28px; margin-top: 16px; }
+
+/* ----------------------------------------------------------------------------------------------
+   The work order
+   ---------------------------------------------------------------------------------------------- */
+
+.story { max-width: 66ch; }
+.window-line { display: inline-block; margin: 16px 0 4px; padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 2px; }
+.window-line strong { font-weight: 600; }
+.plant { margin: 14px 0 0; }
+.plant-host { padding-top: 6px; }
+
+.drawing { min-height: 40px; }
+.plant-svg, .trace-svg { display: block; max-width: 100%; height: auto; overflow: visible; }
+
+.fiber-line { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.olt-box { fill: var(--ink); }
+.olt-text { fill: var(--paper); font: 600 13px var(--font-text); letter-spacing: 0.04em; }
+.ont-box { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; }
+.ont-text { fill: var(--ink); font: 600 14px var(--font-text); }
+.plant-note { fill: var(--ink-2); font: 400 12px var(--font-text); }
+.plant-note.is-open { fill: var(--mark-deep); font-weight: 500; }
+.seg-km { fill: var(--ink); font: 500 13px var(--font-text); }
+.seg-counts { fill: var(--ink-2); font: 400 12px var(--font-text); }
+.splitter-shape { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.splitter-shape.is-open { fill: var(--mark-wash); stroke: var(--mark-deep); stroke-dasharray: 4 3; }
+.splitter-shape.is-chosen { fill: var(--mark); stroke: var(--ink); stroke-dasharray: none; }
+.splitter-ratio { fill: var(--ink); font: 600 14px var(--font-text); }
+.splitter-ratio.is-open { fill: var(--mark-deep); }
+.att-box { fill: var(--mark); stroke: var(--ink); stroke-width: 1.5; }
+.att-text { fill: var(--mark-deep); font: 600 12px var(--font-text); }
+
+/* ----------------------------------------------------------------------------------------------
+   The decision
+   ---------------------------------------------------------------------------------------------- */
+
+.goal { font: 600 1.625rem/1.15 var(--font-title); text-wrap: balance; margin-bottom: 14px; }
+
+.options { border: 0; margin: 0; padding: 0; min-width: 0; }
+.options legend { padding: 0; margin-bottom: 6px; color: var(--ink-2); font-size: 1rem; }
+.option {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start;
+  padding: 12px 10px 12px 14px; border-top: 1px solid var(--rule); cursor: pointer;
+}
+.option:last-of-type { border-bottom: 1px solid var(--rule); }
+.option input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--mark-deep); cursor: inherit; }
+.option-text { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0 18px; }
+.option-label { font-weight: 500; }
+.option-served { color: var(--ink-2); }
+.option:hover { background: var(--paper-2); }
+.option:has(input:checked) { background: var(--mark-wash); box-shadow: inset 4px 0 0 var(--mark); }
+.option:has(input:disabled) { cursor: default; }
+.option:has(input:disabled):not(:has(input:checked)) { background: transparent; }
+@supports selector(:has(*)) {
+  .option:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: -3px; }
+  .option input:focus-visible { outline: none; }
+}
+
+.guidance { margin-top: 14px; padding: 10px 12px; background: #fff; border: 1.5px solid var(--ink); border-radius: 2px; font-weight: 500; }
+.tally { margin-top: 12px; color: var(--ink-2); font-size: 1rem; }
+
+.help { margin-top: 18px; padding: 2px 16px 14px; background: var(--paper-2); border: 1.5px dashed var(--ink-2); border-radius: 2px; }
+.help-item h4 { font: 600 1.0625rem/1.3 var(--font-text); margin: 14px 0 4px; }
+.help-item p { max-width: 68ch; }
+.help-item p + p, .help-item ul + p { margin-top: 8px; }
+.help-item ul { list-style: none; margin-top: 8px; }
+.help-item li { padding: 5px 0; border-top: 1px solid var(--rule); }
+.help-reminder { color: var(--ink-2); font-size: 1rem; }
+
+/* ----------------------------------------------------------------------------------------------
+   The instrument: the loss trace and its meters
+   ---------------------------------------------------------------------------------------------- */
+
+.instrument {
+  margin-top: 22px; padding: 14px 14px 6px;
+  background: var(--screen); color: var(--screen-ink); border-radius: 10px;
+}
+.instrument-title { font: 500 1.125rem/1.2 var(--font-title); letter-spacing: 0.015em; color: var(--screen-ink-2); margin: 0 0 6px 2px; }
+.trace-host { min-height: 216px; }
+
+.trace-grid line { stroke: var(--screen-grid); stroke-width: 1; }
+.tick { fill: var(--screen-ink-2); font: 400 12px var(--font-text); }
+.tick.tick-edge { fill: var(--screen-ink); font-weight: 600; }
+.window-band { fill: rgba(234, 244, 243, 0.1); }
+.window-edge { stroke: var(--screen-ink-2); stroke-width: 1; stroke-dasharray: 5 4; }
+.zone-name { fill: var(--screen-ink-2); font: 500 12.5px var(--font-text); }
+.zone-name.zone-window { fill: var(--screen-ink); }
+.trace-empty { fill: var(--screen-ink); font: 500 14px var(--font-text); }
+.trace-line { fill: none; stroke: var(--screen-ink); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.trace-line.is-shared { stroke: var(--screen-ink-2); }
+.trace-line.series-0 { stroke: var(--series-1); }
+.trace-line.series-1 { stroke: var(--series-2); }
+.trace-line.series-2 { stroke: var(--series-3); }
+.end-dot { fill: var(--screen-ink); stroke: var(--screen); stroke-width: 2; }
+.end-dot.series-0 { fill: var(--series-1); }
+.end-dot.series-1 { fill: var(--series-2); }
+.end-dot.series-2 { fill: var(--series-3); }
+.leader { fill: none; stroke: var(--screen-ink-2); stroke-width: 1; }
+.end-label { fill: var(--screen-ink); font: 600 13px var(--font-text); }
+.tip { fill: transparent; }
+.tip:hover { fill: rgba(234, 244, 243, 0.05); }
+
+/* A state is a shape first: a ring, a downward chevron or a sunburst. Its word sits beside it. */
+.glyph { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.glyph .glyph-fill { fill: currentColor; stroke: none; }
+.state { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.state-icon { flex: none; overflow: visible; }
+
+.meters { list-style: none; margin-top: 6px; border-top: 1px solid var(--screen-grid); }
+.meter {
+  display: grid; grid-template-columns: 26px minmax(0, 1fr) 4.4em 10.2em; gap: 2px 10px; align-items: center;
+  padding: 8px 2px; border-bottom: 1px solid var(--screen-grid); font-size: 1rem;
+}
+.meter:last-child { border-bottom: 0; }
+.meter-total { font-weight: 600; text-align: right; }
+.meter-wait { grid-column: 3 / 5; color: var(--screen-ink-2); text-align: right; }
+.meter .state { font-weight: 500; }
+.meter.is-shared { color: var(--screen-ink-2); }
+.meter.is-shared .meter-name { grid-column: 2 / -1; }
+@media (max-width: 520px) {
+  .meter { grid-template-columns: 26px minmax(0, 1fr) auto; }
+  .meter-wait { grid-column: 3; }
+  .meter .state { grid-column: 2 / 4; }
+}
+
+/* The one motion in the game: after Submit, each trace draws itself once, then its end appears. */
+@keyframes draw-trace { to { stroke-dashoffset: 0; } }
+@keyframes show-ends { to { opacity: 1; } }
+.trace-line.is-drawing { animation: draw-trace 900ms linear forwards; }
+.trace-ends.is-waiting { opacity: 0; animation: show-ends 220ms ease-out 900ms forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .trace-line.is-drawing { animation: none; stroke-dasharray: none !important; stroke-dashoffset: 0 !important; }
+  .trace-ends.is-waiting { animation: none; opacity: 1; }
+}
+
+/* ----------------------------------------------------------------------------------------------
+   Feedback
+   ---------------------------------------------------------------------------------------------- */
+
+.feedback { margin-top: 22px; padding-top: 14px; border-top: 3px solid var(--mark); }
+.feedback-option { color: var(--ink-2); margin-bottom: 4px; }
+.feedback-headline { font: 600 1.625rem/1.15 var(--font-title); text-wrap: balance; margin-bottom: 12px; }
+.feedback-lines { list-style: none; margin-bottom: 14px; }
+.feedback-lines li { padding: 7px 0; border-top: 1px solid var(--rule); }
+.feedback-lines li:last-child { border-bottom: 1px solid var(--rule); }
+.feedback-lines .state { margin-right: 4px; }
+.feedback-explain, .feedback-note, .feedback-next { max-width: 68ch; margin-bottom: 10px; }
+.feedback-next { font-weight: 600; }
+
+/* ----------------------------------------------------------------------------------------------
+   The briefing
+   ---------------------------------------------------------------------------------------------- */
+
+/* Narrow: the text, the worked example, then the words. Wide: the example stands beside both. */
+.briefing-columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px 40px; align-items: start; }
+@media (min-width: 960px) {
+  .briefing-columns { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); grid-template-rows: auto 1fr; }
+  .briefing-columns > .example { grid-column: 2; grid-row: 1 / span 2; }
+  .briefing-columns > .terms-block { grid-column: 1; grid-row: 2; }
+}
+.prose p { max-width: 62ch; }
+.prose p + p { margin-top: 14px; }
+.example { padding: 16px; background: var(--paper-2); border: 1px solid var(--rule); border-radius: 2px; min-width: 0; }
+.example-title { font: 600 1.3125rem/1.2 var(--font-title); margin-bottom: 6px; }
+.example .instrument { margin-top: 10px; }
+.example-result { margin-top: 14px; font-weight: 500; }
+.terms-title { font: 600 1.3125rem/1.2 var(--font-title); margin: 4px 0 8px; }
+.terms { max-width: 62ch; }
+.terms > div { padding: 8px 0; border-top: 1px solid var(--rule); }
+.terms dt { font-weight: 600; }
+
+/* The Start button stays in reach at the bottom of the window however long the briefing is. */
+.start-bar {
+  position: sticky; bottom: 0; z-index: 1;
+  margin: 26px calc(-1 * var(--sheet-pad)) calc(-1 * var(--sheet-pad)); padding: 12px var(--sheet-pad);
+  background: var(--paper); border-top: 1px solid var(--rule);
+}
+.sources { margin-top: 24px; color: var(--ink-2); font-size: 1rem; max-width: 96ch; }
+.sources a { color: var(--ink-2); }
+
+.level-done { margin-bottom: 28px; padding: 14px 18px 4px; border: 1.5px solid var(--ink); border-radius: 2px; }
+.level-done-title { font: 600 1.3125rem/1.2 var(--font-title); }
+
+.figures { display: flex; flex-wrap: wrap; gap: 10px 40px; margin: 12px 0; }
+.figures dt { color: var(--ink-2); font-size: 1rem; }
+.figures dd { font: 600 1.75rem/1.15 var(--font-title); }
+
+/* ----------------------------------------------------------------------------------------------
+   The summary and the content error
+   ---------------------------------------------------------------------------------------------- */
+
+.summary h2 { font: 600 1.3125rem/1.2 var(--font-title); margin: 26px 0 8px; }
+.summary .figures { margin-top: 22px; }
+.practiced { list-style: none; max-width: 80ch; }
+.practiced li { padding: 8px 0; border-top: 1px solid var(--rule); }
+.practiced strong { font-weight: 600; }
+
+.content-error p { max-width: 68ch; }
+.error-list { margin: 16px 0 0 1.2em; max-width: 80ch; }
+.error-list li { margin-bottom: 8px; }
+code { font: inherit; font-size: 1rem; color: var(--ink-2); padding: 1px 6px; border: 1px solid var(--rule); border-radius: 3px; white-space: nowrap; }
+
+/* ----------------------------------------------------------------------------------------------
+   Dialogs
+   ---------------------------------------------------------------------------------------------- */
+
+dialog {
+  padding: 0; color: var(--ink); background: var(--paper);
+  border: 1.5px solid var(--ink); border-radius: 2px;
+  max-height: calc(100vh - 24px); max-height: calc(100dvh - 24px);
+}
+dialog::backdrop { background: rgba(20, 38, 58, 0.62); }
+.sheet-dialog { width: min(980px, calc(100vw - 20px)); max-width: none; }
+.small-dialog { width: min(460px, calc(100vw - 20px)); max-width: none; padding: 22px; }
+.small-dialog h2 { font: 600 1.625rem/1.15 var(--font-title); margin-bottom: 8px; }
+.dialog-body { padding: var(--sheet-pad); }
+.sheet-dialog > .actions {
+  position: sticky; bottom: 0; margin: 0; padding: 12px var(--sheet-pad);
+  background: var(--paper); border-top: 1px solid var(--rule);
+}
+.model h2 { font: 600 2.1rem/1.1 var(--font-title); margin-bottom: 4px; }
+.model h3 { font: 600 1.3125rem/1.2 var(--font-title); margin: 24px 0 6px; }
+.model ul { margin-left: 1.2em; max-width: 78ch; }
+.model li { margin-bottom: 6px; }
+.model-table { max-width: 520px; }
+.source-list { margin-left: 1.4em; max-width: 84ch; }
+.claim { color: var(--ink-2); }
+
+.noscript { max-width: 60ch; margin: 24px auto; padding: 16px; background: var(--paper); border: 1.5px solid var(--ink); }
+
+/* ----------------------------------------------------------------------------------------------
+   Forced colors: keep the drawings readable when the system chooses the colors
+   ---------------------------------------------------------------------------------------------- */
+
+@media (forced-colors: active) {
+  .fiber-line, .trace-line, .window-edge, .leader, .trace-grid line { stroke: CanvasText; }
+  .olt-box, .end-dot, .att-box, .splitter-shape.is-chosen { fill: CanvasText; }
+  .olt-text { fill: Canvas; }
+  .ont-box, .splitter-shape { fill: Canvas; stroke: CanvasText; }
+  .tick, .zone-name, .trace-empty, .end-label, .plant-note, .seg-km, .seg-counts, .ont-text, .splitter-ratio, .att-text { fill: CanvasText; }
+  .window-band { fill: none; }
+  .instrument { border: 1px solid CanvasText; }
+  .option:has(input:checked) { outline: 2px solid Highlight; outline-offset: -2px; }
+  .fiber::before { forced-color-adjust: none; }
+}

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "title": "Split Decision",
-  "tagline": "Choose the split. Keep every ONT inside the loss window.",
+  "tagline": "Pick the splitter that lights every home: not too dark, not too bright.",
   "lossCard": {
     "fiberDbPerKm": 0.5,
     "connectorPairDb": 0.5,
@@ -92,7 +92,7 @@
       "A real budget keeps margin for repairs and ageing. The game keeps none, so every number on screen comes from an element you can see.",
       "Transmitter power, receiver sensitivity, reflectance, bend loss and the differences between a splitter's ports are not modeled.",
       "XGS-PON has other loss classes (B+, C+, E1, E2) and a maximum fiber distance. The game uses N1 and N2 only.",
-      "ONT is the everyday word for what the standard calls an ONU."
+      "The standard also limits how far apart the losses of two paths on one PON may be. The game does not test that limit on its own; every answer in the game is within it."
     ]
   },
   "levels": [
@@ -124,7 +124,7 @@
           },
           {
             "term": "Connector pair",
-            "meaning": "Two connectors mated in an adapter, as at a patch panel: {connector} each."
+            "meaning": "Two connectors mated in an adapter, as at a patch panel: {connector} for the pair."
           },
           {
             "term": "Splice",
@@ -842,7 +842,7 @@
                   "db": 10
                 }
               ],
-              "note": "An attenuator at the OLT port sits on every path. It fixes the bright ONT and takes the same light from the one that had none to spare.",
+              "note": "An attenuator at the OLT port sits on every path. It dims the bright ONT, and it dims every other ONT by the same amount.",
               "expect": "over-max"
             },
             {
