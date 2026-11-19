@@ -56,6 +56,7 @@ A running record kept by the build agent while the game was made. Times are UTC 
 | 2026-11-19 21:14–21:27 | Phase 8: game | Evaluator, tokens, feedback, validator, content and page changed. 172 unit tests passed on the first run; the oracle agreed on 227 comparisons; the browser checks went from 23 of 25 (one check assumed the old answer of round 1-2) to 25 of 25. Every view was looked at, at 1366, 390 and 320 pixels, and four layout faults were fixed. Commit 6d4fca9. |
 | 2026-11-19 21:27–21:33 | Phase 8: hardening and packaging | Room before the nearer limit for an ONT inside the window (173 unit tests). 26 planted bugs, all caught. README, `ARCADE.md`, quickstart and the notes on the planning inputs rewritten; card image and README screenshot captured again. Commit d417bd8. |
 | 2026-11-19 21:33 | Fresh copy, third time | Commit d417bd8 cloned into an empty folder: 173 unit tests, 227 oracle comparisons and the browser checks passed there (24 as a reader runs them, plus the axe-core audit when given the engine), and the README's run command served the game. Recorded build finish: 21:33:45. |
+| 2026-11-19 21:37 | Review copy | The build after the second review was republished for the owner in place, as the same private artifact; its 21 files were compared with the repository by checksum. The repository was packaged again as a zip. |
 
 ## Step records
 
