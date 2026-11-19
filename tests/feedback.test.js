@@ -86,6 +86,11 @@ export default async function define({ test, assertEqual, assertDeepEqual, asser
           } else {
             assertEqual(ont.stateWord, 'Inside the window');
             assertIncludes(ont.line, `${optics.dark} to ${optics.bright}`);
+            // The room that is left is measured to the nearer limit. Worked here from the key, not from the game.
+            const toDark = want.level - key.optics.dark;
+            const toBright = key.optics.bright - want.level;
+            const room = toBright < toDark ? `${db(toBright)} to spare before the bright limit` : `${db(toDark)} to spare before the dark limit`;
+            assertIncludes(ont.line, `with ${room}.`, `${ontId} room`);
           }
         }
 
@@ -167,6 +172,17 @@ export default async function define({ test, assertEqual, assertDeepEqual, asser
     const description = describeResult(content, round, { ...evaluate(content, round, 'a3'), optionId: 'a3' });
     assertEqual(description.headline, 'Too bright at ONT A and ONT B.');
     assertEqual(description.onts[0].line, `ONT A loses 12.2 dB and receives ${MINUS}7.2 dBm. That is 0.8 dB above the bright limit of ${MINUS}8 dBm.`);
+  });
+
+  test('feedback/an ONT inside the window is measured to the nearer limit', () => {
+    const court = rounds.find((r) => r.id === 'r3-1');
+    const fixed = describeResult(content, court, { ...evaluate(content, court, 'a10'), optionId: 'a10' });
+    // Hand-worked: -14.2 dBm is 6.2 dB below the bright limit and 13.8 dB above the dark limit.
+    assertEqual(fixed.onts[0].line, `ONT A loses 19.2 dB and receives ${MINUS}14.2 dBm. Inside the window of ${MINUS}28 dBm to ${MINUS}8 dBm, with 6.2 dB to spare before the bright limit.`);
+    const lane = rounds.find((r) => r.id === 'r1-1');
+    const far = describeResult(content, lane, { ...evaluate(content, lane, 'o16'), optionId: 'o16' });
+    // Hand-worked: -22.2 dBm is 5.8 dB above the dark limit and 14.2 dB below the bright limit.
+    assertIncludes(far.onts[0].line, 'with 5.8 dB to spare before the dark limit.');
   });
 
   test('feedback/a two-stage ledger lists both splitters', () => {

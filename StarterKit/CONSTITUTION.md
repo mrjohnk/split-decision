@@ -1,6 +1,8 @@
 # Split Decision · Project constitution
 
 > **Amended by the owner's first review, 2026-11-19.** The governing constitution is `.specify/memory/constitution.md`, now at version 1.1.0: the game has one loss window, 8 to 28 dB, in place of the N1 and N2 classes named below, and says "connector" where this file says "connector pair". This file is kept as the planning input it was.
+>
+> **Amended again by the owner's second review, 2026-11-19.** The owner said that 8 and 28 are the ONT's receive levels, and gave the launch power. The game now has a launch power of +5 dBm and a receive window of −28 dBm to −8 dBm, works out a receive level for every ONT, and names its outcomes too-dark, too-bright and dark-and-bright (specification, decisions D13 to D16; constitution 1.2.0). Everything below about loss windows, their limits and the hand-worked numbers is the first version's.
 
 **Purpose:** help network engineers, sales engineers and students who are new to PON practice optical loss budgeting by choosing the splitter or attenuator design for a passive optical network.
 

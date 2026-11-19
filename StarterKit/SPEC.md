@@ -4,6 +4,8 @@
 >
 > 1. The game has **one loss window, 8 to 28 dB**, in place of the N1 (14 to 29 dB) and N2 (16 to 31 dB) classes used below. Rounds 2-1, 2-2, 3-1 and 3-2 were re-worked for it, so the hand-worked cases below are the first version's, kept as the record of what was asked at the time.
 > 2. The game says **"connector"**, one mated connection on the single fiber, where this file says "connector pair".
+>
+> **Amended again by the owner's second review, 2026-11-19.** The owner said that 8 and 28 are the ONT's receive levels, and gave the launch power. The game now has a launch power of +5 dBm and a receive window of −28 dBm to −8 dBm, works out a receive level for every ONT, and names its outcomes too-dark, too-bright and dark-and-bright (specification, decisions D13 to D16; constitution 1.2.0). Everything below about loss windows, their limits and the hand-worked numbers is the first version's.
 
 ## The pitch
 

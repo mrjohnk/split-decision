@@ -291,7 +291,9 @@ def check_feedback(game, round_id, option_id, answer_label):
         elif ont["state"] == "bright":
             need(f"{one(ont['by'])} dB above the bright limit of {BRIGHT}" in line, f"{where}/{ont_id}: limit and difference missing: '{line}'")
         else:
-            need(f"{DARK} to {BRIGHT}" in line and f"{one(ont['level'] - OPTICS['dark'])} dB to spare before the dark limit" in line, f"{where}/{ont_id}: window and margin missing: '{line}'")
+            to_dark, to_bright = ont["level"] - OPTICS["dark"], OPTICS["bright"] - ont["level"]
+            room = f"{one(to_bright)} dB to spare before the bright limit" if to_bright < to_dark else f"{one(to_dark)} dB to spare before the dark limit"
+            need(f"{DARK} to {BRIGHT}" in line and f"with {room}." in line, f"{where}/{ont_id}: window and room missing: '{line}'")
         ledger = game.t(f"ledger-text-{ont_id}").text_content()
         sum_text = f"{LAUNCH} {MINUS} {one(ont['total'])} dB = {dbm(ont['level'])}"
         need(f"= {one(ont['total'])} dB. " in ledger and ledger.strip().endswith(sum_text), f"{where}/{ont_id}: the ledger does not end with the loss and the level sum: '{ledger}'")

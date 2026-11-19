@@ -89,7 +89,11 @@ function describeOnt(ont, window, card) {
   } else if (ont.state === 'bright') {
     line = `${found} That is ${margin} above the ${classWord(window)}bright limit of ${fmtLevelLimit(window.brightMilli)}.`;
   } else {
-    line = `${found} Inside the ${classWord(window)}window of ${fmtWindow(window)}, with ${margin} to spare before the dark limit.`;
+    // Inside the window: say how much room is left before the nearer of the two limits.
+    const toDark = ont.levelMilli - window.darkMilli;
+    const toBright = window.brightMilli - ont.levelMilli;
+    const room = toBright < toDark ? `${fmtLoss(toBright)} to spare before the bright limit` : `${fmtLoss(toDark)} to spare before the dark limit`;
+    line = `${found} Inside the ${classWord(window)}window of ${fmtWindow(window)}, with ${room}.`;
   }
   const { rows, lossText } = describeLedger(ont, card);
   const sumText = levelSum(ont, window);

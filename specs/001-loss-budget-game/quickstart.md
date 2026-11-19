@@ -31,10 +31,10 @@ Open http://127.0.0.1:8000. On Windows use `py` in place of `python3`. If port 8
 
 ## Validation scenarios
 
-1. **First decision (AC1 to AC4)**. Start level 1. In round 1-1 press Submit with nothing selected: guidance appears and the attempt count stays at 0. Submit 1:64: "Too dark at ONT A", 30.4 dB, 2.4 dB over 28 dB; the round stays open. Submit 1:16: the design works but a larger option also fits. Submit 1:32: solved, 26.9 dB, the ledger 7.0 + 2.0 + 0.4 + 17.5.
-2. **Help and progress (AC5 to AC7)**. In round 1-2 open hint 1, hint 2 and the worked solution, then submit 1:16. Choose Next: the Level 2 briefing opens with Level 1's summary showing the attempts, the two hints and the worked solution.
+1. **First decision (AC1 to AC4)**. Start level 1. In round 1-1 press Submit with nothing selected: guidance appears and the attempt count stays at 0. Submit 1:64: "Too dark at ONT A", 34.2 dB of loss, −29.2 dBm, 1.2 dB below the dark limit of −28 dBm; the round stays open. Submit 1:16: the design works but a larger option also fits. Submit 1:32: solved, −25.7 dBm, the ledger 9.0 + 3.5 + 0.7 + 17.5 = 30.7 dB and the level sum +5 dBm − 30.7 dB.
+2. **Help and progress (AC5 to AC7)**. In round 1-2 open hint 1, hint 2 and the worked solution, then submit 1:64. Choose Next: the Level 2 briefing opens with Level 1's summary showing the attempts, the two hints and the worked solution.
 3. **Restart (AC8)**. Choose Restart, then "Keep playing": nothing changes. Choose Restart, then "Restart the game": the Level 1 briefing, with no progress.
-4. **Too much light (level 3)**. In round 3-1 submit "Build it as drawn": "Too bright", 5.2 and 5.3 dB, under the 8 dB minimum. In round 3-2 submit the attenuator at the OLT port: ONT B is too dark at 36.4 dB.
+4. **Too much light (level 3)**. In round 3-1 submit "Build it as drawn": "Too bright", −4.2 and −4.3 dBm, above the bright limit of −8 dBm. In round 3-2 submit the attenuator at the OLT port: ONT B is too dark at −31.4 dBm.
 5. **Keyboard only (AC9)**. Play from a fresh start to the summary without a pointer.
 6. **Reduced motion and narrow window (AC10, FR-025, FR-027)**. Request reduced motion in the operating system or the browser's rendering settings and submit an answer: the feedback is there at once and nothing moves. Narrow the window to 320 pixels: the page does not scroll sideways and Submit can be reached.
 7. **Unsupported content (FR-019)**. `tests/content.test.js` builds copies of the content for cases U1 to U6 and confirms that each is rejected.

@@ -50,6 +50,7 @@ Other test hooks: `view` on the main region with `data-view` and, in a round, `d
 - The headline of the answer begins with "Correct."; no other headline does.
 - Every state has words and a shape: "Inside the window" with a ring, "Too dark" with a downward chevron, "Too bright" with a sunburst.
 - Feedback for an incorrect submission never prints the answer's label, and ends with a next step chosen by outcome.
+- For each ONT the feedback gives its loss and its receive level. For an ONT outside the window it adds the limit that was missed and the difference; for an ONT inside it, the room left before the nearer of the two limits.
 
 ## Help
 
