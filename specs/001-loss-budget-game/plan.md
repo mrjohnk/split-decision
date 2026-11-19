@@ -184,6 +184,7 @@ Recorded on 2026-11-19. The owner confirmed the launch power and kept the loss c
 | --- | --- | --- | --- | --- |
 | 23 | The card image was a screenshot of round 2-1, taken by `tools/e2e.py --card` | The card is drawn by `tools/card.html`, a page outside the game that uses the game's engine, content file, style sheet and typefaces, and is captured by `tools/e2e.py --card`. The README's screenshot is still taken from the running game | Beside the Arcade's other cards the screenshot was the plainest, and it cannot be read at card size | spec.md D18, FR-030; research.md R-12 |
 | 24 | The card's shape and size were printed by the capture and not checked | Browser check `CARD`: the page's three levels and states equal the hand-worked ones, its words are the game's, it asks for nothing outside the game's folder, and the stored image is 16:9, at least 1280 pixels wide and under 1 MB | FR-030 | tools/e2e.py |
+| 25 | The page was checked at phone widths with a mouse (`NARROW`) | Browser check `TOUCH` also plays the whole game with taps in an emulated phone (a mobile viewport, touch input, a coarse pointer), upright and on its side: no sideways scrolling, and no button or option under 40 CSS pixels | The owner asked whether the game plays on an Android phone | tools/e2e.py; spec.md, Clarifications |
 
 No change to the engine, the content or the page of the game.
 

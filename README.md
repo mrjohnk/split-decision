@@ -121,7 +121,7 @@ To run the checks yourself, from the repository root:
 ```sh
 node tests/run-node.mjs       # 173 unit tests; needs Node 20 or later
 python3 tools/oracle.py       # recomputes the hand-worked answer key in Python
-python3 tools/e2e.py          # 26 browser checks; needs: pip install playwright, and Chrome or Chromium
+python3 tools/e2e.py          # 27 browser checks; needs: pip install playwright, and Chrome or Chromium
 ```
 
 The unit tests also run in the browser: start the local server and open **http://127.0.0.1:8000/tests/**. One browser check, an audit with the axe-core accessibility engine, runs only when you give it the engine: `npm pack axe-core`, unpack it, and add `--axe path/to/axe.min.js`. Without that it is reported as not run.
@@ -135,9 +135,10 @@ The unit tests also run in the browser: start the local server and open **http:/
 | Keyboard-only core playthrough | Pass by automation; **not run by a person** | Browser check `KEYBOARD`: from the first briefing to the summary with key presses only, at 1366 × 768, checking focus after every action |
 | Accessible names, contrast, text size | Pass by automation | `NAMES`; `CONTRAST` (lowest 5.01 to 1); `TEXTSIZE` (running text at least 16 px); `AXE` (axe-core 4.14.1: no violation in 12 views). No screen reader was used |
 | Narrow layout and reduced motion | Pass by automation | `NARROW` at 320, 390 and 768 px: no sideways page scroll, controls reachable; `MOTION`: no animation under reduced motion and the result present at once |
+| Touch, at phone size | Pass by automation; **not tried on a real phone** | `TOUCH`: in Chrome's emulation of a phone (412 × 839 CSS pixels upright and 863 × 360 on its side, touch input) all six work orders, the hints, the worked solution and the three dialogs were worked with taps only. No sideways scrolling, and no button or option under 40 CSS pixels. Held on its side, the verdict's words land just below the screen after Submit and need a short scroll |
 | No request outside the game | Pass | `ORIGIN`: every request of a full playthrough stays under the game's own path, fonts included |
 | The Arcade card | Pass by automation | Browser check `CARD`: the three designs on the card page end at the hand-worked levels (−23.0, −26.5 and −30.0 dBm), its words are the game's, no word is crossed or cut off, the page asks for nothing outside the game's folder, and `assets/card.webp` is 1600 × 900 pixels and 37 KB. That the stored image is the page's current drawing is not compared by a script |
-| The checks can fail | Pass | 26 bugs were planted one at a time in the game: 11 were caught by the unit tests and 15 by the browser checks. 14 more were planted in the card page, its image and `ARCADE.md`, and `CARD` caught each. Every one was reverted |
+| The checks can fail | Pass | 26 bugs were planted one at a time in the game: 11 were caught by the unit tests and 15 by the browser checks. 14 more were planted in the card page, its image and `ARCADE.md`, and `CARD` caught each. 3 more were planted in the style sheet for a touch screen, and `TOUCH` caught each. Every one was reverted |
 | Fresh checkout run instructions | Pass | Commit `d417bd8` was cloned into an empty folder on 2026-11-19. The three commands above passed there (173 unit tests, 227 oracle comparisons, 24 browser checks with the axe-core audit not run, and that audit passed when given the engine), and the game and `/tests/` were opened from `python3 -m http.server` as described under Play locally. Commits after it change documents only |
 | A first-time player finishes in 10 to 15 minutes (SC-004) | **Not run** | Needs a person. Waiting for the owner |
 | A teammate can say what each level taught (SC-008) | **Not run** | Needs a person. Waiting for the owner |

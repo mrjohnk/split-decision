@@ -101,9 +101,11 @@ def start_server():
 # --------------------------------------------------------------------------------------------------
 
 class Game:
-    def __init__(self, browser, base, width=1366, height=768, reduced_motion="no-preference", mutate=None, content_status=200, scale=1):
+    def __init__(self, browser, base, width=1366, height=768, reduced_motion="no-preference", mutate=None, content_status=200, scale=1, device=None):
         self.base = base
-        self.context = browser.new_context(viewport={"width": width, "height": height}, reduced_motion=reduced_motion, device_scale_factor=scale)
+        options = {"viewport": {"width": width, "height": height}, "reduced_motion": reduced_motion, "device_scale_factor": scale}
+        options.update(device or {})  # a device replaces the size and adds touch and a mobile viewport
+        self.context = browser.new_context(**options)
         self.page = self.context.new_page()
         self.requests = []
         self.problems = []
@@ -968,6 +970,98 @@ def narrow(new):
                 page.screenshot(path=str(OUT / "07-narrow-320.png"), full_page=True)
             checked.append((width, name))
     return f"{len(checked)} view and width combinations at 320, 390 and 768 pixels"
+
+
+# A phone held upright and on its side, as Chrome emulates one: a mobile viewport, touch input and
+# a coarse pointer. The sizes are those of Playwright's Pixel 7 profile. It is not a real phone.
+PHONES = {
+    "upright": {"viewport": {"width": 412, "height": 839}, "device_scale_factor": 2.625, "is_mobile": True, "has_touch": True},
+    "on its side": {"viewport": {"width": 863, "height": 360}, "device_scale_factor": 2.625, "is_mobile": True, "has_touch": True},
+}
+
+TOUCH_JS = """() => {
+  const shown = (el) => { const r = el.getBoundingClientRect(); const s = getComputedStyle(el); return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none'; };
+  const scope = document.querySelector('dialog[open]') || document;
+  const small = [];
+  let counted = 0;
+  for (const el of scope.querySelectorAll('button, label.option')) {
+    if (!shown(el)) continue;
+    counted += 1;
+    const r = el.getBoundingClientRect();
+    if (Math.min(r.width, r.height) < 40) small.push(`${el.dataset.testid || el.textContent.trim().slice(0, 24)} ${Math.round(r.width)} x ${Math.round(r.height)}`);
+  }
+  return { wide: document.documentElement.scrollWidth - document.documentElement.clientWidth, shifted: window.scrollX, small, counted };
+}"""
+
+
+@check("TOUCH", "FR-027, README", "In an emulated phone, upright and on its side, the whole game is played with taps: no sideways scrolling, and every button and option is at least 40 CSS pixels in its smaller dimension")
+def touch(new):
+    told = []
+    for name, device in PHONES.items():
+        g = new(device=device, reduced_motion="reduce")
+        g.open()
+        page = g.page
+        signs = page.evaluate("[navigator.maxTouchPoints, matchMedia('(pointer: coarse)').matches, matchMedia('(hover: none)').matches]")
+        if not (signs[0] > 0 and signs[1] and signs[2]):
+            raise NotRun(f"this browser does not emulate a touch screen: touch points, coarse pointer, no hover = {signs}")
+        seen = {"views": 0, "targets": 0}
+
+        def look(where):
+            found = page.evaluate(TOUCH_JS)
+            need(found["wide"] <= 0 and found["shifted"] == 0, f"{name}, {where}: the page is {found['wide']} px wider than the window")
+            need(not found["small"], f"{name}, {where}: too small for a thumb: {found['small']}")
+            seen["views"] += 1
+            seen["targets"] += found["counted"]
+
+        def tap(test_id):
+            g.t(test_id).tap()
+
+        look("the first briefing")
+        tap("start-level")
+        g.wait_view("round")
+        look("round 1-1")
+
+        # A wrong design first, then both hints and the worked solution.
+        wrong = next(option_id for option_id in KEY["rounds"]["r1-1"]["options"] if option_id != KEY["rounds"]["r1-1"]["answer"])
+        tap(f"option-{wrong}")
+        tap("submit")
+        page.wait_for_selector('[data-testid="feedback-headline"]', timeout=5000)
+        need(g.t("next").is_disabled(), f"{name}: a wrong design opened the next work order")
+        look("round 1-1 after a wrong design")
+        tap("hint")
+        g.t("hint-1").wait_for(timeout=3000)
+        tap("hint")
+        g.t("hint-2").wait_for(timeout=3000)
+        tap("solution")
+        g.t("solution-text").wait_for(timeout=3000)
+        look("round 1-1 with the hints and the worked solution")
+
+        # The two panels and the restart question, opened and closed by tap.
+        for opener, dialog, closer in (("open-model", "model-dialog", "close-model"), ("open-briefing", "briefing-dialog", "close-briefing"), ("restart", "restart-dialog", "cancel-restart")):
+            tap(opener)
+            page.wait_for_selector(f"dialog#{dialog}[open]", timeout=3000)
+            look(f"the {dialog}")
+            tap(closer)
+            page.wait_for_selector(f"dialog#{dialog}:not([open])", state="attached", timeout=3000)
+
+        # Every work order, answered by tapping the option's row and then Submit.
+        for round_id in ROUND_IDS:
+            if g.view() == "briefing":
+                look(f"the briefing before round {round_id}")
+                tap("start-level")
+                g.wait_view("round")
+            need(g.round_id() == round_id, f"{name}: expected round {round_id}, the page shows {g.round_id()}")
+            tap(f"option-{KEY['rounds'][round_id]['answer']}")
+            tap("submit")
+            page.wait_for_function("(() => { const b = document.querySelector('[data-testid=next]'); return b && !b.disabled; })()", timeout=5000)
+            look(f"round {round_id} solved")
+            tap("next")
+        g.wait_view("summary")
+        look("the summary")
+        need(g.t("total-solved").inner_text().startswith(f"{len(ROUND_IDS)} of {len(ROUND_IDS)}"), f"{name}: the summary says {g.t('total-solved').inner_text()!r}")
+        no_problems(g)
+        told.append(f"{name} ({device['viewport']['width']} x {device['viewport']['height']}): {seen['views']} views, {seen['targets']} buttons and options measured")
+    return "taps only; " + "; ".join(told) + ". An emulated phone, not a real one"
 
 
 @check("ORIGIN", "SC-009, FR-028", "A full playthrough makes no request outside the game's own origin, and the fonts come from the game")

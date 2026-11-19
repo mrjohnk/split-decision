@@ -198,7 +198,8 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 - [X] T076 Add the browser check `CARD` to `tools/e2e.py`, with the hand-worked levels and states as its expected values, and run it before the card page is in the repository: it must fail (FR-030)
 - [X] T077 Write `tools/card.html`: the card drawn as SVG by the game's engine, content file, style sheet and typefaces (FR-030)
 - [X] T078 Change `tools/e2e.py --card` to capture the card page to `assets/card.webp`, and to take the README's screenshot, `docs/gameplay.png`, from the running game as before (FR-030)
-- [ ] T079 Plant bugs in the card page and in the stored image and confirm that `CARD` catches each; bring README, `ARCADE.md`, quickstart.md and `docs/verification.md` in line; run all three check layers and the fresh-copy check; package the repository for the owner
+- [X] T079 Plant bugs in the card page and in the stored image and confirm that `CARD` catches each; bring README, `ARCADE.md`, quickstart.md and `docs/verification.md` in line; run all three check layers and the fresh-copy check; package the repository for the owner
+- [X] T080 Add the browser check `TOUCH` to `tools/e2e.py`, after the owner asked whether the game plays on an Android phone: the whole game played with taps in an emulated phone, upright and on its side, with no sideways scrolling and no button or option under 40 CSS pixels (FR-027); plant three bugs and confirm that it catches each
 
 ---
 

@@ -1,11 +1,11 @@
 {
-  "ran": "2026-11-19T22:22:19Z",
+  "ran": "2026-11-19T22:32:48Z",
   "browser": "chromium 153.0.8010.12",
   "served_from": "/play/split-decision/",
-  "passed": 26,
+  "passed": 27,
   "failed": 0,
   "not_run": 0,
-  "seconds": 45.0,
+  "seconds": 50.2,
   "checks": [
     {
       "id": "AC1",
@@ -13,7 +13,7 @@
       "title": "A fresh session opens on the Level 1 briefing and nothing can be answered before Start",
       "status": "pass",
       "detail": "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the launch power, the receive window, the goal and three options with the homes they serve",
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "id": "AC2",
@@ -37,7 +37,7 @@
       "title": "Round 1-1 with a 1:16 splitter: works at \u221222.2 dBm, a larger one also fits, the answer is not named",
       "status": "pass",
       "detail": "This design works, and a larger one also fits.",
-      "seconds": 0.5
+      "seconds": 0.6
     },
     {
       "id": "AC4",
@@ -53,7 +53,7 @@
       "title": "Hint 1, hint 2 and the worked solution appear in order, count as help and do not complete the round",
       "status": "pass",
       "detail": "Level complete: Add it up  Work orders solved 2 of 2 Attempts 2 Hints used 2 Worked solutions viewed 1",
-      "seconds": 0.7
+      "seconds": 0.8
     },
     {
       "id": "AC6",
@@ -61,7 +61,7 @@
       "title": "Each real submission is one attempt; the answer completes the round once; a repeat changes nothing",
       "status": "pass",
       "detail": "Attempts: 3. Hints used: 0. Worked solution: not viewed.",
-      "seconds": 0.6
+      "seconds": 0.7
     },
     {
       "id": "AC7",
@@ -69,7 +69,7 @@
       "title": "Next opens the following round, then the next briefing with the level summary, then the session summary",
       "status": "pass",
       "detail": "Next work order > Next level > Next work order > Next level > Next work order > See summary",
-      "seconds": 1.3
+      "seconds": 1.2
     },
     {
       "id": "AC8",
@@ -85,7 +85,7 @@
       "title": "All 20 options of the six rounds, submitted in the page, match the hand-worked key",
       "status": "pass",
       "detail": "20 submissions compared with the key: totals, states, outcomes, limits and differences",
-      "seconds": 6.1
+      "seconds": 6.3
     },
     {
       "id": "RELOAD",
@@ -93,7 +93,7 @@
       "title": "Reloading the page in mid-game returns to the first briefing with no progress",
       "status": "pass",
       "detail": "fresh start after reload; nothing in localStorage, sessionStorage or cookies",
-      "seconds": 0.6
+      "seconds": 0.7
     },
     {
       "id": "KEYBOARD",
@@ -117,7 +117,7 @@
       "title": "Feedback is text, stays until the next submission or view, names its design and is announced",
       "status": "pass",
       "detail": "Your design: 1:64 splitter. Too dark at ONT A. ONT A loses 34.2 dB and receives \u221229.2 dBm. That is 1.2 dB below the dark limit of \u221228 dBm. This choice usually comes from counting only the fiber and the splitter. Those two alone lose 30.0 dB, which this network could carry. The connectors and splices add 4.2 dB, and that takes ONT A below the dark limit. Next step: look for a design that puts less loss on that path.",
-      "seconds": 0.6
+      "seconds": 0.7
     },
     {
       "id": "MOTION",
@@ -125,7 +125,7 @@
       "title": "The result is readable at once; the trace draws itself only when motion is allowed, and then stops",
       "status": "pass",
       "detail": "reduced motion: 0 animations, result present at once; otherwise the trace draws once in under 1.5 s",
-      "seconds": 2.4
+      "seconds": 2.6
     },
     {
       "id": "CONTRAST",
@@ -133,7 +133,7 @@
       "title": "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it",
       "status": "pass",
       "detail": "1863 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1",
-      "seconds": 2.0
+      "seconds": 2.1
     },
     {
       "id": "TEXTSIZE",
@@ -141,7 +141,7 @@
       "title": "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12",
       "status": "pass",
       "detail": "smallest running text 16px; smallest drawing label 12px",
-      "seconds": 1.9
+      "seconds": 2.0
     },
     {
       "id": "NARROW",
@@ -149,7 +149,15 @@
       "title": "At 320 CSS pixels wide the page never scrolls sideways and Submit, Hint and Next can be reached",
       "status": "pass",
       "detail": "36 view and width combinations at 320, 390 and 768 pixels",
-      "seconds": 8.2
+      "seconds": 8.3
+    },
+    {
+      "id": "TOUCH",
+      "covers": "FR-027, README",
+      "title": "In an emulated phone, upright and on its side, the whole game is played with taps: no sideways scrolling, and every button and option is at least 40 CSS pixels in its smaller dimension",
+      "status": "pass",
+      "detail": "taps only; upright (412 x 839): 16 views, 112 buttons and options measured; on its side (863 x 360): 16 views, 112 buttons and options measured. An emulated phone, not a real one",
+      "seconds": 4.6
     },
     {
       "id": "ORIGIN",
@@ -157,7 +165,7 @@
       "title": "A full playthrough makes no request outside the game's own origin, and the fonts come from the game",
       "status": "pass",
       "detail": "19 requests, all under /play/split-decision/ (css, html, js, json, svg, woff2); fonts: barlow-condensed-latin-500-normal.woff2, barlow-condensed-latin-600-normal.woff2, barlow-latin-400-normal.woff2, barlow-latin-500-normal.woff2, barlow-latin-600-normal.woff2",
-      "seconds": 1.6
+      "seconds": 1.5
     },
     {
       "id": "CONTENT",
@@ -173,7 +181,7 @@
       "title": "The briefing can be reviewed during a round; the model panel lists the rule, the limits of the model and every source",
       "status": "pass",
       "detail": "8 sources: 7 published ones with an https link, and the owner's decisions on the receive window and the launch power",
-      "seconds": 1.0
+      "seconds": 0.9
     },
     {
       "id": "AXE",
@@ -181,7 +189,7 @@
       "title": "The axe-core accessibility engine reports no violation in any view",
       "status": "pass",
       "detail": "axe-core 4.14.1: 0 violations in 12 views",
-      "seconds": 3.7
+      "seconds": 3.5
     },
     {
       "id": "FOLDER",

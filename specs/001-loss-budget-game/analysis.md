@@ -143,6 +143,8 @@ The owner closed H2 and H5, and asked how the Arcade card compares with the othe
 
 **Metrics (pass 5):** 39 requirements (30 functional, 9 success criteria), all cited by at least one task; 79 tasks; 0 critical findings; no open point.
 
+After this pass the owner asked whether the game plays on an Android phone. Task T080 was added, a browser check that plays the game with taps in an emulated phone. It tests FR-027 by a second route and adds no requirement: 80 tasks.
+
 ## Next Actions
 
 Implementation may begin. Two items stay with the owner: timing a first playthrough (SC-004) and saying what each level taught (SC-008).
