@@ -143,11 +143,11 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 - [X] T042 Review every briefing, hint, note and explanation in `data/levels.json` against references R1 to R6 and record the review, line by line where a number is stated, in `docs/verification.md`
 - [X] T043 Add a trial seventh round as data only in `tests/content.test.js` and confirm that it validates and is graded without any change under `engine/` (constitution, principle VI)
 - [X] T044 Capture `assets/card.webp` (16:9, under 1 MB) and `docs/gameplay.png` from the running game with `tools/e2e.py`
-- [ ] T045 Write the root `README.md` from the attendee template: actual status, the challenge, what is learned, how to run and play, controls, the model and its references, how it was built, the verification table, known limits, credits and license
-- [ ] T046 Complete `docs/verification.md`: every acceptance criterion and success criterion with pass, fail or not run, the date, the environment and the evidence; keep failed and untested checks visible; record SC-004 and SC-008, which need a person, as not run by the build and waiting for the owner
-- [ ] T047 Fill `ARCADE.md` from `docs/build-log.md`; write "unknown" for anything not recorded; leave the creator block and `consent_to_publish` for the owner
-- [ ] T048 Fresh-copy check: clone the repository into a new directory, serve it on a free port, run `node tests/run-node.mjs`, `python3 tools/oracle.py` and `python3 tools/e2e.py` there, and record the result in `docs/verification.md`
-- [ ] T049 Walk through quickstart.md scenarios 1 to 7 and record each in `docs/verification.md`
+- [X] T045 Write the root `README.md` from the attendee template: actual status, the challenge, what is learned, how to run and play, controls, the model and its references, how it was built, the verification table, known limits, credits and license
+- [X] T046 Complete `docs/verification.md`: every acceptance criterion and success criterion with pass, fail or not run, the date, the environment and the evidence; keep failed and untested checks visible; record SC-004 and SC-008, which need a person, as not run by the build and waiting for the owner
+- [X] T047 Fill `ARCADE.md` from `docs/build-log.md`; write "unknown" for anything not recorded; leave the creator block and `consent_to_publish` for the owner
+- [X] T048 Fresh-copy check: clone the repository into a new directory, serve it on a free port, run `node tests/run-node.mjs`, `python3 tools/oracle.py` and `python3 tools/e2e.py` there, and record the result in `docs/verification.md`
+- [X] T049 Walk through quickstart.md scenarios 1 to 7 and record each in `docs/verification.md`
 
 ---
 

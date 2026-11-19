@@ -202,7 +202,16 @@ The seven scenarios of `specs/001-loss-budget-game/quickstart.md`, each as run b
 
 ## Fresh copy (task T048)
 
-FRESH_COPY_SECTION
+Run on 2026-11-19 from 15:42:05 to 15:42:50, on commit `f5c2bfa`, cloned with `git clone` into a new, empty folder (97 tracked files). Commits after `f5c2bfa` change documents only.
+
+| Step | Command, in the fresh copy | Result |
+| --- | --- | --- |
+| Unit tests | `node tests/run-node.mjs` | 158 passed, 0 failed, 158 total |
+| Independent answer-key check | `python3 tools/oracle.py` | All 169 checks agree with the hand-worked key |
+| Browser checks | `python3 tools/e2e.py` | 23 passed, 0 failed, 23 checks, 42.1 s |
+| The README's own instructions | `python3 -m http.server <free port> --bind 127.0.0.1`, then the address opened in headless Chrome | The Level 1 briefing "Add it up" appeared; round 1-1 with the 1:32 splitter gave "Correct. ONT A is inside the window." at 26.9 dB; `/tests/` reported 158 passed, 0 failed; no failed request and no page error |
+
+After the run the fresh copy differed from the commit only in `docs/verification/results.json`, which records the time of the run: the ten screenshots came out byte for byte the same.
 
 ## The line colors of the loss trace
 

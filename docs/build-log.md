@@ -41,6 +41,7 @@ A running record kept by the build agent while the game was made. Times are UTC 
 | 2026-11-19 15:28–15:32 | Packaging | Card image and README screenshot captured from the running game by `tools/e2e.py --card`. A splitter mark added to the header. A private review copy published for the owner as a Claude artifact at 15:31. |
 | 2026-11-19 15:34 | Owner | Said he would review the game in the evening, and intends to submit before the deadline of 2026-11-20. |
 | 2026-11-19 15:32–15:41 | Packaging | The plan, research notes, UI contract and task list brought in line with the game as built. Requirement traceability of the browser checks corrected against the specification's numbering, and three assertions added (FR-003, FR-005, FR-026). One unit test added for FR-002. README, `ARCADE.md` and the verification record written. Unit tests 158, oracle 169 comparisons, browser checks 23, all passing at 15:41. |
+| 2026-11-19 15:42 | Fresh copy | Commit f5c2bfa cloned into an empty folder: 158 unit tests, 169 oracle comparisons and 23 browser checks all passed there, and the README's run command served the game. This is the recorded build finish: 15:42:50. |
 
 ## Step records
 
