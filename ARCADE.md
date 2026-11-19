@@ -32,8 +32,8 @@ creator:                     # (HUMAN) every field here is the owner's to fill
 
 build:
   started: "2026-11-19T14:07:13Z"    # git init and specify init
-  finished: "BUILD_FINISHED"            # the last check, the fresh-copy run after the owner's first review; anything after it is not included
-  wall_time: "BUILD_WALL_TIME"           # from started to finished, both read from the session clock; the owner was away for part of it and the agent kept working
+  finished: "2026-11-19T16:10:50Z"            # the last check, the fresh-copy run after the owner's first review; anything after it is not included
+  wall_time: "2h03m37s"           # from started to finished, both read from the session clock; the owner was away for part of it and the agent kept working
   spec_driven:
     framework: "GitHub Spec Kit"
     framework_version: "specify CLI 1.4.3.dev0"

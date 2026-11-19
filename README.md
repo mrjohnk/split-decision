@@ -135,7 +135,7 @@ The unit tests also run in the browser: start the local server and open **http:/
 | Narrow layout and reduced motion | Pass by automation | `NARROW` at 320, 390 and 768 px: no sideways page scroll, controls reachable; `MOTION`: no animation under reduced motion and the result present at once |
 | No request outside the game | Pass | `ORIGIN`: every request of a full playthrough stays under the game's own path, fonts included |
 | The checks can fail | Pass | 4 planted bugs caught by the unit tests and 14 of 14 by the browser checks, each reverted |
-| Fresh checkout run instructions | FRESH_COPY_RESULT | FRESH_COPY_NOTE |
+| Fresh checkout run instructions | Pass | Commit `493a690` was cloned into an empty folder on 2026-11-19. The three commands above passed there (159 unit tests, 172 oracle comparisons, 24 browser checks with the axe-core audit not run, and that audit passed when given the engine), and the game and `/tests/` were opened from `python3 -m http.server` as described under Play locally. Commits after it change documents only |
 | A first-time player finishes in 10 to 15 minutes (SC-004) | **Not run** | Needs a person. Waiting for the owner |
 | A teammate can say what each level taught (SC-008) | **Not run** | Needs a person. Waiting for the owner |
 | Firefox, Safari, a real phone, a screen reader | **Not run** | Only headless Chrome was available to the build |

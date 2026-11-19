@@ -221,7 +221,17 @@ The seven scenarios of `specs/001-loss-budget-game/quickstart.md`, each as run b
 
 ## Fresh copy (task T048)
 
-FRESH_COPY_SECTION
+Run on 2026-11-19 from 16:10:00 to 16:10:50, on commit `493a690`, cloned with `git clone` into a new, empty folder (97 tracked files). Commits after `493a690` change documents only. The same check was run on the first build at 15:42 (commit `f5c2bfa`: 158, 169 and 23, all passing).
+
+| Step | Command, in the fresh copy | Result |
+| --- | --- | --- |
+| Unit tests | `node tests/run-node.mjs` | 159 passed, 0 failed, 159 total |
+| Independent answer-key check | `python3 tools/oracle.py` | All 172 checks agree with the hand-worked key |
+| Browser checks, as a reader would run them | `python3 tools/e2e.py` | 24 passed, 0 failed, 1 not run (the axe-core audit, which needs the engine), 42.7 s |
+| The axe-core audit | `python3 tools/e2e.py --axe <axe.min.js> AXE` | Pass: axe-core 4.14.1, 0 violations in 12 views |
+| The README's own instructions | `python3 -m http.server <free port> --bind 127.0.0.1`, then the address opened in headless Chrome | The Level 1 briefing "Add it up" appeared; round 1-1 with the 1:32 splitter gave "Correct. ONT A is inside the window." at 26.9 dB; `/tests/` reported 159 passed, 0 failed; no failed request and no page error |
+
+After the run the fresh copy differed from the commit only in `docs/verification/results.json`, which records the time of the run.
 
 ## The line colors of the loss trace
 
