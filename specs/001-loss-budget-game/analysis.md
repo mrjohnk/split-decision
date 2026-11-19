@@ -7,7 +7,7 @@
 | ID | Category | Severity | Location(s) | Summary | Recommendation |
 |----|----------|----------|-------------|---------|----------------|
 | D1 | Constitution | CRITICAL | data-model.md Option.note; spec.md FR-010; constitution II | An option's authored note was optional. Principle II says a wrong answer MUST explain the specific mistake, so a wrong option with no note would violate it | Require a note on every option that is not the answer; add a validation error for a missing one |
-| E1 | Coverage | HIGH | tasks.md T006, T013, T014 | Constrained fields of data-model.md were cited by group or in a loose form, and 41 of 62 had no explicit `Entity.field` citation in an implementing task | Cite every constrained field in `Entity.field` form in the validator task and the session task |
+| E1 | Coverage | HIGH | tasks.md T006, T013, T014 | Constrained fields of data-model.md were cited by group or in a loose form, and 53 of 74 had no explicit `Entity.field` citation in an implementing task | Cite every constrained field in `Entity.field` form in the validator task and the session task |
 | C1 | Underspecification | MEDIUM | spec.md FR-010; constitution II | FR-010 asked for the mistake but not for the "useful next step" that principle II requires | Add the next step to FR-010 and to the feedback task and test |
 | C2 | Underspecification | MEDIUM | contracts/ui.md; tasks.md T015 | No artifact said which module produces the worked solution, the one place where the answer is shown | Name `describeSolution` in `engine/feedback.js` in the contract and in T015; test it in T010 |
 | E2 | Coverage | MEDIUM | spec.md SC-001, SC-002, SC-003, SC-005; tasks.md | Four success criteria were met in substance by test tasks but cited by none | Cite them in T007, T010, T035 and T008 |
@@ -27,7 +27,7 @@
 
 **Unmapped Tasks:** none. T001 to T004 are setup; T016, T026, T034, T041, T048 and T049 run and record checks.
 
-**Metrics (pass 1):** 37 requirements (28 functional, 9 success criteria); 49 tasks; 31 of 37 requirements cited by at least one task (84%); 21 of 62 constrained fields cited in `Entity.field` form; 2 ambiguity findings; 0 duplicate requirements needing a merge; 1 critical finding.
+**Metrics (pass 1):** 37 requirements (28 functional, 9 success criteria); 49 tasks; 31 of 37 requirements cited by at least one task (84%); 21 of 74 constrained fields cited in `Entity.field` form; 2 ambiguity findings; 0 duplicate requirements needing a merge; 1 critical finding.
 
 ## Remediation
 
@@ -79,9 +79,9 @@ No CRITICAL, HIGH or MEDIUM finding remains. A1 and F4 stand as recorded, with n
 | SC-008 | Yes | T046 |
 | SC-009 | Yes | T035 |
 
-**Constrained-Field Coverage:** all 62 constrained fields of data-model.md are cited in `Entity.field` form: the 50 content fields by T013 (the validator, which enforces them), and the 12 session fields by T014.
+**Constrained-Field Coverage:** all 74 constrained fields of data-model.md are cited in `Entity.field` form: the 62 content fields by T013 (the validator, which enforces them), and the 12 session fields by T014.
 
-**Metrics (pass 2):** 37 of 37 requirements cited by at least one task (100%); 62 of 62 constrained fields cited; 49 tasks; 0 critical findings. SC-004 and SC-008 are covered only by a recording task, because they need a person.
+**Metrics (pass 2):** 37 of 37 requirements cited by at least one task (100%); 74 of 74 constrained fields cited; 49 tasks; 0 critical findings. SC-004 and SC-008 are covered only by a recording task, because they need a person.
 
 ## Next Actions
 
