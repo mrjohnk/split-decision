@@ -28,10 +28,10 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create the directories `engine/`, `ui/`, `data/`, `tests/fixtures/`, `tools/`, `assets/` and `docs/verification/` at the repository root, as laid out in plan.md
-- [ ] T002 [P] Create `index.html`: the page shell with a header, a main region carrying `data-testid="view"`, a status region with `role="status"` and `aria-live="polite"`, three `<dialog>` elements, and `main.js` as the only module entry (contracts/ui.md)
-- [ ] T003 [P] Create `tests/harness.js` (case registration, `assertEqual`, `assertDeepEqual`, `assertTrue`, result collection) and `tests/all.js` (the list of test modules)
-- [ ] T004 [P] Create `tests/run-node.mjs` and `tests/index.html`: both import `tests/all.js`, run every case, report totals and failed case IDs, and report failure when no test was found; the Node runner exits non-zero on failure
+- [X] T001 Create the directories `engine/`, `ui/`, `data/`, `tests/fixtures/`, `tools/`, `assets/` and `docs/verification/` at the repository root, as laid out in plan.md
+- [X] T002 [P] Create `index.html`: the page shell with a header, a main region carrying `data-testid="view"`, a status region with `role="status"` and `aria-live="polite"`, three `<dialog>` elements, and `main.js` as the only module entry (contracts/ui.md)
+- [X] T003 [P] Create `tests/harness.js` (case registration, `assertEqual`, `assertDeepEqual`, `assertTrue`, result collection) and `tests/all.js` (the list of test modules)
+- [X] T004 [P] Create `tests/run-node.mjs` and `tests/index.html`: both import `tests/all.js`, run every case, report totals and failed case IDs, and report failure when no test was found; the Node runner exits non-zero on failure
 
 ---
 
@@ -43,21 +43,21 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Tests first
 
-- [ ] T005 Transcribe the specification's Hand-worked Cases into `tests/fixtures/answer-key.json`: for each of the 20 `round/option` cases the total and state of every ONT and the outcome; and boundary cases B1 to B4 with their inputs and expected results
-- [ ] T006 Author the graded facts in `data/levels.json`: `schemaVersion`, `lossCard`, `classes`, sources R1 to R6, the model notes, and for each of the six rounds its class, plant and options exactly as written in the specification (data-model.md: Content document.schemaVersion, Loss card.fiberDbPerKm, Loss card.connectorPairDb, Loss card.spliceDb, Loss card.splitterDb, Loss class.minDb, Loss class.maxDb, Source.url, Plant, Option.served, Option.splitters, Option.attenuators)
-- [ ] T007 Write `tests/rules.test.js` from contracts/rules.md: the 20 cases and B1 to B4 against `tests/fixtures/answer-key.json`; `invalid-input` for no selection and for an unknown option; the 0.35 dB/km recomputation that must change no ONT's state; repeat calls return equal results and leave inputs unchanged (SC-001). Confirm it fails
-- [ ] T008 Write `tests/content.test.js` from contracts/content.md: the shipped content validates; altered copies produce each of U1 to U6 with the listed code and place; each remaining error code, including `missing-note`, is produced at least once; validation does not modify its input (SC-005). Confirm it fails
-- [ ] T009 Write `tests/state.test.js` from contracts/session.md: AC4, AC5, AC6, AC7, AC8, clarifications 1 to 3, and the summary totals of a scripted playthrough. Confirm it fails
-- [ ] T010 Write `tests/feedback.test.js`: for every shipped option the feedback text contains each ONT's total, the limit and the difference produced by the evaluator; feedback for an incorrect submission never contains the answer's label (FR-011) and ends with a next step (FR-010); the worked solution names the answer and carries its ledger; guidance text exists for `no-selection` (SC-002). Confirm it fails
+- [X] T005 Transcribe the specification's Hand-worked Cases into `tests/fixtures/answer-key.json`: for each of the 20 `round/option` cases the total and state of every ONT and the outcome; and boundary cases B1 to B4 with their inputs and expected results
+- [X] T006 Author `data/levels.json` in full: `schemaVersion`, `lossCard`, `classes`, sources R1 to R6, the model notes, and for each of the six rounds its class, plant and options exactly as written in the specification; and the authored text of all three levels (briefings with their worked examples, stories, goals, hints, option notes with `expect`, explanations), with every dB value written as a value token. The whole file must be valid before any screen can load, so the text is authored here and reviewed in the running page in T018 and T028
+- [X] T007 Write `tests/rules.test.js` from contracts/rules.md: the 20 cases and B1 to B4 against `tests/fixtures/answer-key.json`; `invalid-input` for no selection and for an unknown option; the 0.35 dB/km recomputation that must change no ONT's state; repeat calls return equal results and leave inputs unchanged (SC-001). Confirm it fails
+- [X] T008 Write `tests/content.test.js` from contracts/content.md: the shipped content validates; altered copies produce each of U1 to U6 with the listed code and place; each remaining error code, including `missing-note` and `unknown-token`, is produced at least once; no authored text contains a hand-typed dB value; validation does not modify its input (SC-005). Confirm it fails
+- [X] T009 Write `tests/state.test.js` from contracts/session.md: AC4, AC5, AC6, AC7, AC8, clarifications 1 to 3, and the summary totals of a scripted playthrough. Confirm it fails
+- [X] T010 Write `tests/feedback.test.js`: for every shipped option the feedback text contains each ONT's total, the limit and the difference produced by the evaluator; feedback for an incorrect submission never contains the answer's label (FR-011) and ends with a next step (FR-010); the worked solution names the answer and carries its ledger; guidance text exists for `no-selection` (SC-002). Confirm it fails
 
 ### Implementation
 
-- [ ] T011 Implement `engine/rules.js` per contracts/rules.md: `toMilli`, `pathsOf`, `evaluateOption`, `evaluateRound`, `outcomeOf`, `evaluate`, all in whole thousandths of a dB (FR-006, FR-007, FR-008)
-- [ ] T012 [P] Write `tools/oracle.py`: recompute every case of `tests/fixtures/answer-key.json` from `data/levels.json` with Python's `decimal` module, sharing no code with `engine/`, and exit non-zero on any difference
-- [ ] T013 Implement `engine/content.js` per contracts/content.md: `validateContent` with every error code, in the stated order of checks (FR-019, FR-020). It enforces every constraint of data-model.md: Content document.schemaVersion, Content document.title, Content document.lossCard, Content document.classes, Content document.sources, Content document.model, Content document.levels; Loss card.fiberDbPerKm, Loss card.connectorPairDb, Loss card.spliceDb, Loss card.splitterDb, Loss card.sourceIds; Loss class.minDb, Loss class.maxDb, Loss class.sourceId; Source.id, Source.title, Source.url, Source.section, Source.claim; Model notes.rule, Model notes.assumptions, Model notes.leftOut; Level.id, Level.title, Level.outcome, Level.briefing, Level.rounds; Briefing.intro, Briefing.terms, Briefing.example, Briefing.sourceIds; Round.id, Round.title, Round.place, Round.story, Round.goal, Round.class, Round.plant, Round.options, Round.hints, Round.explain; Plant.oltLabel, Plant.trunk; Segment.fiberKm, Segment.connectorPairs, Segment.splices, Segment.to; Node.type, Node.id, Node.label, Node.ratio, Node.legs, Node.note; Option.id, Option.label, Option.served, Option.servedLabel, Option.splitters, Option.attenuators, Option.note, Option.expect
-- [ ] T014 Implement `engine/state.js` per contracts/session.md: `createSession`, `reduce`, `summarize` (FR-012 to FR-018; data-model.md: Session state.view, Session state.levelIndex, Session state.roundIndex, Session state.finishedLevelId, Session state.confirmingRestart, and for each round Session state.selected, Session state.attempts, Session state.hints, Session state.solutionViewed, Session state.solved, Session state.last, Session state.guidance)
-- [ ] T015 Implement `engine/feedback.js`: `describeResult` turns an evaluation into a headline, one line for each ONT, the ledger, the option's note and a next step by outcome; `describeSolution` names the answer and prints its ledger; and the guidance text (FR-009 to FR-012, FR-014, FR-024, FR-026)
-- [ ] T016 Run `node tests/run-node.mjs` and `python3 tools/oracle.py`; record the totals and any failure in `docs/verification.md`
+- [X] T011 Implement `engine/rules.js` per contracts/rules.md: `toMilli`, `pathsOf`, `evaluateOption`, `evaluateRound`, `outcomeOf`, `evaluate`, all in whole thousandths of a dB (FR-006, FR-007, FR-008)
+- [X] T012 [P] Write `tools/oracle.py`: recompute every case of `tests/fixtures/answer-key.json` from `data/levels.json` with Python's `decimal` module, sharing no code with `engine/`, and exit non-zero on any difference
+- [X] T013 Implement `engine/content.js` per contracts/content.md: `validateContent` with every error code, in the stated order of checks (FR-019, FR-020). It enforces every constraint of data-model.md: Content document.schemaVersion, Content document.title, Content document.lossCard, Content document.classes, Content document.sources, Content document.model, Content document.levels; Loss card.fiberDbPerKm, Loss card.connectorPairDb, Loss card.spliceDb, Loss card.splitterDb, Loss card.sourceIds; Loss class.minDb, Loss class.maxDb, Loss class.sourceId; Source.id, Source.title, Source.url, Source.section, Source.claim; Model notes.rule, Model notes.assumptions, Model notes.leftOut; Level.id, Level.title, Level.outcome, Level.briefing, Level.rounds; Briefing.intro, Briefing.terms, Briefing.example, Briefing.sourceIds; Round.id, Round.title, Round.place, Round.story, Round.goal, Round.class, Round.plant, Round.options, Round.hints, Round.explain; Plant.oltLabel, Plant.trunk; Segment.fiberKm, Segment.connectorPairs, Segment.splices, Segment.to; Node.type, Node.id, Node.label, Node.ratio, Node.legs, Node.note; Option.id, Option.label, Option.served, Option.servedLabel, Option.splitters, Option.attenuators, Option.note, Option.expect
+- [X] T014 Implement `engine/state.js` per contracts/session.md: `createSession`, `reduce`, `summarize` (FR-012 to FR-018; data-model.md: Session state.view, Session state.levelIndex, Session state.roundIndex, Session state.finishedLevelId, Session state.confirmingRestart, and for each round Session state.selected, Session state.attempts, Session state.hints, Session state.solutionViewed, Session state.solved, Session state.last, Session state.guidance)
+- [X] T015 Implement `engine/feedback.js`: `describeResult` turns an evaluation into a headline, one line for each ONT, the ledger, the option's note and a next step by outcome; `describeSolution` names the answer and prints its ledger; and the guidance text (FR-009 to FR-012, FR-014, FR-024, FR-026)
+- [X] T016 Run `node tests/run-node.mjs` and `python3 tools/oracle.py`; record the totals and any failure in `docs/verification.md`
 
 **Checkpoint**: The rule is proven against the hand-worked cases by two implementations. User story work can begin.
 
@@ -75,7 +75,7 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Add to `data/levels.json` the Level 1 briefing (introduction, terms, worked example, sources, and the simplifications in plain language, FR-022), and for rounds 1-1 and 1-2 the place, story, goal, option notes with `expect`, and `explain`
+- [ ] T018 [US1] Review in the running page, and correct in `data/levels.json` where needed, the Level 1 briefing (introduction, terms, worked example, sources, and the simplifications in plain language, FR-022) and the story, goal, option notes and explanation of rounds 1-1 and 1-2
 - [ ] T019 [US1] Implement `main.js`: fetch `data/levels.json` by relative URL, validate it, create the session, render; show the loading view, and the content error view with "Try loading again" when loading or validation fails (FR-019, FR-028)
 - [ ] T020 [P] [US1] Implement `ui/diagram.js`: draw the plant as inline SVG with a generated text description, and one light meter for each ONT with the class window marked (FR-003; contracts/ui.md, Diagram and meters)
 - [ ] T021 [US1] Implement the briefing view in `ui/render.js`: level title and outcome, introduction, terms, worked example, sources cited, "Start level" (FR-001, FR-002, FR-021)
@@ -101,7 +101,7 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Add to `data/levels.json` the Level 2 and Level 3 briefings, the place, story, goal, option notes with `expect` and `explain` for rounds 2-1 to 3-2, and two hints for each of the six rounds
+- [ ] T028 [US2] Review in the running page, and correct in `data/levels.json` where needed, the Level 2 and Level 3 briefings, the story, goal, option notes and explanation of rounds 2-1 to 3-2, and the two hints of each of the six rounds
 - [ ] T029 [US2] Render the Hint and Worked solution buttons and the revealed help in `ui/render.js`, and wire `hint` and `solution` in `ui/controls.js`; both are unavailable once the round is solved (FR-014)
 - [ ] T030 [US2] Render Next with its three names and wire `next` in `ui/controls.js`; show the finished level's summary at the top of the next briefing (FR-015, FR-016)
 - [ ] T031 [US2] Implement the session summary view in `ui/render.js`: one row for each round, the totals including "solved without the worked solution" and "solved with no help at all", what each level practiced, "Play again" (FR-016)
@@ -172,8 +172,8 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 - T005 and T006 before T007; T007 before T011; T008 before T013; T009 before T014; T010 before T015.
 - T011 before T013, T014 and T015, which call the evaluator.
-- T018 before T021 to T023, which render that content. T019 before any view can be seen.
-- T028 before T029 to T031.
+- T006 before every view, because the page loads only a fully valid content file. T019 before any view can be seen.
+- T018 after T021 to T023 and T028 after T029 to T031, because they review wording in the running page.
 - In every phase the last task runs the checks and records them.
 
 ### Parallel Opportunities

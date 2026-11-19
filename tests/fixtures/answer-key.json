@@ -1,0 +1,111 @@
+{
+  "about": "Hand-worked expected results, transcribed from specs/001-loss-budget-game/spec.md (Hand-worked Cases). Written before the evaluator existed. Never regenerate this file from the code under test.",
+  "units": "dB",
+  "rounds": {
+    "r1-1": {
+      "class": "N1",
+      "answer": "o32",
+      "options": {
+        "o16": { "served": 16, "outcome": "valid-not-best", "onts": { "A": { "total": 23.4, "state": "ok" } } },
+        "o32": { "served": 32, "outcome": "best-valid", "onts": { "A": { "total": 26.9, "state": "ok" } } },
+        "o64": { "served": 64, "outcome": "over-max", "onts": { "A": { "total": 30.4, "state": "over", "by": 1.4 } } }
+      }
+    },
+    "r1-2": {
+      "class": "N1",
+      "answer": "o16",
+      "options": {
+        "o16": { "served": 16, "outcome": "best-valid", "onts": { "A": { "total": 25.9, "state": "ok" } } },
+        "o32": { "served": 32, "outcome": "over-max", "onts": { "A": { "total": 29.4, "state": "over", "by": 0.4 } } },
+        "o64": { "served": 64, "outcome": "over-max", "onts": { "A": { "total": 32.9, "state": "over", "by": 3.9 } } }
+      }
+    },
+    "r2-1": {
+      "class": "N2",
+      "answer": "o32",
+      "options": {
+        "o16": { "served": 16, "outcome": "valid-not-best", "onts": { "A": { "total": 21.4, "state": "ok" }, "B": { "total": 22.4, "state": "ok" }, "C": { "total": 24.6, "state": "ok" } } },
+        "o32": { "served": 32, "outcome": "best-valid", "onts": { "A": { "total": 24.9, "state": "ok" }, "B": { "total": 25.9, "state": "ok" }, "C": { "total": 28.1, "state": "ok" } } },
+        "o64": { "served": 64, "outcome": "over-max", "onts": { "A": { "total": 28.4, "state": "ok" }, "B": { "total": 29.4, "state": "ok" }, "C": { "total": 31.6, "state": "over", "by": 0.6 } } }
+      }
+    },
+    "r2-2": {
+      "class": "N2",
+      "answer": "c4x16",
+      "options": {
+        "c8x16": { "served": 128, "outcome": "over-max", "onts": { "A": { "total": 31.5, "state": "over", "by": 0.5 }, "B": { "total": 32.0, "state": "over", "by": 1.0 } } },
+        "c2x16": { "served": 32, "outcome": "valid-not-best", "onts": { "A": { "total": 24.5, "state": "ok" }, "B": { "total": 25.0, "state": "ok" } } },
+        "c4x16": { "served": 64, "outcome": "best-valid", "onts": { "A": { "total": 28.0, "state": "ok" }, "B": { "total": 28.5, "state": "ok" } } }
+      }
+    },
+    "r3-1": {
+      "class": "N1",
+      "answer": "a5",
+      "options": {
+        "none": { "served": 8, "outcome": "under-min", "onts": { "A": { "total": 12.2, "state": "under", "by": 1.8 }, "B": { "total": 12.3, "state": "under", "by": 1.7 } } },
+        "a1": { "served": 8, "outcome": "under-min", "onts": { "A": { "total": 13.2, "state": "under", "by": 0.8 }, "B": { "total": 13.3, "state": "under", "by": 0.7 } } },
+        "a5": { "served": 8, "outcome": "best-valid", "onts": { "A": { "total": 17.2, "state": "ok" }, "B": { "total": 17.3, "state": "ok" } } },
+        "a20": { "served": 8, "outcome": "over-max", "onts": { "A": { "total": 32.2, "state": "over", "by": 3.2 }, "B": { "total": 32.3, "state": "over", "by": 3.3 } } }
+      }
+    },
+    "r3-2": {
+      "class": "N1",
+      "answer": "ontA10",
+      "options": {
+        "olt10": { "served": 33, "outcome": "over-max", "onts": { "A": { "total": 17.3, "state": "ok" }, "B": { "total": 37.4, "state": "over", "by": 8.4 } } },
+        "ontA10": { "served": 33, "outcome": "best-valid", "onts": { "A": { "total": 17.3, "state": "ok" }, "B": { "total": 27.4, "state": "ok" } } },
+        "ontB10": { "served": 33, "outcome": "over-and-under", "onts": { "A": { "total": 7.3, "state": "under", "by": 6.7 }, "B": { "total": 37.4, "state": "over", "by": 8.4 } } },
+        "none": { "served": 33, "outcome": "under-min", "onts": { "A": { "total": 7.3, "state": "under", "by": 6.7 }, "B": { "total": 27.4, "state": "ok" } } }
+      }
+    }
+  },
+  "fixedBeforeChoice": {
+    "about": "Loss from fixed elements only, as written in the specification's case headings.",
+    "r1-1": { "A": 9.4 },
+    "r1-2": { "A": 11.9 },
+    "r2-1": { "A": 7.4, "B": 8.4, "C": 10.6 },
+    "r2-2": { "A": 21.0, "B": 21.5 },
+    "r3-1": { "A": 12.2, "B": 12.3 },
+    "r3-2": { "A": 7.3, "B": 27.4 }
+  },
+  "boundary": [
+    {
+      "id": "B1",
+      "about": "Exactly at the N1 maximum",
+      "class": "N1",
+      "path": { "fiberKm": 18.0, "connectorPairs": 4, "splices": 5 },
+      "splitterRatio": 32,
+      "total": 29.0,
+      "state": "ok"
+    },
+    {
+      "id": "B2",
+      "about": "0.1 dB over the N1 maximum",
+      "class": "N1",
+      "path": { "fiberKm": 18.0, "connectorPairs": 4, "splices": 6 },
+      "splitterRatio": 32,
+      "total": 29.1,
+      "state": "over",
+      "by": 0.1
+    },
+    {
+      "id": "B3",
+      "about": "Exactly at the N1 minimum",
+      "class": "N1",
+      "path": { "fiberKm": 2.0, "connectorPairs": 4, "splices": 5 },
+      "splitterRatio": 8,
+      "total": 14.0,
+      "state": "ok"
+    },
+    {
+      "id": "B4",
+      "about": "0.1 dB under the N1 minimum",
+      "class": "N1",
+      "path": { "fiberKm": 2.0, "connectorPairs": 4, "splices": 4 },
+      "splitterRatio": 8,
+      "total": 13.9,
+      "state": "under",
+      "by": 0.1
+    }
+  ]
+}

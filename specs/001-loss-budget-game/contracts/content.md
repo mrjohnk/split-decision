@@ -25,6 +25,8 @@ The whole file is validated before the first screen. When `ok` is false the game
 | `note-mismatch` | An option's `expect` differs from its computed outcome, or a `note` has no `expect` | U5 |
 | `missing-note` | An option that is not the round's answer has no `note` | |
 | `unknown-source` | A briefing, class or loss card cites a source ID that is not defined | U6 |
+| `unknown-token` | Authored text carries a value token that is not defined, is not allowed in that place, or names an ONT, class or ratio that does not exist | |
+| `bad-example` | A briefing's worked example has an open splitter, or leaves an ONT outside its window | |
 | `bad-hints` | A round does not have exactly two hints | |
 | `bad-level` | A level does not have exactly two rounds | |
 
@@ -38,3 +40,4 @@ Shape first, then identities, then references, then numbers, then the evaluation
 - A copy of the shipped content altered to produce each of U1 to U6 fails with the code in the table, and `where` names the altered round.
 - Each remaining code is produced by at least one altered copy.
 - The shipped content is not modified by validation.
+- No authored text in the shipped content contains a number followed by "dB": every dB value is a value token.

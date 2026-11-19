@@ -49,12 +49,13 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 | `id` | string | Unique |
 | `title` | string | Non-empty |
 | `outcome` | string | The learning outcome, LO1 to LO3 |
+| `practiced` | string | One line for the session summary: what the level practiced |
 | `briefing` | Briefing | Required |
 | `rounds` | list of Round | Exactly two |
 
 ### Briefing
 
-`intro` (list of paragraphs), `terms` (list of `{ term, meaning }`), `example` (`{ title, lines, result }`, a worked example whose numbers differ from every round), `sourceIds` (at least one, each must exist).
+`intro` (list of paragraphs), `terms` (list of `{ term, meaning }`), `example` (a worked example whose numbers differ from every round: `{ title, class, plant, attenuators, result }`, a small plant with no open splitter that the evaluator computes, so its ledger cannot disagree with the loss card), `sourceIds` (at least one, each must exist).
 
 ### Round
 
@@ -90,6 +91,21 @@ At least one ONT must be reachable.
 | `attenuators` | list of `{ at, db }` | `at` is `"olt"` (shared by every ONT) or an ONT ID in the round; `db` greater than 0 |
 | `note` | string | Required for every option that is not the round's answer: the mistake that usually leads here. Optional for the answer |
 | `expect` | outcome, required with `note` | Must equal the computed outcome |
+
+### Value tokens in authored text
+
+Authored text never contains a hand-typed dB value. It carries value tokens, which are filled from the loss card, the classes and the evaluator when the text is shown, so that a change to the data cannot leave a stale number in a sentence.
+
+| Token | Filled with | Where it may appear |
+| --- | --- | --- |
+| `{fiber}`, `{connector}`, `{splice}`, `{splitter:N}` | Loss card values | Anywhere |
+| `{min:CLASS}`, `{max:CLASS}` | A class's limits | Anywhere |
+| `{class}`, `{min}`, `{max}`, `{window}` | The round's or example's class | Rounds and examples |
+| `{fixed:ONT}`, `{fiber:ONT}`, `{connectors:ONT}`, `{splices:ONT}`, `{installed:ONT}` | The ONT's loss from fixed elements, and its parts | Rounds and examples |
+| `{total:ONT}`, `{margin:ONT}`, `{chosen:ONT}`, `{bigOnly:ONT}`, `{small:ONT}` | The ONT's total, its distance to the limit, the loss the option adds, the total without connectors and splices, and the connectors and splices alone | Option notes (for that option), explanations and worked examples (for the answer or the example) |
+| `{answer}` | The answer's label | Explanations only |
+
+An unknown token, or a token that names an ONT or class that does not exist, is a validation error.
 
 ## Derived entities
 

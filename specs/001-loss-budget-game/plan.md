@@ -90,6 +90,7 @@ engine/
 ├── rules.js                 Pure domain evaluation; no DOM or progress changes
 ├── content.js               Validate authored data and source references
 ├── state.js                 Session transitions, attempts, assistance, completion
+├── tokens.js                Fill value tokens in authored text from computed values
 └── feedback.js              Turn an evaluation into the words shown to the player
 ui/
 ├── render.js                Briefing, round, feedback, summary and error views
@@ -119,6 +120,7 @@ docs/
 ├── gameplay.png             Screenshot for the README, captured from the running game
 └── verification/            Screenshots written by tools/e2e.py
 StarterKit/                  The owner's three planning inputs
+package.json                 Marks the .js files as modules for Node; no dependencies
 ARCADE.md                    Arcade submission card
 README.md                    How to play, run and test; what was verified
 ```

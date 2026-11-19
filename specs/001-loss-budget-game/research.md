@@ -45,6 +45,7 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 
 - **Decision**: an option may carry an authored `note` (the mistake that usually leads to it, or why it works) together with `expect`, the outcome the note was written for. Validation fails when `expect` differs from the computed outcome. Every number in the feedback comes from the evaluator's evidence, never from the note.
 - **Rationale**: principle VI. If a length is edited and the outcome changes, the note is caught at load instead of telling the player something false.
+- **Extension decided at implementation**: authored text carries value tokens instead of hand-typed dB values, and a briefing's worked example is a small plant that the evaluator computes. A test asserts that no authored text contains a number followed by "dB". If the owner changes the loss card, every sentence follows it, and the validator reports any round whose answer or note outcome changed.
 - **Alternatives considered**: free-text feedback for each option (can silently go stale); generated text only (cannot name a misconception).
 
 ## R-08 · Rendering

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split Decision · tests</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 60rem; color: #14213d; background: #f7f5ef; }
+    h1 { font-size: 1.4rem; }
+    #summary { font-weight: 700; padding: 0.75rem 1rem; border: 2px solid #14213d; display: inline-block; }
+    #summary[data-status="pass"]::before { content: "PASS · "; }
+    #summary[data-status="fail"]::before { content: "FAIL · "; }
+    li { margin: 0.5rem 0; }
+    code { font-family: ui-monospace, Menlo, Consolas, monospace; }
+  </style>
+</head>
+<body>
+  <h1>Split Decision · test runner</h1>
+  <p>Runs the same test modules as <code>node tests/run-node.mjs</code>. Serve the repository over HTTP and open this page.</p>
+  <p id="summary" role="status" data-testid="test-summary" data-status="running">Running…</p>
+  <ul id="failures" data-testid="test-failures"></ul>
+  <script type="module">
+    import { createHarness } from './harness.js';
+
+    const summary = document.getElementById('summary');
+    const failures = document.getElementById('failures');
+    const loadJson = async (relativePath) => {
+      const response = await fetch(new URL('../' + relativePath, import.meta.url));
+      if (!response.ok) throw new Error(`Could not load ${relativePath}: HTTP ${response.status}`);
+      return response.json();
+    };
+
+    try {
+      const { suites } = await import('./all.js');
+      const harness = createHarness();
+      for (const define of suites) await define({ ...harness, loadJson });
+      const result = await harness.run();
+      const ok = result.total > 0 && result.failed.length === 0;
+      summary.dataset.status = ok ? 'pass' : 'fail';
+      summary.dataset.total = String(result.total);
+      summary.dataset.passed = String(result.passed);
+      summary.dataset.failed = String(result.failed.length);
+      summary.textContent = result.total === 0
+        ? 'No tests were found. That is a failure.'
+        : `${result.passed} passed, ${result.failed.length} failed, ${result.total} total`;
+      for (const failure of result.failed) {
+        const item = document.createElement('li');
+        const id = document.createElement('code');
+        id.textContent = failure.id;
+        item.append(id, ` — ${failure.message}`);
+        failures.append(item);
+      }
+    } catch (error) {
+      summary.dataset.status = 'fail';
+      summary.textContent = `The test modules could not be loaded: ${error.message}`;
+    }
+  </script>
+</body>
+</html>
