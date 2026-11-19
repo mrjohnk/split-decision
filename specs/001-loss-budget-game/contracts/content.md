@@ -18,7 +18,7 @@ The whole file is validated before the first screen. When `ok` is false the game
 | `unknown-ratio` | A splitter ratio is not on the loss card | U3 |
 | `open-splitter` | An option leaves an open splitter unset, or sets a splitter that is not open or does not exist | |
 | `attenuator-place` | An attenuator sits at a place that is neither `"olt"` nor an ONT of the round | |
-| `bad-number` | A length, count, loss or `served` is negative, not finite, not whole where it must be, or not exact to 0.001 | |
+| `bad-number` | A length, count, loss or `served` is negative, not finite, not whole where it must be, or not exact to 0.001; or a class whose bright limit is not above its dark limit, or whose launch power is not above its bright limit | |
 | `inexact-total` | An ONT's total for some option is not a whole tenth of a dB | U4 |
 | `no-valid-option` | Every option leaves an ONT outside the window | U1 |
 | `tie-for-best` | Two valid options serve the same largest number of homes | U2 |
@@ -40,4 +40,4 @@ Shape first, then identities, then references, then numbers, then the evaluation
 - A copy of the shipped content altered to produce each of U1 to U6 fails with the code in the table, and `where` names the altered round.
 - Each remaining code is produced by at least one altered copy.
 - The shipped content is not modified by validation.
-- No authored text in the shipped content contains a number followed by "dB": every dB value is a value token.
+- No authored text in the shipped content contains a number followed by "dB" or "dBm": every loss and every level is a value token.

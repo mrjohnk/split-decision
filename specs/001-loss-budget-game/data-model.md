@@ -11,7 +11,7 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 | `schemaVersion` | integer | Must be `1` |
 | `title` | string | Non-empty |
 | `lossCard` | Loss card | Required |
-| `classes` | map of class name → Loss class | At least one |
+| `classes` | map of class name → Optics class | At least one |
 | `sources` | list of Source | IDs unique |
 | `model` | Model notes | Required |
 | `levels` | list of Level | IDs unique; each has exactly two rounds |
@@ -26,19 +26,21 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 | `splitterDb` | map of ratio → number | Keys are whole numbers of 2 or more; values greater than 0 |
 | `sourceIds` | list of Source ID | Each must exist |
 
-### Loss class
+### Optics class
 
 | Field | Type | Rule |
 | --- | --- | --- |
-| `minDb` | number | 0 or more |
-| `maxDb` | number | Greater than `minDb` |
-| `sourceId` | Source ID | Must exist |
+| `launchDbm` | number | The launch power at the OLT port. Greater than `brightDbm` |
+| `darkDbm` | number | The dark limit of the receive window at an ONT |
+| `brightDbm` | number | The bright limit. Greater than `darkDbm` |
+| `sourceId` | Source ID | The source of the receive window. Must exist |
+| `launchSourceId` | Source ID | The source of the launch power. Must exist |
 
-Version one has one class, `design` (8 to 28 dB, decision D11). When the content has a single class its name is not shown to the player: the words are "the loss window", "the maximum" and "the minimum". Content with several classes shows each name.
+Version one has one class, `design`: launch power +5 dBm, receive window −28 to −8 dBm (decisions D13 and D14). When the content has a single class its name is not shown to the player: the words are "the receive window", "the dark limit" and "the bright limit". Content with several classes shows each name.
 
 ### Source
 
-`id`, `title`, `section`, `claim`: non-empty strings. `url` is optional: a published source has one, starting with `https://`; a decision of the project (for example R7, the owner's loss window) has none and is shown without a link.
+`id`, `title`, `section`, `claim`: non-empty strings. `url` is optional: a published source has one, starting with `https://`; a decision of the project (for example R7, the owner's receive window) has none and is shown without a link.
 
 ### Model notes
 
@@ -96,15 +98,15 @@ At least one ONT must be reachable.
 
 ### Value tokens in authored text
 
-Authored text never contains a hand-typed dB value. It carries value tokens, which are filled from the loss card, the classes and the evaluator when the text is shown, so that a change to the data cannot leave a stale number in a sentence.
+Authored text never contains a hand-typed dB or dBm value. It carries value tokens, which are filled from the loss card, the classes and the evaluator when the text is shown, so that a change to the data cannot leave a stale number in a sentence.
 
 | Token | Filled with | Where it may appear |
 | --- | --- | --- |
 | `{fiber}`, `{connector}`, `{splice}`, `{splitter:N}` | Loss card values | Anywhere |
-| `{min:CLASS}`, `{max:CLASS}` | A class's limits | Anywhere |
-| `{class}`, `{min}`, `{max}`, `{window}` | The round's or example's class | Rounds and examples |
-| `{fixed:ONT}`, `{fiber:ONT}`, `{connectors:ONT}`, `{splices:ONT}`, `{installed:ONT}` | The ONT's loss from fixed elements, and its parts | Rounds and examples |
-| `{total:ONT}`, `{margin:ONT}`, `{chosen:ONT}`, `{bigOnly:ONT}`, `{small:ONT}` | The ONT's total, its distance to the limit, the loss the option adds, the total without connectors and splices, and the connectors and splices alone | Option notes (for that option), explanations and worked examples (for the answer or the example) |
+| `{launch:CLASS}`, `{dark:CLASS}`, `{bright:CLASS}` | A class's launch power and the two limits of its receive window | Anywhere |
+| `{class}`, `{launch}`, `{dark}`, `{bright}`, `{window}` | The round's or example's class | Rounds and examples |
+| `{fixed:ONT}`, `{fiber:ONT}`, `{connectors:ONT}`, `{splices:ONT}`, `{installed:ONT}`, `{drawn:ONT}` | The ONT's loss from fixed elements, its parts, and the level the ONT would receive with the fixed elements alone | Rounds and examples |
+| `{total:ONT}`, `{rx:ONT}`, `{margin:ONT}`, `{chosen:ONT}`, `{bigOnly:ONT}`, `{small:ONT}` | The ONT's total loss, its receive level, its distance to the limit, the loss the option adds, the total without connectors and splices, and the connectors and splices alone | Option notes (for that option), explanations and worked examples (for the answer or the example) |
 | `{answer}` | The answer's label | Explanations only |
 
 An unknown token, or a token that names an ONT or class that does not exist, is a validation error.
@@ -121,7 +123,7 @@ For one ONT: the ordered elements from the OLT port to it. Derived by walking th
 
 ### ONT result
 
-`{ id, label, totalMilli, state, marginMilli, ledger }`. `state` is `ok`, `over` or `under`. `marginMilli` is the distance to the limit that was missed for `over` and `under`, and for `ok` the room left before the maximum.
+`{ id, label, totalMilli, levelMilli, state, marginMilli, ledger }`. `levelMilli` is the receive level: the launch power less `totalMilli`. `state` is `ok`, `dark` or `bright`. `marginMilli` is the distance to the limit that was missed for `dark` and `bright`, and for `ok` the room left above the dark limit.
 
 ### Option result
 
@@ -129,7 +131,7 @@ For one ONT: the ordered elements from the OLT port to it. Derived by walking th
 
 ### Round evaluation
 
-`{ window: { className, minMilli, maxMilli }, options: [Option result], best: { optionId, served } | null, problem: null | "no-valid-option" | "tie-for-best" }`.
+`{ window: { className, named, launchMilli, darkMilli, brightMilli }, options: [Option result], best: { optionId, served } | null, problem: null | "no-valid-option" | "tie-for-best" }`.
 
 ### Evaluation (of one answer)
 

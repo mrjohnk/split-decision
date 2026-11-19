@@ -168,6 +168,25 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ---
 
+## Phase 8: The owner's second review (2026-11-19)
+
+**Purpose**: apply the owner's answers on the open point of the first review (specification decisions D13 and D14) in the same order as the rest of the build: specification, expected results, then content and code
+
+- [X] T060 Check the launch power the standard gives an XGS-PON OLT, and its ONU receiver figures, in ITU-T G.9807.1 Table B.9.3; record them as reference R8
+- [X] T061 Record the owner's two answers in the specification's Clarifications; add decisions D13 (receive window), D14 (launch power), D15 (names of states and outcomes) and D16 (round 1-2); add FR-029; amend the Technical Model, AC2, AC3a, AC3b, FR-003, FR-007, FR-009, FR-010, SC-002 and the learning outcomes
+- [X] T062 Re-work by hand every case of rounds 1-1 to 3-2, the three worked examples and B1 to B4 in the specification's Hand-worked Cases, with a receive level for every ONT; cross-check the arithmetic with a throwaway script
+- [ ] T063 Amend the constitution to version 1.2.0 (Principle I's statement of the rule; Scope and Model Boundaries) and record the Sync Impact Report in `docs/build-log.md`
+- [X] T064 Bring contracts/rules.md, contracts/content.md, contracts/ui.md, data-model.md, research.md and plan.md in line
+- [ ] T065 Transcribe the re-worked cases into `tests/fixtures/answer-key.json`, write the expected words into `tests/*.test.js`, and run the unit tests against the unchanged game: they must fail
+- [ ] T066 `engine/rules.js`: class fields `launchDbm`, `darkDbm`, `brightDbm`; `levelMilli` for every ONT; states `dark` and `bright`; outcomes `too-dark`, `too-bright`, `dark-and-bright`. `engine/content.js`: validate the class
+- [ ] T067 `engine/tokens.js` and `engine/feedback.js`: level formatting with a true minus sign; tokens `{launch}`, `{dark}`, `{bright}`, `{rx:ONT}`, `{drawn:ONT}`; feedback lines, ledger sums, trace steps and model rows in dBm
+- [ ] T068 Re-author `data/levels.json`: the class, the plants of T062, the briefings (launch power, receive level, dBm), the terms, the notes, hints and explanations, references R7 and R8, the model panel
+- [ ] T069 `ui/`: the launch power and receive window on the work order and at the OLT in the plant drawing; the trace on a dBm scale; a launch row and receive levels in the meters; the level sum under each ledger
+- [ ] T070 `tools/oracle.py` and `tools/e2e.py`: recompute and compare receive levels; expected words from the specification
+- [ ] T071 Run analysis again (pass 4); run all three check layers and the fresh-copy check; look at every view; re-capture the card image and the README screenshot; update README, `ARCADE.md`, quickstart.md and `docs/verification.md`; publish the new build for the owner's review
+
+---
+
 ## Dependencies & Execution Order
 
 ### Phase Dependencies

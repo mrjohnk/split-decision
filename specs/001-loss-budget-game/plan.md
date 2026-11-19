@@ -160,6 +160,21 @@ Recorded on 2026-11-19. The owner played the first playable build and sent two c
 
 Engine changes for 11 to 14 were small, because content is data: the class name is shown only when the content has more than one window; a source's link is optional; the fields were renamed. No rule of the evaluator changed.
 
+## Changes made by the owner's second review
+
+Recorded on 2026-11-19. The build agent had left one open point with the first review: 8 and 28 could be path loss or receive level. The owner answered that they are ONT receive levels, and gave the launch power. Each change was made in the specification first (clarifications, decisions D13 to D16, FR-029, references R7 and R8, the hand-worked cases), then in the contracts and the answer-key fixture, then in the content and the code; the constitution was amended to version 1.2.0 and analysis was run again (pass 4).
+
+| # | Before the second review | Now | Why | Where it is recorded |
+| --- | --- | --- | --- | --- |
+| 15 | One loss window, 8 to 28 dB of path loss | One receive window at the ONT, −28 dBm to −8 dBm, and one launch power at the OLT port, +5 dBm. The usable path loss is 13 to 33 dB | The owner: the two figures are the ONT's receive levels, then a five with a hyphen in front, read as plus five (open point) | spec.md D13, D14, Technical Model; data-model.md, Optics class |
+| 16 | The evaluator classed an ONT by its loss | It computes a receive level, launch power less loss, and classes that. Each ONT result carries `levelMilli` | FR-029 | contracts/rules.md |
+| 17 | States `over` and `under`; outcomes `over-max`, `under-min`, `over-and-under` | States `dark` and `bright`; outcomes `too-dark`, `too-bright`, `dark-and-bright`. The limits are the dark limit and the bright limit | With negative levels the ONT that is too dark is under its limit; names taken from a side of a limit would mislead | spec.md D15; contracts/rules.md |
+| 18 | Tokens `{min}`, `{max}`, with or without a class | Tokens `{launch}`, `{dark}`, `{bright}`, with or without a class, and `{rx:ONT}`, `{drawn:ONT}` for levels. The rule against hand-typed values covers dBm | Authored text must follow the data | data-model.md, Value tokens; contracts/content.md |
+| 19 | The trace's scale was loss, 0 dB at the top | Its scale is the light level in dBm, from the launch power at the top. The meters show receive levels; a row gives the launch power; the plant drawing prints it at the OLT | What the player compares with the window is a level | contracts/ui.md, Drawings |
+| 20 | Feedback named each ONT's loss and the limit of the loss window | It names the loss, the receive level, the limit and the difference, and each ledger ends with the level sum | FR-010, SC-002 | contracts/ui.md; engine/feedback.js |
+| 21 | Rounds as re-worked for the 8 to 28 dB loss window | All six rounds, the three examples and B1 to B4 re-worked by hand. Round 1-2 is a new lesson; round 3-1 is four shops on a 1:4 with 3, 10 and 25 dB attenuators; the level 3 example uses 15 dB | The usable loss moved by 5 dB, and no round kept exactly one answer | spec.md, Hand-worked Cases, D16 |
+| 22 | The fiber value "for both directions" | The same value, 0.5 dB/km, now said to be the upstream figure used for a downstream level | The owner did not change the loss card; the simplification must still be stated | spec.md D4; research.md R-02 |
+
 ## Implementation order
 
 | Slice | Deliverable | Evidence before the next slice |
