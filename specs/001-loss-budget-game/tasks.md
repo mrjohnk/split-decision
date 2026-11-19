@@ -200,6 +200,9 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 - [X] T078 Change `tools/e2e.py --card` to capture the card page to `assets/card.webp`, and to take the README's screenshot, `docs/gameplay.png`, from the running game as before (FR-030)
 - [X] T079 Plant bugs in the card page and in the stored image and confirm that `CARD` catches each; bring README, `ARCADE.md`, quickstart.md and `docs/verification.md` in line; run all three check layers and the fresh-copy check; package the repository for the owner
 - [X] T080 Add the browser check `TOUCH` to `tools/e2e.py`, after the owner asked whether the game plays on an Android phone: the whole game played with taps in an emulated phone, upright and on its side, with no sideways scrolling and no button or option under 40 CSS pixels (FR-027); plant three bugs and confirm that it catches each
+- [X] T081 Record the owner's go-ahead: his name, that this is not his first spec-driven project, consent to publish, the approved card (specification, `ARCADE.md`, README)
+- [X] T082 Replace every quotation of the owner with a paraphrase, in the documents and in the history (decision D19); scan every file version and commit message for his words
+- [X] T083 Add `.nojekyll` so that GitHub Pages serves the repository as it is; run every check and the fresh-copy check on the published history
 
 ---
 

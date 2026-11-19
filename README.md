@@ -8,11 +8,11 @@ A project from **NAF AC6 — Loop Engineering, Spec-Driven Development & the Fut
 
 | Project | Details |
 | --- | --- |
-| Status | Playable. Verified by automated checks in headless Chrome. Not yet played or timed by a person (see [Verification](#verification)) |
+| Status | Playable. Verified by automated checks in headless Chrome. The owner has played it and reported no fault; it has not been timed (see [Verification](#verification)) |
 | Networking topic | Optical loss budgeting for a PON: path loss on the single fiber, launch power and the ONT's receive level, the receive window, splitters in one and two stages, attenuators |
 | Typical session | 10 to 15 minutes is the target. It has not been timed with a person |
 | Live demo | Not published yet |
-| Built by | [OWNER: your name and GitHub handle], with Claude Code (model `claude-fable-5-2`) as the build agent |
+| Built by | John Kicklighter, with Claude Code (model `claude-fable-5-2`) as the build agent |
 
 ![Work order 2-1, Palo Verde Loop: the plant with a 1:64 splitter chosen, three design options, and the loss trace showing ONT C just below the receive window](docs/gameplay.png)
 
@@ -147,7 +147,7 @@ The unit tests also run in the browser: start the local server and open **http:/
 
 ## Known limitations and next steps
 
-- **Known limitation:** no person has played the game yet. Everything above marked "by automation" was done by a script in one browser.
+- **Known limitation:** one person, the owner, has played the game, and he reported no fault. Nobody has timed a playthrough or written down what each level taught. Everything above marked "by automation" was done by a script in one browser.
 - **Known limitation:** the receive window and the launch power are planning values from the owner's field experience, not figures quoted from the standard, and the loss card's values are the build agent's choice inside published ranges, kept by the owner. Use the limits of the optics you install.
 - **Known limitation:** the model is deliberately small. See "Outside the model" above. In particular the game uses one launch power, the upstream fiber value for a downstream level, and no margin, so its answers are right for the game's loss card and are not a design rule.
 - **Known limitation:** six fixed work orders. Once you know the answers there is nothing new to solve.
@@ -158,7 +158,7 @@ Found an incorrect answer or unclear explanation? Open an issue with the level a
 
 ## Credits
 
-Created by [OWNER: your name], with Claude Code (`claude-fable-5-2`) as the build agent. Workshop by John Capobianco, Joksan Flores, and Elliot Conner. Adapted from the [NAF AC6 workshop materials](https://github.com/automateyournetwork/NAF_AC6) and [Networking Video Game Starter Kit](https://github.com/automateyournetwork/NetworkingVideoGameStarterKit), using [GitHub Spec Kit](https://github.com/github/spec-kit).
+Created by John Kicklighter, with Claude Code (`claude-fable-5-2`) as the build agent. Workshop by John Capobianco, Joksan Flores, and Elliot Conner. Adapted from the [NAF AC6 workshop materials](https://github.com/automateyournetwork/NAF_AC6) and [Networking Video Game Starter Kit](https://github.com/automateyournetwork/NetworkingVideoGameStarterKit), using [GitHub Spec Kit](https://github.com/github/spec-kit).
 
 **Assets and dependencies:** the code, the content, the drawings, the icon and the card image are original to this project. The card image is drawn by `tools/card.html` and captured in headless Chrome, and the README screenshot is a capture of the running game; no image generator was used. The typefaces are [Barlow and Barlow Condensed](https://github.com/jpt/barlow) by The Barlow Project Authors, included in `assets/fonts/` under the SIL Open Font License 1.1 (`assets/fonts/OFL-Barlow.txt`, `assets/fonts/OFL-Barlow-Condensed.txt`). The game has no other dependency.
 

@@ -6,6 +6,8 @@ Everything here was run by the build agent on 2026-11-19 in its cloud workspace:
 
 The owner reviewed the game twice on the day it was built. In the morning he looked at the first playable build and sent two changes: limits of 8 and 28 for the window, and "connector" in place of "connector pair". In the afternoon he settled the unit of those limits: they are the ONT's receive levels, −28 and −8 dBm, with a launch power he gave as a five with a hyphen in front, read as +5 dBm. Both reviews are in, and at 21:51 he answered the two points they had left open: the launch power is plus five, and the loss card keeps its values. At 22:23 the Arcade card image was replaced by a drawing, and at 22:30 a playthrough by taps in an emulated phone was added to the browser checks. Neither changed a file of the game. Every result below is for the game after the second review, unless a heading or a line carries an earlier time. No one has yet played the game through, been timed, or done a keyboard-only run by hand.
 
+**About the commit hashes.** The owner asked that his messages not be quoted (decision D19). The history was rebuilt once, before the repository was first published, to replace each quotation with a paraphrase in Markdown files and commit messages. The hashes below are those of the published history. In every rebuilt commit the files of the game, the tests and the tools are byte for byte those of the commit the checks were run on: each pair of trees was compared, and only Markdown files differ.
+
 ## Summary
 
 ### Acceptance criteria
@@ -47,7 +49,7 @@ The owner reviewed the game twice on the day it was built. In the morning he loo
 
 ### What was not checked
 
-- **No person has played the game through.** SC-004 and SC-008 need one, and so does a real keyboard-only playthrough. The owner has reviewed the game twice and changed its window, one term and the unit of the window; he has not reported a full playthrough.
+- **No timed or reported playthrough.** The owner played the review copy on 2026-11-19 and reported that it worked well, with no fault; he did not say how long it took or whether he finished every work order. SC-004 and SC-008 still need a person, and so does a real keyboard-only playthrough. The owner has reviewed the game twice and changed its window, one term and the unit of the window; he has not reported a full playthrough.
 - **One browser.** Only headless Chrome for Testing 153 was available. Installing Firefox and WebKit for Playwright was tried and refused by the workspace's network rules. Firefox, Safari and a real phone were not tried. Touch was tried only in Chrome's emulation of a phone (check `TOUCH`).
 - **Whether the stored card image is the page's current drawing.** `CARD` checks the numbers and words of the card page and the shape and size of the stored image. It does not compare the two pictures, because type is drawn a little differently from one machine to the next. The image was captured from the page by `tools/e2e.py --card` at 22:23, after the page's last change.
 - **No screen reader.** Accessible names, roles and the live region's text were checked through the browser's accessibility tree and with axe-core, not by listening.

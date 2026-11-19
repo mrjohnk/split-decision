@@ -21,14 +21,14 @@ game:
   license: "Apache-2.0"
 
 creator:                     # (HUMAN) every field here is the owner's to fill
-  name: ""
+  name: "John Kicklighter"
   github: ""
   location: ""
   organization: ""
   links: []
-  first_spec_project: true   # (HUMAN) the template's default, not a claim: set it to what is true
+  first_spec_project: false  # the owner's answer
   workshop: "NAF AC6"
-  consent_to_publish: false  # (HUMAN) set true only if you agree to this card appearing in the Arcade
+  consent_to_publish: true   # set on the owner's instruction of 2026-11-19 to make the game public; his to change
 
 build:
   started: "2026-11-19T14:07:13Z"    # git init and specify init
@@ -38,7 +38,7 @@ build:
     framework: "GitHub Spec Kit"
     framework_version: "specify CLI 1.4.3.dev0"
     artifacts: [constitution, spec, clarify, plan, tasks, analysis, checklists]
-    task_count: 80               # 49 in the first plan, 10 more for the owner's first review, 12 more for his second, 9 more for his answers, the Arcade card and the phone check
+    task_count: 83               # 49 in the first plan, 10 more for the owner's first review, 12 more for his second, 9 more for his answers, the Arcade card and the phone check, 3 more for his go-ahead
     loops_or_phases: 9         # the nine phases of specs/001-loss-budget-game/tasks.md; the seventh and eighth are the owner's two reviews, the ninth his answers and the Arcade card
   model: "claude-fable-5-2"
   helper_models: []            # no sub-agent or second model was used
@@ -48,7 +48,7 @@ build:
   rag_and_sources: ["ITU-T G.9807.1 (02/2023), Annex B", "ITU-T G.652 (08/2024), Table 2 and Appendix I", "The FOA Reference Guide: loss estimates; attenuators", "TEC GR/TX/OPT-001/01/APR-12 (splitter insertion loss)", "NAF AC6 workshop repository: lab guide, StarterKit, three example games, the workshop deck", "The Arcade page at automateyournetwork.com/arcade", "The card images of 13 other Arcade games, read from their public repositories to compare with this game's card; nothing was copied", "The owner's field experience: the receive window, the launch power, and the wording about connectors"]
   skills_and_plugins: ["Spec Kit skills: speckit-constitution, speckit-specify, speckit-clarify, speckit-plan, speckit-tasks, speckit-analyze, speckit-implement", "frontend-design skill", "dataviz skill and its palette validator", "pptx skill (to read the workshop deck)"]
   other_tools: ["git", "Node 22.23.5 (unit tests)", "Python 3.13.18 (answer-key oracle, browser checks)", "Playwright 1.63.0 with Chrome for Testing 153.0.8010.12, headless", "Pillow 12.3.0 (card image)", "fontTools 4.67.0 (inspecting the vendored fonts)", "axe-core 4.14.1 (accessibility audit, run in the browser checks)", "npm (to fetch the Fontsource packages of Barlow, and axe-core)"]
-  human_prompts: 12            # typed messages up to 2026-11-19T22:25Z, plus one two-question dialog
+  human_prompts: 14            # typed messages up to 2026-11-19T23:02Z, plus one two-question dialog
   usage:
     input_tokens: unknown
     output_tokens: unknown
@@ -74,7 +74,7 @@ verification:
   tests: "node tests/run-node.mjs && python3 tools/oracle.py && python3 tools/e2e.py"
   tests_passing: 200           # 173 unit tests (Node, and the same in the browser) + 27 browser checks (Playwright; one of them, the axe-core audit, needs --axe); the Python oracle's 227 comparisons with the hand-worked key are not counted here
   facts_sourced_from: ["The project owner's field practice (the game's receive window, -28 to -8 dBm, and its launch power, +5 dBm; decisions D13 and D14 in the specification)", "ITU-T G.9807.1 (02/2023) Annex B, clause B.9.2.6.2, Table B.9.3 (the standard's OLT launch power and ONU receiver figures, shown for comparison)", "ITU-T G.9807.1 (02/2023) Annex B, clause B.6.1, Table B.6.1 (the standard's N1 and N2 loss classes, shown for comparison; attenuators below the class minimum)", "ITU-T G.9807.1 (02/2023) Annex B, clauses B.9.2.6.1 and B.9.2.8.1 (what the loss range includes; wavelengths)", "ITU-T G.652 (08/2024) Appendix I, Table I.1 (fiber attenuation)", "The FOA Reference Guide (connector and splice loss; attenuators)", "TEC GR/TX/OPT-001/01/APR-12 (splitter insertion loss)"]
-  known_limits: ["No person has played or timed the game; every check was run by a script in headless Chrome", "Only the level an ONT receives is checked, with the upstream fiber value; the upstream direction is not checked, and no repair or ageing margin is kept", "One launch power stands for the range of a real transmitter, with no path penalty", "Splitters lose 3.5 dB for each two-way split, with no difference between ports", "The receive window and the launch power are the owner's field values, not figures quoted from ITU-T G.9807.1", "The standard's limit on the difference between two paths is not graded", "Reflectance and bend loss are not modeled", "Six fixed work orders", "The loss card's planning values were chosen by the build agent inside published ranges; asked about the fiber value, the owner kept the card as it is"]
+  known_limits: ["The owner has played the review copy and reported no fault; nobody has timed a playthrough, and every recorded check was run by a script in headless Chrome", "Only the level an ONT receives is checked, with the upstream fiber value; the upstream direction is not checked, and no repair or ageing margin is kept", "One launch power stands for the range of a real transmitter, with no path penalty", "Splitters lose 3.5 dB for each two-way split, with no difference between ports", "The receive window and the launch power are the owner's field values, not figures quoted from ITU-T G.9807.1", "The standard's limit on the difference between two paths is not graded", "Reflectance and bend loss are not modeled", "Six fixed work orders", "The loss card's planning values were chosen by the build agent inside published ranges; asked about the fiber value, the owner kept the card as it is"]
 ---
 
 ## In one paragraph
