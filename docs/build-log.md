@@ -57,6 +57,8 @@ A running record kept by the build agent while the game was made. Times are UTC 
 | 2026-11-19 21:27–21:33 | Phase 8: hardening and packaging | Room before the nearer limit for an ONT inside the window (173 unit tests). 26 planted bugs, all caught. README, `ARCADE.md`, quickstart and the notes on the planning inputs rewritten; card image and README screenshot captured again. Commit d417bd8. |
 | 2026-11-19 21:33 | Fresh copy, third time | Commit d417bd8 cloned into an empty folder: 173 unit tests, 227 oracle comparisons and the browser checks passed there (24 as a reader runs them, plus the axe-core audit when given the engine), and the README's run command served the game. Recorded build finish: 21:33:45. |
 | 2026-11-19 21:37 | Review copy | The build after the second review was republished for the owner in place, as the same private artifact; its 21 files were compared with the repository by checksum. The repository was packaged again as a zip. |
+| 2026-11-19 21:51 | Owner | He confirmed plus five and kept the loss card as it is, his answers to the two points the second review had left open, and a question: He asked to see the card image beside the other cards in the Arcade. |
+| 2026-11-19 21:58–22:25 | Records | The two answers recorded, specification first: a third session in Clarifications, decisions D14 and D4 closed, decision D17 (the loss card keeps its values). Then research, analysis, README, `ARCADE.md` and the verification record. No file of the game changed. |
 
 ## Step records
 
@@ -147,3 +149,5 @@ Conflicts flagged (not silently resolved):
      owner.
 Follow-up TODOs: the owner's answers to conflicts 1 and 2.
 ```
+
+Both follow-ups were answered by the owner on 2026-11-19 at 21:51. Conflict 1: plus five is right. Conflict 2: keep the card as it is, recorded as decision D17. The constitution needed no change: it already states +5 dBm and the upstream fiber value.
