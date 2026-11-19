@@ -8,7 +8,8 @@ tests/fixtures/answer-key.json. It never asks the game's own code what the right
     python3 tools/e2e.py              run every check
     python3 tools/e2e.py AC2 FULL     run only the named checks
     python3 tools/e2e.py --list       list the checks
-    python3 tools/e2e.py --card       also write assets/card.webp and docs/gameplay.png (needs Pillow)
+    python3 tools/e2e.py --card       also draw the Arcade card, tools/card.html, into assets/card.webp, and
+                                      take the README's screenshot, docs/gameplay.png (needs Pillow)
     python3 tools/e2e.py --axe FILE   also run the axe-core accessibility engine in every view; FILE is
                                       axe.min.js, for example from `npm pack axe-core`. Without it the
                                       AXE check is reported as not run
@@ -1143,13 +1144,132 @@ def shots(new):
 
 
 # --------------------------------------------------------------------------------------------------
-# The card image and the README screenshot (not a check)
+# The Arcade card (FR-030)
+# --------------------------------------------------------------------------------------------------
+
+# The card's own work order, hand-worked in the specification (Hand-worked Cases, "The Arcade card's
+# work order"): the split, the state and the level each design ends at. Not read from the page.
+CARD_KEY = {"o16": ("1:16", "ok", -23.0), "o32": ("1:32", "ok", -26.5), "o64": ("1:64", "dark", -30.0)}
+
+# Every word on the card must be inside the frame, clear of every other word, and clear of the light
+# and the splitter. Boxes are the text's own line boxes, so the test is a little stricter than the eye.
+CARD_CLEAR_JS = """() => {
+  const svg = document.getElementById('card');
+  const shapes = [...svg.querySelectorAll('.card-light, .card-splitter')];
+  const boxes = [...svg.querySelectorAll('text')].map((node) => {
+    const b = node.getBBox();
+    return { name: node.dataset.testid || node.textContent.slice(0, 24), x: b.x, y: b.y, w: b.width, h: b.height };
+  });
+  const problems = [];
+  const point = svg.createSVGPoint();
+  boxes.forEach((box, i) => {
+    if (box.w === 0 || box.h === 0) problems.push(`${box.name} is empty`);
+    if (box.x < 24 || box.y < 24 || box.x + box.w > 1600 - 24 || box.y + box.h > 900 - 24) problems.push(`${box.name} is within 24 px of the edge`);
+    for (const other of boxes.slice(i + 1)) {
+      if (box.x < other.x + other.w && other.x < box.x + box.w && box.y < other.y + other.h && other.y < box.y + box.h) problems.push(`${box.name} overlaps ${other.name}`);
+    }
+    for (const shape of shapes) {
+      let hit = false;
+      for (let px = box.x; px <= box.x + box.w && !hit; px += 4) {
+        for (let py = box.y; py <= box.y + box.h && !hit; py += 4) {
+          point.x = px; point.y = py;
+          hit = shape.tagName === 'polygon' ? shape.isPointInFill(point) : shape.isPointInStroke(point);
+        }
+      }
+      if (hit) problems.push(`${box.name} is crossed by the ${shape.tagName === 'polygon' ? 'splitter' : 'light'}`);
+    }
+  });
+  return { words: boxes.length, problems };
+}"""
+
+IMAGE_SIZE_JS = """(url) => new Promise((resolve) => {
+  const image = new Image();
+  image.onload = () => resolve([image.naturalWidth, image.naturalHeight]);
+  image.onerror = () => resolve(null);
+  image.src = url;
+})"""
+
+
+def squeezed(text):
+    return "".join(text.split())
+
+
+@check("CARD", "FR-030", "The Arcade card is drawn by the engine: its three levels match the hand-worked case, its words are the game's, and the stored image is 16:9 and under 1 MB")
+def card(new):
+    g = new(width=1600, height=900, reduced_motion="reduce")
+    response = g.page.goto(g.base + "/tools/card.html")
+    need(response is not None and response.status == 200, f"tools/card.html answered {response.status if response else 'nothing'}")
+    try:
+        g.page.wait_for_selector('[data-testid="card"][data-ready="true"]', timeout=8000)
+    except Exception:
+        raise Failure(f"the card page did not finish drawing: {g.problems}")
+    frame = g.page.evaluate("(() => { const r = document.getElementById('card').getBoundingClientRect(); return [r.x, r.y, r.width, r.height]; })()")
+    need(frame == [0, 0, 1600, 900], f"at 1600 x 900 the card fills {frame}")
+
+    # The three designs, against the hand-worked case.
+    for option_id, (ratio, state, level) in CARD_KEY.items():
+        end = g.t(f"card-end-{option_id}")
+        need(end.count() == 1, f"the card has {end.count()} ends for {option_id}")
+        got = (end.get_attribute("data-state"), end.get_attribute("data-level"), end.text_content())
+        need(got == (state, one(level), f"{ratio}{dbm(level)}"), f"{option_id} ends as {got}, hand-worked: {(state, one(level), ratio + dbm(level))}")
+        shape = g.page.evaluate("(id) => document.querySelector(`[data-glyph-for=\"${id}\"]`)?.tagName", option_id)
+        need(shape == ("circle" if state == "ok" else "path"), f"{option_id} is marked with a {shape}; a ring means inside the window and a chevron too dark")
+
+    # The words are the game's: the title and the tagline of the content file, the masthead's line,
+    # and the optics of the specification.
+    document = json.loads((ROOT / "data" / "levels.json").read_text(encoding="utf-8"))
+    masthead = re.search(r'<p class="brand-line">(.*?)</p>', (ROOT / "index.html").read_text(encoding="utf-8")).group(1)
+    need(g.t("card-name").text_content() == document["title"], f"the card is titled {g.t('card-name').text_content()!r}")
+    need(g.t("card-line").text_content() == masthead, f"the card's line is {g.t('card-line').text_content()!r}, the masthead's is {masthead!r}")
+    need(squeezed(g.t("card-tagline").text_content()) == squeezed(document["tagline"]), f"the card's tagline is {g.t('card-tagline').text_content()!r}")
+    need(g.t("card-window-range").text_content() == f"{DARK} to {BRIGHT}", f"the card's window is {g.t('card-window-range').text_content()!r}")
+    need(g.t("card-launch").text_content().endswith(f", {LAUNCH}"), f"the card's launch note is {g.t('card-launch').text_content()!r}")
+
+    clear = g.page.evaluate(CARD_CLEAR_JS)
+    need(clear["words"] >= 10 and not clear["problems"], f"words on the card: {clear}")
+
+    origin_prefix = g.base.split(PREFIX)[0] + PREFIX + "/"
+    outside = sorted({url for url in g.requests if not url.startswith(origin_prefix) and not url.startswith("data:")})
+    need(not outside, f"the card page asked for {outside}")
+    no_problems(g)
+
+    # The stored image that ARCADE.md names.
+    named = re.search(r'^\s*card_image:\s*"([^"]*)"', (ROOT / "ARCADE.md").read_text(encoding="utf-8"), re.M)
+    need(named and named.group(1), "ARCADE.md names no card_image")
+    path = ROOT / named.group(1)
+    need(path.is_file(), f"ARCADE.md names {named.group(1)}, which is not in the repository")
+    need(path.suffix.lower() in (".webp", ".png", ".jpg", ".jpeg"), f"{named.group(1)} is not a WebP, PNG or JPEG file")
+    size = path.stat().st_size
+    need(size < 1_000_000, f"{named.group(1)} is {size} bytes; the Arcade asks for less than 1 MB")
+    pixels = g.page.evaluate(IMAGE_SIZE_JS, f"{g.base}/{named.group(1)}")
+    need(pixels is not None, f"the browser could not read {named.group(1)} as an image")
+    need(pixels[0] * 9 == pixels[1] * 16 and pixels[0] >= 1280, f"{named.group(1)} is {pixels[0]} x {pixels[1]}; the Arcade asks for 16:9")
+    levels = ", ".join(dbm(level) for _, _, level in CARD_KEY.values())
+    return f"three designs end at {levels}, as hand-worked; {clear['words']} pieces of text, none crossed or cut off; {named.group(1)} is {pixels[0]} x {pixels[1]}, {size // 1024} KB"
+
+
+# --------------------------------------------------------------------------------------------------
+# Writing the card image and the README screenshot (not a check)
 # --------------------------------------------------------------------------------------------------
 
 def write_card(browser, base):
     from PIL import Image  # imported here so the checks run without Pillow
 
-    # 1440 x 810 CSS pixels drawn at 1600 x 900: the page fills the frame down to the foot of the trace.
+    # The card: tools/card.html, drawn at 1600 x 900.
+    context = browser.new_context(viewport={"width": 1600, "height": 900}, device_scale_factor=1, reduced_motion="reduce")
+    page = context.new_page()
+    page.goto(base + "/tools/card.html")
+    page.wait_for_selector('[data-testid="card"][data-ready="true"]', timeout=8000)
+    raw = OUT / "_card.png"
+    page.screenshot(path=str(raw))
+    context.close()
+    image = Image.open(raw).convert("RGB")
+    card = ROOT / "assets" / "card.webp"
+    image.save(card, "WEBP", lossless=True, quality=100, method=6)
+    raw.unlink()
+
+    # The README's screenshot: round 2-1 of the running game with a 1:64 splitter submitted.
+    # 1440 x 810 CSS pixels drawn at 1600 x 900, so the page fills the frame down to the foot of the trace.
     g = Game(browser, base, width=1440, height=810, reduced_motion="reduce", scale=1600 / 1440)
     g.open()
     g.solve_through("r1-2")
@@ -1158,13 +1278,9 @@ def write_card(browser, base):
     g.play("o64")
     g.page.evaluate("window.scrollTo(0, 0)")
     g.page.mouse.move(5, 5)
-    raw = OUT / "_card.png"
     g.page.screenshot(path=str(raw))
-    image = Image.open(raw).convert("RGB")
-    card = ROOT / "assets" / "card.webp"
-    image.save(card, "WEBP", quality=88, method=6)
     shot = ROOT / "docs" / "gameplay.png"
-    image.resize((1280, 720), Image.LANCZOS).save(shot, "PNG", optimize=True)
+    Image.open(raw).convert("RGB").resize((1280, 720), Image.LANCZOS).save(shot, "PNG", optimize=True)
     raw.unlink()
     g.close()
     return f"{card.relative_to(ROOT)} {image.size[0]}x{image.size[1]}, {card.stat().st_size // 1024} KB; {shot.relative_to(ROOT)} 1280x720, {shot.stat().st_size // 1024} KB"

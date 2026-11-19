@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Split Decision: the Arcade card</title>
+  <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+  <!-- The game's own style sheet, for its typefaces and its colors. -->
+  <link rel="stylesheet" href="../style.css">
+  <style>
+    /* The Arcade card: the game's splitter mark, drawn to scale on its own instrument.
+       One fiber in, three designs out. Every level on it is worked out by the game's engine. */
+    html, body { height: 100%; }
+    body { background: var(--screen); display: grid; place-items: center; overflow: hidden; }
+    #card { display: block; width: 100vw; height: auto; max-height: 100vh; aspect-ratio: 16 / 9; }
+    .card-fallback { color: var(--screen-ink); padding: 24px; max-width: 60ch; }
+
+    .card-ground { fill: var(--screen); }
+    .card-band { fill: rgba(234, 244, 243, 0.1); }
+    .card-band-edge { stroke: var(--screen-ink-2); stroke-width: 2.5; stroke-dasharray: 14 11; }
+    .card-zone { fill: var(--screen-ink-2); font: 500 34px var(--font-text); }
+    .card-zone.is-window { fill: var(--screen-ink); }
+    .card-zone.is-window .card-zone-name { font-weight: 600; }
+    .card-light { fill: none; stroke: var(--screen-ink); stroke-width: 9; stroke-linejoin: round; stroke-linecap: round; }
+    .card-light.is-out { stroke: var(--screen-ink-2); opacity: 0.55; }
+    .card-tagline { fill: var(--screen-ink); font: 500 44px var(--font-text); }
+    .card-splitter { fill: var(--mark); }
+    .card-start { fill: var(--screen-ink); }
+    .card-note { fill: var(--screen-ink-2); font: 500 32px var(--font-text); }
+    .card-glyph { fill: none; stroke: var(--screen-ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+    .card-end-ratio { fill: var(--screen-ink); font: 600 46px var(--font-title); letter-spacing: 0.01em; }
+    .card-end-level { fill: var(--screen-ink); font: 500 30px var(--font-text); font-variant-numeric: tabular-nums; }
+    .card-title { fill: var(--screen-ink); font: 600 150px var(--font-title); letter-spacing: 0.005em; }
+    .card-brand-line { fill: var(--screen-ink-2); font: 500 40px var(--font-text); }
+  </style>
+</head>
+<body>
+  <svg id="card" viewBox="0 0 1600 900" role="img" aria-labelledby="card-title card-desc" data-testid="card" data-ready="false">
+    <title id="card-title">Split Decision</title>
+    <desc id="card-desc"></desc>
+  </svg>
+  <noscript><p class="card-fallback">This page draws the card image with the game's engine, so it needs JavaScript.</p></noscript>
+
+  <script type="module">
+    import { evaluateRound } from '../engine/rules.js';
+    import { describeTrace } from '../engine/feedback.js';
+    import { ratioText } from '../engine/tokens.js';
+
+    // The card's own work order. It is not one of the game's six, so the card gives no answer
+    // away. Hand-worked in the specification (decision D18), and checked by tools/e2e.py CARD.
+    const WORK_ORDER = {
+      id: 'card',
+      class: 'design',
+      plant: {
+        oltLabel: 'OLT port',
+        trunk: {
+          fiberKm: 12.0, connectors: 4, splices: 4,
+          to: {
+            type: 'splitter', id: 's1', label: 'Splitter', ratio: null,
+            legs: [{ fiberKm: 6.0, connectors: 4, splices: 6, to: { type: 'ont', id: 'A', label: 'ONT A' } }],
+          },
+        },
+      },
+      options: [16, 32, 64].map((ratio) => ({ id: `o${ratio}`, served: ratio, splitters: { s1: ratio }, attenuators: [] })),
+    };
+
+    // The same widths, in units, that the page's loss trace gives each kind of step.
+    const UNITS = { fiber: 4, connectors: 1, splices: 1, splitter: 2, attenuator: 2 };
+    const W = 1600;
+    const LEFT = 85;        // where the light starts
+    const RIGHT = 1259;     // where every design ends
+    const TOP = 110;        // the launch power
+    const TEXT_LEFT = 72;   // the left edge of the words
+    const TAGLINE_WIDTH = 520;
+    const PX_PER_DB = 20;
+
+    const NS = 'http://www.w3.org/2000/svg';
+    const s = (name, attrs = {}, text = null) => {
+      const node = document.createElementNS(NS, name);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+      if (text !== null) node.textContent = text;
+      return node;
+    };
+
+    function draw(content) {
+      const svg = document.getElementById('card');
+      const judged = evaluateRound(content, WORK_ORDER);
+      if (judged.problem) throw new Error(`The card's work order has no single answer: ${judged.problem}`);
+      const designs = WORK_ORDER.options.map((option) => {
+        const trace = describeTrace(content, WORK_ORDER, option);
+        return { option, trace, line: trace.series[0] };
+      });
+      const first = designs[0].trace;
+      const y = (milli) => TOP + ((first.launchMilli - milli) / 1000) * PX_PER_DB;
+      const units = designs[0].line.steps.reduce((sum, step) => sum + UNITS[step.kind], 0);
+      const unit = (RIGHT - LEFT) / units;
+      const yBright = y(first.brightMilli);
+      const yDark = y(first.darkMilli);
+
+      svg.append(
+        s('rect', { class: 'card-ground', width: W, height: 900 }),
+        s('rect', { class: 'card-band', x: 0, y: yBright, width: W, height: yDark - yBright }),
+        s('line', { class: 'card-band-edge', x1: 0, x2: W, y1: yBright, y2: yBright }),
+        s('line', { class: 'card-band-edge', x1: 0, x2: W, y1: yDark, y2: yDark }),
+        s('text', { class: 'card-zone', x: TEXT_LEFT, y: yBright - 22 }, 'Too bright'),
+        s('text', { class: 'card-zone', x: TEXT_LEFT, y: yDark + 58 }, 'Too dark'),
+      );
+      const windowLabel = s('text', { class: 'card-zone is-window', x: TEXT_LEFT, y: yBright + 52, 'data-testid': 'card-window' });
+      windowLabel.append(
+        s('tspan', { class: 'card-zone-name' }, first.windowName),
+        s('tspan', { x: TEXT_LEFT, dy: 42, 'data-testid': 'card-window-range' }, first.windowText),
+      );
+      svg.append(windowLabel);
+
+      // A clip for each side of the dark limit: light that falls below it is drawn dimmed.
+      const defs = s('defs');
+      const lit = s('clipPath', { id: 'lit' });
+      lit.append(s('rect', { x: 0, y: 0, width: W, height: yDark }));
+      const out = s('clipPath', { id: 'out' });
+      out.append(s('rect', { x: 0, y: yDark, width: W, height: 900 - yDark }));
+      defs.append(lit, out);
+      svg.append(defs);
+
+      // The light. Up to the splitter every design is the same path, so it is drawn once. The
+      // splitter is the game's mark, a triangle with one fiber in and three out, stretched so
+      // that each fiber leaves it at the level its design has there.
+      let wedge = null;
+      const paths = designs.map(({ line }) => {
+        let x = LEFT;
+        let d = `M${x},${y(first.launchMilli)}`;
+        let after = null;
+        for (const step of line.steps) {
+          const w = UNITS[step.kind] * unit;
+          if (step.kind === 'splitter') {
+            wedge = wedge || { x, w, apex: y(step.fromMilli), outs: [] };
+            wedge.outs.push(y(step.toMilli));
+            after = `M${x + w},${y(step.toMilli)}`;
+          } else {
+            const piece = step.kind === 'fiber' ? ` L${x + w},${y(step.toMilli)}` : ` V${y(step.toMilli)} H${x + w}`;
+            if (after === null) d += piece; else after += piece;
+          }
+          x += w;
+        }
+        return { before: d, after };
+      });
+      svg.append(s('path', { class: 'card-light', d: paths[0].before }));
+      for (const path of paths) {
+        svg.append(
+          s('path', { class: 'card-light is-out', d: path.after, 'clip-path': 'url(#out)' }),
+          s('path', { class: 'card-light', d: path.after, 'clip-path': 'url(#lit)' }),
+        );
+      }
+      const half = 4.5; // half the width of a line, so the splitter meets each fiber edge to edge
+      svg.append(
+        s('polygon', {
+          class: 'card-splitter',
+          points: [
+            [wedge.x, wedge.apex - half], [wedge.x + wedge.w, Math.min(...wedge.outs) - half],
+            [wedge.x + wedge.w, Math.max(...wedge.outs) + half], [wedge.x, wedge.apex + half],
+          ].map((point) => point.join(',')).join(' '),
+        }),
+        s('circle', { class: 'card-start', cx: LEFT, cy: y(first.launchMilli), r: 13 }),
+        s('text', { class: 'card-note', x: LEFT + 28, y: y(first.launchMilli) - 28, 'data-testid': 'card-launch' }, `${WORK_ORDER.plant.oltLabel}, ${first.launchText}`),
+        s('text', { class: 'card-note', x: wedge.x + 44, y: wedge.apex + 22 }, WORK_ORDER.plant.trunk.to.label),
+      );
+
+      // Where each design ends: the game's shape for the state, the split, and the level.
+      for (const { option, line } of designs) {
+        if (line.state !== 'ok' && line.state !== 'dark') throw new Error(`The card has no shape for a design that is ${line.stateWord.toLowerCase()}`);
+        const cy = y(line.levelMilli);
+        const cx = RIGHT + 30;
+        const r = 13;
+        const glyph = line.state === 'ok'
+          ? s('circle', { class: 'card-glyph', cx, cy, r, 'data-glyph-for': option.id })
+          : s('path', { class: 'card-glyph', 'data-glyph-for': option.id, d: `M${cx - r},${cy - r * 0.6} L${cx},${cy + r * 0.7} L${cx + r},${cy - r * 0.6}` });
+        const label = s('text', { x: RIGHT + 60, y: cy + 15, 'data-testid': `card-end-${option.id}`, 'data-state': line.state, 'data-level': (line.levelMilli / 1000).toFixed(1) });
+        label.append(
+          s('tspan', { class: 'card-end-ratio' }, ratioText(option.splitters.s1)),
+          s('tspan', { class: 'card-end-level', dx: 16 }, line.levelText),
+        );
+        svg.append(glyph, label);
+      }
+
+      svg.append(
+        s('text', { class: 'card-title', x: W - 58, y: 228, 'text-anchor': 'end', 'data-testid': 'card-name' }, content.title),
+        s('text', { class: 'card-brand-line', x: W - 60, y: 304, 'text-anchor': 'end', 'data-testid': 'card-line' }, 'An XGS-PON loss-budget puzzle'),
+      );
+
+      // The game's tagline, in the part of the window the light has not reached yet. Wrapped by
+      // measuring, so a change of the tagline in the content file needs no change here.
+      const tagline = s('text', { class: 'card-tagline', x: TEXT_LEFT, y: 0, 'data-testid': 'card-tagline' });
+      svg.append(tagline);
+      const lines = [];
+      const probe = s('tspan');
+      tagline.append(probe);
+      for (const word of content.tagline.split(' ')) {
+        const current = lines.length ? lines[lines.length - 1] : null;
+        probe.textContent = current ? `${current} ${word}` : word;
+        if (current && probe.getComputedTextLength() <= TAGLINE_WIDTH) lines[lines.length - 1] = probe.textContent;
+        else lines.push(word);
+      }
+      probe.remove();
+      const lineHeight = 54;
+      const firstLine = yDark - 44 - (lines.length - 1) * lineHeight;
+      lines.forEach((line, index) => tagline.append(s('tspan', { x: TEXT_LEFT, y: firstLine + index * lineHeight }, line)));
+
+      const said = designs.map(({ option, line }) => `${ratioText(option.splitters.s1)} ends at ${line.levelText}, ${line.stateWord.toLowerCase()}`).join('; ');
+      document.getElementById('card-desc').textContent = `One fiber leaves the ${WORK_ORDER.plant.oltLabel} at ${first.launchText} and reaches a splitter. Three designs leave it: ${said}. The receive window is ${first.windowText}.`;
+    }
+
+    const response = await fetch('../data/levels.json');
+    const content = await response.json();
+    await Promise.all([
+      document.fonts.load('600 150px "Barlow Condensed"'),
+      document.fonts.load('500 34px "Barlow"'),
+      document.fonts.load('600 34px "Barlow"'),
+    ]);
+    draw(content);
+    document.getElementById('card').dataset.ready = 'true';
+  </script>
+</body>
+</html>

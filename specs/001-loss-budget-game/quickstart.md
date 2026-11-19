@@ -28,6 +28,7 @@ Open http://127.0.0.1:8000. On Windows use `py` in place of `python3`. If port 8
 | Open http://127.0.0.1:8000/tests/ | The same totals, with a visible "all passed" summary |
 | `python3 tools/oracle.py` | Every hand-worked case recomputed from `data/levels.json` agrees; exit status 0 |
 | `python3 tools/e2e.py` | Each acceptance scenario reports pass; screenshots are written to `docs/verification/` |
+| `python3 tools/e2e.py CARD --card` | The Arcade card is drawn again from `tools/card.html` into `assets/card.webp`, and the README's screenshot is taken again; needs Pillow. To look at the card page itself, open http://127.0.0.1:8000/tools/card.html |
 
 ## Validation scenarios
 

@@ -3,6 +3,8 @@
 > **Amended by the owner's first review, 2026-11-19.** The feature plan, `specs/001-loss-budget-game/plan.md`, lists what changed after this planning input was written: one loss window of 8 to 28 dB in place of the N1 and N2 classes, the data fields `connectors` and `connectorDb` in place of `connectorPairs` and `connectorPairDb`, and the loss trace in place of the light meters. This file is kept as the planning input it was.
 >
 > **Amended again by the owner's second review, 2026-11-19.** The owner said that 8 and 28 are the ONT's receive levels, and gave the launch power. The game now has a launch power of +5 dBm and a receive window of −28 dBm to −8 dBm, works out a receive level for every ONT, and names its outcomes too-dark, too-bright and dark-and-bright (specification, decisions D13 to D16; constitution 1.2.0). Everything below about loss windows, their limits and the hand-worked numbers is the first version's.
+>
+> **After the second review, 2026-11-19.** The owner confirmed the launch power, +5 dBm, and kept the loss card as it is (specification, decision D17). The Arcade card image is no longer a screenshot: the game's engine draws it (decision D18, FR-030). Neither changed the game.
 
 ## Build target
 

@@ -6,6 +6,8 @@
 > 2. The game says **"connector"**, one mated connection on the single fiber, where this file says "connector pair".
 >
 > **Amended again by the owner's second review, 2026-11-19.** The owner said that 8 and 28 are the ONT's receive levels, and gave the launch power. The game now has a launch power of +5 dBm and a receive window of −28 dBm to −8 dBm, works out a receive level for every ONT, and names its outcomes too-dark, too-bright and dark-and-bright (specification, decisions D13 to D16; constitution 1.2.0). Everything below about loss windows, their limits and the hand-worked numbers is the first version's.
+>
+> **After the second review, 2026-11-19.** The owner confirmed the launch power, +5 dBm, and kept the loss card as it is (specification, decision D17). The Arcade card image is no longer a screenshot: the game's engine draws it (decision D18, FR-030). Neither changed the game.
 
 ## The pitch
 

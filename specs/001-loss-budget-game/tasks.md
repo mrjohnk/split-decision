@@ -195,9 +195,9 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 - [X] T073 Lay the card out at card size beside the Arcade's other cards (13 of the 17 could be obtained from public repositories) and record what reads at that size in research.md R-12. The sheet is not kept in the repository
 - [X] T074 Specify the card: decision D18, FR-030, and a hand-worked work order of the card's own in the specification's Hand-worked Cases
 - [X] T075 Run analysis again (pass 5) on the amended specification, plan and tasks
-- [ ] T076 Add the browser check `CARD` to `tools/e2e.py`, with the hand-worked levels and states as its expected values, and run it before the card page is in the repository: it must fail (FR-030)
-- [ ] T077 Write `tools/card.html`: the card drawn as SVG by the game's engine, content file, style sheet and typefaces (FR-030)
-- [ ] T078 Change `tools/e2e.py --card` to capture the card page to `assets/card.webp`, and to take the README's screenshot, `docs/gameplay.png`, from the running game as before (FR-030)
+- [X] T076 Add the browser check `CARD` to `tools/e2e.py`, with the hand-worked levels and states as its expected values, and run it before the card page is in the repository: it must fail (FR-030)
+- [X] T077 Write `tools/card.html`: the card drawn as SVG by the game's engine, content file, style sheet and typefaces (FR-030)
+- [X] T078 Change `tools/e2e.py --card` to capture the card page to `assets/card.webp`, and to take the README's screenshot, `docs/gameplay.png`, from the running game as before (FR-030)
 - [ ] T079 Plant bugs in the card page and in the stored image and confirm that `CARD` catches each; bring README, `ARCADE.md`, quickstart.md and `docs/verification.md` in line; run all three check layers and the fresh-copy check; package the repository for the owner
 
 ---
