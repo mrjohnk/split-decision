@@ -1,34 +1,34 @@
 {
-  "ran": "2026-11-19T15:24:28Z",
+  "ran": "2026-11-19T15:41:08Z",
   "browser": "chromium 153.0.8010.12",
   "served_from": "/play/split-decision/",
   "passed": 23,
   "failed": 0,
-  "seconds": 35.7,
+  "seconds": 41.4,
   "checks": [
     {
       "id": "AC1",
-      "covers": "AC1, FR-001, FR-002",
+      "covers": "AC1, FR-001, FR-002, FR-003",
       "title": "A fresh session opens on the Level 1 briefing and nothing can be answered before Start",
       "status": "pass",
-      "detail": "Level 1 briefing first; three options only after Start",
+      "detail": "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the window, the goal and three options with the homes they serve",
       "seconds": 0.5
     },
     {
       "id": "AC2",
-      "covers": "AC2, FR-009, FR-010",
+      "covers": "AC2, FR-006, FR-009",
       "title": "Round 1-1 with a 1:32 splitter: solved, 26.9 dB, ledger 7.0 + 2.0 + 0.4 + 17.5",
       "status": "pass",
       "detail": "ONT A: Fiber 7.0 + connector pairs 2.0 + splices 0.4 + splitter 17.5 = 26.9 dB",
-      "seconds": 0.5
+      "seconds": 1.6
     },
     {
       "id": "AC3a",
-      "covers": "AC3a, FR-011, SC-002",
+      "covers": "AC3a, FR-010, SC-002",
       "title": "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 1.4 dB over 29 dB, round stays open",
       "status": "pass",
-      "detail": "Inside the window ONT A: 26.9 dB. Inside the N1 window of 14 to 29 dB, with 2.1 dB to spare before the maximum.",
-      "seconds": 0.6
+      "detail": "Too dark ONT A: 30.4 dB. That is 1.4 dB over the N1 maximum of 29 dB. The retry solved the round on attempt 2.",
+      "seconds": 1.7
     },
     {
       "id": "AC3b",
@@ -40,15 +40,15 @@
     },
     {
       "id": "AC4",
-      "covers": "AC4, FR-006",
+      "covers": "AC4, FR-005, FR-012",
       "title": "Submitting with nothing selected gives guidance and counts nothing",
       "status": "pass",
-      "detail": "Choose a design first, then submit. Nothing was counted.",
+      "detail": "Choose a design first, then submit. Nothing was counted. Selecting a design grades nothing.",
       "seconds": 0.5
     },
     {
       "id": "AC5",
-      "covers": "AC5, FR-013, FR-014",
+      "covers": "AC5, FR-014",
       "title": "Hint 1, hint 2 and the worked solution appear in order, count as help and do not complete the round",
       "status": "pass",
       "detail": "Level complete: Add it up  Work orders solved 2 of 2 Attempts 2 Hints used 2 Worked solutions viewed 1",
@@ -56,11 +56,11 @@
     },
     {
       "id": "AC6",
-      "covers": "AC6, FR-007, FR-008",
+      "covers": "AC6, FR-013",
       "title": "Each real submission is one attempt; the answer completes the round once; a repeat changes nothing",
       "status": "pass",
       "detail": "Attempts: 3. Hints used: 0. Worked solution: not viewed.",
-      "seconds": 0.6
+      "seconds": 0.7
     },
     {
       "id": "AC7",
@@ -68,7 +68,7 @@
       "title": "Next opens the following round, then the next briefing with the level summary, then the session summary",
       "status": "pass",
       "detail": "Next work order > Next level > Next work order > Next level > Next work order > See summary",
-      "seconds": 1.3
+      "seconds": 1.4
     },
     {
       "id": "AC8",
@@ -80,11 +80,11 @@
     },
     {
       "id": "FULL",
-      "covers": "SC-001, SC-002, FR-011, FR-016",
+      "covers": "SC-001, SC-002, FR-006 to FR-011, FR-016, FR-026",
       "title": "All 20 options of the six rounds, submitted in the page, match the hand-worked key",
       "status": "pass",
       "detail": "20 submissions compared with the key: totals, states, outcomes, limits and differences",
-      "seconds": 3.8
+      "seconds": 5.9
     },
     {
       "id": "RELOAD",
@@ -112,7 +112,7 @@
     },
     {
       "id": "AC10",
-      "covers": "AC10, FR-012, FR-024",
+      "covers": "AC10, FR-024",
       "title": "Feedback is text, stays until the next submission or view, names its design and is announced",
       "status": "pass",
       "detail": "Your design: 1:64 splitter. Too dark at ONT A. ONT A: 30.4 dB. That is 1.4 dB over the N1 maximum of 29 dB. The splitter is the biggest single loss on the path. Add its loss to the 9.4 dB that is already there before comparing with the maximum. Next step: look for a design that puts less loss on that path.",
@@ -124,19 +124,19 @@
       "title": "The result is readable at once; the trace draws itself only when motion is allowed, and then stops",
       "status": "pass",
       "detail": "reduced motion: 0 animations, result present at once; otherwise the trace draws once in under 1.5 s",
-      "seconds": 2.5
+      "seconds": 2.4
     },
     {
       "id": "CONTRAST",
-      "covers": "FR-026",
+      "covers": "principle IV, contracts/ui.md",
       "title": "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it",
       "status": "pass",
       "detail": "1726 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1",
-      "seconds": 2.1
+      "seconds": 2.0
     },
     {
       "id": "TEXTSIZE",
-      "covers": "FR-026, contracts/ui.md",
+      "covers": "contracts/ui.md",
       "title": "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12",
       "status": "pass",
       "detail": "smallest running text 16px; smallest drawing label 12px",
@@ -148,23 +148,23 @@
       "title": "At 320 CSS pixels wide the page never scrolls sideways and Submit, Hint and Next can be reached",
       "status": "pass",
       "detail": "36 view and width combinations at 320, 390 and 768 pixels",
-      "seconds": 8.4
+      "seconds": 8.3
     },
     {
       "id": "ORIGIN",
-      "covers": "SC-009, FR-020",
+      "covers": "SC-009, FR-028",
       "title": "A full playthrough makes no request outside the game's own origin, and the fonts come from the game",
       "status": "pass",
       "detail": "19 requests, all under /play/split-decision/ (css, html, js, json, svg, woff2); fonts: barlow-condensed-latin-500-normal.woff2, barlow-condensed-latin-600-normal.woff2, barlow-latin-400-normal.woff2, barlow-latin-500-normal.woff2, barlow-latin-600-normal.woff2",
-      "seconds": 1.6
+      "seconds": 1.7
     },
     {
       "id": "CONTENT",
-      "covers": "SC-005, FR-019, FR-028",
+      "covers": "SC-005, FR-019, FR-020",
       "title": "Content that cannot be graded (U1 to U6), or cannot be read, shows a content error and no challenge",
       "status": "pass",
       "detail": "U1 no-valid-option; U2 tie-for-best; U3 unknown-ratio; U4 inexact-total; U5 note-mismatch; U6 unknown-source; a missing file reports load-failed and Try loading again recovers",
-      "seconds": 2.2
+      "seconds": 2.3
     },
     {
       "id": "DIALOGS",
@@ -176,19 +176,19 @@
     },
     {
       "id": "UNIT",
-      "covers": "SC-001, contracts/rules.md",
+      "covers": "SC-001",
       "title": "The unit tests pass in the browser, on the same modules the game runs",
       "status": "pass",
-      "detail": "156 passed, 0 failed, 156 total",
+      "detail": "158 passed, 0 failed, 158 total",
       "seconds": 0.3
     },
     {
       "id": "SHOTS",
-      "covers": "FR-001, FR-003",
+      "covers": "FR-002",
       "title": "Screenshots of the briefing and of level 3 for the record",
       "status": "pass",
       "detail": "written to docs/verification/",
-      "seconds": 1.1
+      "seconds": 1.0
     }
   ]
 }

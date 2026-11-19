@@ -203,6 +203,22 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
     assertIncludes(model.lossCard.map((row) => `${row.label} ${row.value}`).join('; '), '1:32 splitter 17.5 dB');
   });
 
+  test('feedback/no worked example repeats the numbers of a challenge (FR-002)', () => {
+    const challengeTotals = new Set();
+    for (const round of rounds) {
+      for (const option of round.options) {
+        const result = evaluate(content, round, option.id);
+        for (const ont of describeResult(content, round, { ...result, optionId: option.id }).onts) challengeTotals.add(ont.totalText);
+      }
+    }
+    assertTrue(challengeTotals.size >= 30, 'the challenges were collected');
+    for (const level of content.levels) {
+      for (const ont of describeBriefing(content, level).example.onts) {
+        assertTrue(!challengeTotals.has(ont.totalText), `${level.id}: the example total ${ont.totalText} is also a challenge total`);
+      }
+    }
+  });
+
   test('feedback/only the answer gets a headline that says Correct', () => {
     for (const round of rounds) {
       for (const option of round.options) {

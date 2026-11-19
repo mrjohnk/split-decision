@@ -14,7 +14,7 @@ Split Decision is a static browser game that teaches XGS-PON optical loss budget
 
 **Language/Version**: HTML5, CSS and JavaScript (ES2020 native modules) run directly by the browser; no transpiler or bundler
 
-**Primary Dependencies**: none at runtime
+**Primary Dependencies**: none at runtime. Two vendored font families (Barlow, Barlow Condensed; SIL Open Font License 1.1) are static assets, not code
 
 **Storage**: N/A. Session state is held in memory; a reload starts a fresh session (FR-018)
 
@@ -40,7 +40,7 @@ Split Decision is a static browser game that teaches XGS-PON optical loss budget
 | II. Teach through a decision | Briefing before testing; all values visible; specific wrong-answer explanations; hints method first | Level briefings with a worked example; path table and loss card always shown; feedback assembled from evaluator evidence plus an authored note per option; help in fixed order | Pass |
 | III. Honest progress | Complete only on a correct submission; no attempt for empty input; no double award | `engine/state.js` owns attempts, assistance and completion; Submit is disabled after success and the reducer guards as well | Pass |
 | IV. Access | Keyboard, visible focus, text with color, text equivalent for diagrams, reduced motion, narrow window | Native radio group, buttons and `<dialog>`; a live region for feedback; a generated text description and an HTML path table for every diagram; `prefers-reduced-motion`; single-column layout under 960 CSS pixels | Pass |
-| V. Deterministic and self-contained | No account, backend, model or API key; no external content decides an answer | Static files only; system fonts; no third-party script, style or font | Pass |
+| V. Deterministic and self-contained | No account, backend, model or API key; no external content decides an answer | Static files only; no third-party script or style; two open-licensed font families are vendored in `assets/fonts/` and served from the game's own folder (see research R-08) | Pass |
 | VI. Content and logic separate | Content in data; rules apart from rendering; validation before play; notes cannot override the engine | `data/levels.json`; `engine/` has no DOM access; `engine/content.js` checks each authored note's `expect` against the evaluator | Pass |
 | VII. Done is demonstrated | Reproducible commands; recorded results; failed and untested checks visible | README verification table with pass, fail or not run for each criterion; `docs/verification.md` keeps the raw results | Pass |
 
@@ -94,7 +94,8 @@ engine/
 └── feedback.js              Turn an evaluation into the words shown to the player
 ui/
 ├── render.js                Briefing, round, feedback, summary and error views
-├── diagram.js               PON diagram and light meters as SVG, from round data
+├── diagram.js               The plant and the loss trace as SVG, from round data
+├── dom.js                   Small helpers for building HTML and SVG elements
 └── controls.js              Events, keyboard and focus behavior
 data/
 └── levels.json              Loss card, classes, sources, briefings, rounds, hints
@@ -113,7 +114,9 @@ tools/
 ├── oracle.py                Independent recomputation of the answer key (Python)
 └── e2e.py                   Browser checks of the acceptance scenarios (Playwright)
 assets/
-└── card.webp                16:9 card image, captured from the running game
+├── card.webp                16:9 card image, captured from the running game
+├── favicon.svg              The splitter mark
+└── fonts/                   Barlow and Barlow Condensed (woff2) with their OFL license texts
 docs/
 ├── build-log.md             What the build agent did, and when
 ├── verification.md          Recorded results of every check
@@ -126,6 +129,23 @@ README.md                    How to play, run and test; what was verified
 ```
 
 **Structure Decision**: one static project at the repository root, as the planning input proposed, so that the folder that contains `index.html` can be served as it is by any web server, including GitHub Pages from the root of a branch. `engine/` holds everything that decides an answer and never touches the page; `ui/` holds everything that touches the page and never decides an answer.
+
+## Changes made during implementation
+
+Recorded on 2026-11-19, when the page was built. Each one was applied to the artifact it touches, so the artifacts describe the game as built.
+
+| # | The plan said | The build does | Why | Where it is recorded |
+| --- | --- | --- | --- | --- |
+| 1 | One light meter for each ONT: a scale with a marker | One loss trace with a line for each ONT, and a meter row for each ONT under it | The trace shows where the light is lost, not only how much is left | research R-08, contracts/ui.md |
+| 2 | A light pulse and a sliding marker | The trace draws itself once | One motion, tied to the result | research R-10, contracts/ui.md |
+| 3 | System fonts | Barlow and Barlow Condensed, vendored under the Open Font License | Label widths and character; still no request to another origin | research R-08 |
+| 4 | Authored text with dB values typed in | Value tokens filled from the loss card and the evaluator; worked examples computed by the evaluator | An owner can change the loss card without leaving a stale sentence behind | research R-07, data-model.md, contracts/content.md |
+| 5 | Next is named "Next round" | "Next work order", because the game calls a round a work order everywhere the player reads | Consistent words | contracts/ui.md |
+| 6 | An option's accessible name is its label and the homes it serves | The name is the label; the homes it serves are the description | A screen reader says the two apart instead of running them together | contracts/ui.md |
+| 7 | "Text is at least 16 CSS pixels" | Running text is at least 16; labels inside the two drawings are at least 12, and every value a player needs from a drawing is also in a table or a line of text | Labels of that size do not fit a drawing at 320 pixels | contracts/ui.md |
+| 8 | Nothing about where the result appears | After a submission the page moves just far enough to show the trace and the lines under it; the move is instant | On a laptop the result was below the window | contracts/ui.md |
+| 9 | The briefing ends with Start | Start stays at the bottom of the window while the briefing scrolls | A returning player should not have to scroll a page to start | contracts/ui.md |
+| 10 | The correct result's headline describes the state | It begins with "Correct." | The headline should say it | contracts/ui.md |
 
 ## Implementation order
 

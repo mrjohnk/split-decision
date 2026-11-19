@@ -50,8 +50,9 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 
 ## R-08 · Rendering
 
-- **Decision**: DOM with native controls, and inline SVG generated from the plant for the diagram and the light meters. System fonts. No library.
+- **Decision**: DOM with native controls, and inline SVG generated from the round's data for two drawings: the plant, and the loss trace (how each ONT's light falls on the way from the OLT port, against the class window). No library.
 - **Rationale**: native radio buttons, buttons and `<dialog>` give keyboard behavior and focus handling without custom code; SVG scales to a narrow window; nothing is fetched from another origin.
+- **Changed at implementation, 2026-11-19**: (1) The planning input asked for one light meter for each ONT, a scale with a marker. The build draws one loss trace instead, with a line for each ONT, and keeps a meter row for each ONT under it (name, total, state word and shape). The trace shows where on the path the light is lost, which is the thing the game teaches; a marker on a scale shows only the total. A stretch of path that several ONTs share is drawn once, in a neutral color. (2) The plan said system fonts. The build vendors two open-licensed families, Barlow and Barlow Condensed (SIL Open Font License 1.1), in `assets/fonts/` with their license texts, because label widths in the drawings and the page's character depend on the typeface. They are served from the game's own folder, so FR-028 and SC-009 still hold; `tools/e2e.py` checks that every request stays under the game's own path.
 - **Alternatives considered**: Three.js, the workshop deck's suggestion (a 3D scene adds a dependency and needs a parallel accessible view for no teaching gain here); Canvas 2D (no text equivalent without duplicating the scene in the DOM).
 
 ## R-09 · Tests that run in two places
@@ -62,6 +63,7 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 
 ## R-10 · Motion and state signals
 
-- **Decision**: on Submit the result is written to the page at once; an optional light pulse then travels the diagram and each meter's marker slides to its place. With `prefers-reduced-motion: reduce` the pulse and the slide are not played. Each state has a word and a shape: a ring for inside the window, a downward chevron for too dark, a sunburst for too bright.
+- **Decision**: on Submit the result is written to the page at once; the loss trace then draws itself once, from left to right in under a second, and the end markers appear. With `prefers-reduced-motion: reduce` nothing is animated: the script does not start the drawing, and the style sheet cancels it as a second guard. Each state has a word and a shape: a ring for inside the window, a downward chevron for too dark, a sunburst for too bright.
+- **Changed at implementation, 2026-11-19**: the plan named a light pulse on the diagram and a sliding marker. With the loss trace (R-08) the one motion is the trace drawing itself. It is the only animation in the game; `tools/e2e.py` asserts that the only animation names are `draw-trace` and `show-ends`, and that there are none under reduced motion.
 - **Rationale**: FR-025 and FR-026. Motion is decoration over information that is already present.
 - **Alternatives considered**: revealing the result at the end of the animation (delays feedback); color-only states.

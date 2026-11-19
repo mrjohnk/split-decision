@@ -11,7 +11,7 @@ Implement the clarified specification for Split Decision. First deliver one comp
 ## Stack and serving
 
 - Semantic HTML, CSS, and native JavaScript modules. No framework, bundler, backend, or runtime model.
-- DOM controls, plus inline SVG for the PON diagram and the light meters. The SVG is generated from the round's data. No rendering dependency. Every value in the diagram also appears in an HTML table.
+- DOM controls, plus inline SVG for the PON diagram and the loss trace (first written as "light meters"; changed on 2026-11-19, see the feature plan). The SVG is generated from the round's data. No rendering dependency. Every value in the diagram also appears in an HTML table.
 - `data/levels.json` for authored content; load it over HTTP using a relative URL.
 - In-memory session state. Reload starts a fresh session, as specified. No persistence in v1.
 - Static hosting, including a repository subpath such as GitHub Pages. Use relative asset paths and case-correct filenames.
@@ -38,7 +38,7 @@ engine/
   feedback.js                Explain structured evaluation results
 ui/
   render.js                  Briefing, challenge, feedback, and summary views
-  diagram.js                 PON diagram and light meters as SVG, from round data
+  diagram.js                 PON diagram and loss trace as SVG, from round data
   controls.js                Input events and keyboard/focus behavior
 data/
   levels.json                Loss card, classes, briefings, rounds, hints, sources
@@ -110,7 +110,7 @@ The state module owns attempts, assistance, completed round IDs, current round, 
 
 ## Interaction and visual direction
 
-Translate "light that dims at every element" into a compact challenge area, labeled controls, and a persistent explanation area. The PON is drawn left to right, from the OLT port to the ONTs. Each ONT has a light meter: a horizontal scale with the class window marked, and a marker at the ONT's total loss. Use a clear type hierarchy and one consistent visual language. Motion reveals the consequence: on Submit, light travels the route and each marker moves to its total.
+Translate "light that dims at every element" into a compact challenge area, labeled controls, and a persistent explanation area. The PON is drawn left to right, from the OLT port to the ONTs. A loss trace shows each ONT's light falling along its path, with the class window marked on the scale, and a meter row for each ONT gives its total and state (first written as one light meter with a marker for each ONT; changed on 2026-11-19, see the feature plan). Use a clear type hierarchy and one consistent visual language. Motion reveals the consequence: on Submit, light travels the route and each marker moves to its total.
 
 Use native controls where possible, move focus deliberately after screen changes, and announce feedback through a live region. Respect `prefers-reduced-motion`. Display textual values alongside diagrams. A learner must not need animation, color vision, pointer precision, or hover to reason about the answer. "Inside the window", "too dark" and "too bright" are always written as words and marked with different shapes, not only with color.
 

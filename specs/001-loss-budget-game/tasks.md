@@ -71,19 +71,19 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Tests for User Story 1
 
-- [ ] T017 [US1] Write the AC1, AC2, AC3a, AC3b and AC4 scenarios for round 1-1 in `tools/e2e.py`, reading expected totals from `tests/fixtures/answer-key.json`; confirm they fail before the page exists
+- [X] T017 [US1] Write the AC1, AC2, AC3a, AC3b and AC4 scenarios for round 1-1 in `tools/e2e.py`, reading expected totals from `tests/fixtures/answer-key.json`; confirm they fail before the page exists
 
 ### Implementation for User Story 1
 
-- [ ] T018 [US1] Review in the running page, and correct in `data/levels.json` where needed, the Level 1 briefing (introduction, terms, worked example, sources, and the simplifications in plain language, FR-022) and the story, goal, option notes and explanation of rounds 1-1 and 1-2
-- [ ] T019 [US1] Implement `main.js`: fetch `data/levels.json` by relative URL, validate it, create the session, render; show the loading view, and the content error view with "Try loading again" when loading or validation fails (FR-019, FR-028)
-- [ ] T020 [P] [US1] Implement `ui/diagram.js`: draw the plant as inline SVG with a generated text description, and one light meter for each ONT with the class window marked (FR-003; contracts/ui.md, Diagram and meters)
-- [ ] T021 [US1] Implement the briefing view in `ui/render.js`: level title and outcome, introduction, terms, worked example, sources cited, "Start level" (FR-001, FR-002, FR-021)
-- [ ] T022 [US1] Implement the round view in `ui/render.js`: work order, diagram, path table, class window, loss card, and the option group with the homes each option serves (FR-003, FR-005)
-- [ ] T023 [US1] Implement feedback and guidance in `ui/render.js`: the status region, the headline with its state word and shape, one line for each ONT, the ledger table, the note, and the meters updated from the evaluation (FR-009 to FR-012, FR-024, FR-026)
-- [ ] T024 [US1] Implement `ui/controls.js` for `start-level`, `select` and `submit`, with Enter in the option group submitting the form (FR-005)
-- [ ] T025 [P] [US1] Create `style.css`: two columns at 960 CSS pixels and wider, the type scale, the work order, options, meters, ledger and feedback styles, and the three state shapes (contracts/ui.md, Layout)
-- [ ] T026 [US1] Run the US1 scenarios in `tools/e2e.py` and record the result in `docs/verification.md`
+- [X] T018 [US1] Review in the running page, and correct in `data/levels.json` where needed, the Level 1 briefing (introduction, terms, worked example, sources, and the simplifications in plain language, FR-022) and the story, goal, option notes and explanation of rounds 1-1 and 1-2
+- [X] T019 [US1] Implement `main.js`: fetch `data/levels.json` by relative URL, validate it, create the session, render; show the loading view, and the content error view with "Try loading again" when loading or validation fails (FR-019, FR-028)
+- [X] T020 [P] [US1] Implement `ui/diagram.js`: draw the plant as inline SVG with a generated text description, and the loss trace with one line for each ONT and the class window marked (FR-003; contracts/ui.md, Drawings)
+- [X] T021 [US1] Implement the briefing view in `ui/render.js`: level title and outcome, introduction, terms, worked example, sources cited, "Start level" (FR-001, FR-002, FR-021)
+- [X] T022 [US1] Implement the round view in `ui/render.js`: work order, diagram, path table, class window, loss card, and the option group with the homes each option serves (FR-003, FR-005)
+- [X] T023 [US1] Implement feedback and guidance in `ui/render.js`: the status region, the headline with its state word and shape, one line for each ONT, the ledger table, the note, and the loss trace and meter rows updated from the evaluation (FR-009 to FR-012, FR-024, FR-026)
+- [X] T024 [US1] Implement `ui/controls.js` for `start-level`, `select` and `submit`, with Enter in the option group submitting the form (FR-005)
+- [X] T025 [P] [US1] Create `style.css`: two columns at 960 CSS pixels and wider, the type scale, the work order, options, instrument panel, ledger and feedback styles, and the three state shapes (contracts/ui.md, Layout)
+- [X] T026 [US1] Run the US1 scenarios in `tools/e2e.py` and record the result in `docs/verification.md`
 
 **Checkpoint**: User Story 1 is functional and testable on its own.
 
@@ -97,17 +97,17 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Tests for User Story 2
 
-- [ ] T027 [US2] Add to `tools/e2e.py` the AC5, AC6, AC7 and AC8 scenarios and a full six-round playthrough that submits every option of every round and compares each on-screen total, state and outcome with `tests/fixtures/answer-key.json`; and a reload in mid-game that must return to the first briefing with no progress (FR-018); confirm the new scenarios fail
+- [X] T027 [US2] Add to `tools/e2e.py` the AC5, AC6, AC7 and AC8 scenarios and a full six-round playthrough that submits every option of every round and compares each on-screen total, state and outcome with `tests/fixtures/answer-key.json`; and a reload in mid-game that must return to the first briefing with no progress (FR-018); confirm the new scenarios fail
 
 ### Implementation for User Story 2
 
-- [ ] T028 [US2] Review in the running page, and correct in `data/levels.json` where needed, the Level 2 and Level 3 briefings, the story, goal, option notes and explanation of rounds 2-1 to 3-2, and the two hints of each of the six rounds
-- [ ] T029 [US2] Render the Hint and Worked solution buttons and the revealed help in `ui/render.js`, and wire `hint` and `solution` in `ui/controls.js`; both are unavailable once the round is solved (FR-014)
-- [ ] T030 [US2] Render Next with its three names and wire `next` in `ui/controls.js`; show the finished level's summary at the top of the next briefing (FR-015, FR-016)
-- [ ] T031 [US2] Implement the session summary view in `ui/render.js`: one row for each round, the totals including "solved without the worked solution" and "solved with no help at all", what each level practiced, "Play again" (FR-016)
-- [ ] T032 [US2] Implement Restart in `ui/render.js` and `ui/controls.js` with the confirmation dialog: `request-restart`, `confirm-restart`, `cancel-restart` (FR-017)
-- [ ] T033 [US2] Implement the progress indicator in the header in `ui/render.js`: level, round and one marker for each of the six rounds (FR-003)
-- [ ] T034 [US2] Run the US2 scenarios and the full playthrough in `tools/e2e.py` and record the result in `docs/verification.md`
+- [X] T028 [US2] Review in the running page, and correct in `data/levels.json` where needed, the Level 2 and Level 3 briefings, the story, goal, option notes and explanation of rounds 2-1 to 3-2, and the two hints of each of the six rounds
+- [X] T029 [US2] Render the Hint and Worked solution buttons and the revealed help in `ui/render.js`, and wire `hint` and `solution` in `ui/controls.js`; both are unavailable once the round is solved (FR-014)
+- [X] T030 [US2] Render Next with its three names and wire `next` in `ui/controls.js`; show the finished level's summary at the top of the next briefing (FR-015, FR-016)
+- [X] T031 [US2] Implement the session summary view in `ui/render.js`: one row for each round, the totals including "solved without the worked solution" and "solved with no help at all", what each level practiced, "Play again" (FR-016)
+- [X] T032 [US2] Implement Restart in `ui/render.js` and `ui/controls.js` with the confirmation dialog: `request-restart`, `confirm-restart`, `cancel-restart` (FR-017)
+- [X] T033 [US2] Implement the progress indicator in the header in `ui/render.js`: level, round and one marker for each of the six rounds (FR-003)
+- [X] T034 [US2] Run the US2 scenarios and the full playthrough in `tools/e2e.py` and record the result in `docs/verification.md`
 
 **Checkpoint**: User Stories 1 and 2 both work.
 
@@ -121,16 +121,16 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ### Tests for User Story 3
 
-- [ ] T035 [US3] Add to `tools/e2e.py`: a keyboard-only playthrough from the first briefing to the summary at 1366 × 768 (AC9, SC-003); an accessible-name check for every control in contracts/ui.md; a check that feedback is inside the status region and names its option (AC10); runs with and without reduced motion that read the feedback immediately after Submit (FR-025, SC-006); a contrast check of every text color against its background, at least 4.5 to 1; a 320-pixel run that asserts no sideways page scroll and that Submit, Hint and Next are reachable (SC-007); a request log that asserts no request to another origin (SC-009). Confirm the new scenarios fail or are not yet met
+- [X] T035 [US3] Add to `tools/e2e.py`: a keyboard-only playthrough from the first briefing to the summary at 1366 × 768 (AC9, SC-003); an accessible-name check for every control in contracts/ui.md; a check that feedback is inside the status region and names its option (AC10); runs with and without reduced motion that read the feedback immediately after Submit (FR-025, SC-006); a contrast check of every text color against its background, at least 4.5 to 1; a 320-pixel run that asserts no sideways page scroll and that Submit, Hint and Next are reachable (SC-007); a request log that asserts no request to another origin (SC-009). Confirm the new scenarios fail or are not yet met
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Implement focus management in `ui/controls.js`: focus the view's heading after a change of view, Next after a correct submission, Submit otherwise; dialogs return focus to the control that opened them (FR-023)
-- [ ] T037 [US3] Add to `style.css` the visible focus outline (3 pixels, offset), control sizes, and text contrast of at least 4.5 to 1 (FR-023, FR-026)
-- [ ] T038 [US3] Implement motion in `ui/diagram.js` and `style.css`: write the result first, then play the light pulse and the marker slide only when reduced motion is not requested (FR-025)
-- [ ] T039 [US3] Add the narrow layout to `style.css`: one column below 960 CSS pixels, labeled scroll containers for the path table, loss card and ledger, and no sideways page scroll at 320 CSS pixels (FR-027)
-- [ ] T040 [US3] Implement the "Review briefing" and "Model and sources" dialogs in `ui/render.js` and `ui/controls.js`, with the model's rule, assumptions, what is left out, and every source with its section and link (FR-004, FR-021, FR-022)
-- [ ] T041 [US3] Run the US3 scenarios in `tools/e2e.py` and record the result in `docs/verification.md`
+- [X] T036 [US3] Implement focus management in `ui/controls.js`: focus the view's heading after a change of view, Next after a correct submission, Submit otherwise; dialogs return focus to the control that opened them (FR-023)
+- [X] T037 [US3] Add to `style.css` the visible focus outline (3 pixels, offset), control sizes, and text contrast of at least 4.5 to 1 (FR-023, FR-026)
+- [X] T038 [US3] Implement motion in `ui/diagram.js` and `style.css`: write the result first, then let the loss trace draw itself once, only when reduced motion is not requested (FR-025)
+- [X] T039 [US3] Add the narrow layout to `style.css`: one column below 960 CSS pixels, labeled scroll containers for the path table, loss card and ledger, and no sideways page scroll at 320 CSS pixels (FR-027)
+- [X] T040 [US3] Implement the "Review briefing" and "Model and sources" dialogs in `ui/render.js` and `ui/controls.js`, with the model's rule, assumptions, what is left out, and every source with its section and link (FR-004, FR-021, FR-022)
+- [X] T041 [US3] Run the US3 scenarios in `tools/e2e.py` and record the result in `docs/verification.md`
 
 **Checkpoint**: All three user stories work.
 
@@ -140,9 +140,9 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 **Purpose**: Evidence, packaging and the checks that span the stories
 
-- [ ] T042 Review every briefing, hint, note and explanation in `data/levels.json` against references R1 to R6 and record the review, line by line where a number is stated, in `docs/verification.md`
-- [ ] T043 Add a trial seventh round as data only in `tests/content.test.js` and confirm that it validates and is graded without any change under `engine/` (constitution, principle VI)
-- [ ] T044 Capture `assets/card.webp` (16:9, under 1 MB) and `docs/gameplay.png` from the running game with `tools/e2e.py`
+- [X] T042 Review every briefing, hint, note and explanation in `data/levels.json` against references R1 to R6 and record the review, line by line where a number is stated, in `docs/verification.md`
+- [X] T043 Add a trial seventh round as data only in `tests/content.test.js` and confirm that it validates and is graded without any change under `engine/` (constitution, principle VI)
+- [X] T044 Capture `assets/card.webp` (16:9, under 1 MB) and `docs/gameplay.png` from the running game with `tools/e2e.py`
 - [ ] T045 Write the root `README.md` from the attendee template: actual status, the challenge, what is learned, how to run and play, controls, the model and its references, how it was built, the verification table, known limits, credits and license
 - [ ] T046 Complete `docs/verification.md`: every acceptance criterion and success criterion with pass, fail or not run, the date, the environment and the evidence; keep failed and untested checks visible; record SC-004 and SC-008, which need a person, as not run by the build and waiting for the owner
 - [ ] T047 Fill `ARCADE.md` from `docs/build-log.md`; write "unknown" for anything not recorded; leave the creator block and `consent_to_publish` for the owner
@@ -188,8 +188,8 @@ One static project at the repository root: `index.html`, `style.css`, `main.js`,
 
 ```text
 # After T019, these touch different files and can proceed together:
-Task: "T020 Implement ui/diagram.js: plant as inline SVG, text description, light meters"
-Task: "T025 Create style.css: columns, type scale, work order, options, meters, ledger, feedback, state shapes"
+Task: "T020 Implement ui/diagram.js: plant as inline SVG, text description, loss trace"
+Task: "T025 Create style.css: columns, type scale, work order, options, instrument panel, ledger, feedback, state shapes"
 
 # Then, in order, because they share ui/render.js:
 Task: "T021 Briefing view" → "T022 Round view" → "T023 Feedback and guidance"

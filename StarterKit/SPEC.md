@@ -180,7 +180,7 @@ A 1:2 first stage. One leg goes straight to a business, ONT A: 4.2 km (2.1), 3 c
 
 ## Experience direction
 
-- **Visual metaphor:** light leaves the OLT and dims at each element. Every ONT has a light meter: a scale with the loss window marked on it and a marker at the ONT's total loss.
+- **Visual metaphor:** light leaves the OLT and dims at each element. A loss trace shows each ONT's light falling along its path, with the loss window marked on the scale, and a meter row for each ONT gives its total and its state. *(Changed on 2026-11-19, during implementation: the first version of this line asked for one light meter with a marker for each ONT. See the plan, "Changes made during implementation".)*
 - **One memorable moment:** on Submit, light travels the route and each ONT's marker settles inside the window, short of it (too bright) or past it (too dark).
 - **Always visible:** the class window, the loss card, each ONT's fiber km, connector pairs and splices, and the homes each option serves.
 - **Feedback voice:** patient and specific; explain the observed choice before offering the next step.

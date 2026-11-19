@@ -38,6 +38,8 @@ PREFIX = "/play/split-decision"  # the game is served from a subpath, as it woul
 LIMITS = {"N1": (14, 29), "N2": (16, 31)}
 ROUND_IDS = list(KEY["rounds"].keys())
 STATE_WORDS = {"ok": "Inside the window", "over": "Too dark", "under": "Too bright"}
+# Each state has its own shape, counted as [circles, paths, lines]: a ring, a chevron, a sunburst.
+SHAPES = {"ok": [1, 0, 0], "over": [0, 1, 0], "under": [1, 0, 8]}
 
 CHECKS = []
 
@@ -248,7 +250,9 @@ def check_feedback(game, round_id, option_id, answer_label):
         need(meter.get_attribute("data-state") == ont["state"], f"{where}/{ont_id}: the meter state is {meter.get_attribute('data-state')}, the key says {ont['state']}")
         meter_text = meter.inner_text()
         need(STATE_WORDS[ont["state"]] in meter_text and f"{one(ont['total'])} dB" in meter_text, f"{where}/{ont_id}: the meter text is '{meter_text}'")
-        need(meter.locator("svg.state-icon").count() == 1, f"{where}/{ont_id}: the meter state has no shape")
+        icon = meter.locator("svg.state-icon")
+        shape = [icon.locator(tag).count() for tag in ("circle", "path", "line")] if icon.count() == 1 else None
+        need(shape == SHAPES[ont["state"]], f"{where}/{ont_id}: the shape for '{ont['state']}' is drawn as {shape} (circles, paths, lines)")
         line = game.t(f"line-{ont_id}").inner_text()
         need(f"ONT {ont_id}" in line and f"{one(ont['total'])} dB" in line, f"{where}/{ont_id}: the line does not name the ONT and its loss: '{line}'")
         need(STATE_WORDS[ont["state"]] in line, f"{where}/{ont_id}: the line lacks the state words: '{line}'")
@@ -274,6 +278,12 @@ def check_feedback(game, round_id, option_id, answer_label):
     return text
 
 
+def settle(game):
+    """Wait until the trace has finished drawing, and move the pointer off the drawing, before a screenshot."""
+    game.page.mouse.move(2, 2)
+    game.page.wait_for_function("document.getAnimations().every(a => a.playState !== 'running')", timeout=5000)
+
+
 def no_problems(game, allow=()):
     left = [p for p in game.problems if not any(a in p for a in allow)]
     need(not left, f"the page reported: {left}")
@@ -283,7 +293,7 @@ def no_problems(game, allow=()):
 # User Story 1: one decision
 # --------------------------------------------------------------------------------------------------
 
-@check("AC1", "AC1, FR-001, FR-002", "A fresh session opens on the Level 1 briefing and nothing can be answered before Start")
+@check("AC1", "AC1, FR-001, FR-002, FR-003", "A fresh session opens on the Level 1 briefing and nothing can be answered before Start")
 def ac1(new):
     g = new()
     g.open()
@@ -297,11 +307,19 @@ def ac1(new):
     need(g.round_id() == "r1-1", "Start level 1 did not open round 1-1")
     need(g.page.locator('input[name="design"]').count() == 3, "round 1-1 should offer three designs")
     need("Attempts: 0." in g.tally(), "a new round should have no attempts")
+    # What a round must show (FR-003).
+    need(g.page.locator(".workorder .plant-svg").count() == 1 and "13.0 km of fiber" in g.t("plant-text").text_content(), "the plant drawing or its text is missing")
+    need(g.t("paths").locator("tbody tr").all_inner_texts() == ["ONT A, farthest home\t14.0 km\t4\t4\tyour choice"], f"the path table reads {g.t('paths').locator('tbody tr').all_inner_texts()}")
+    card = g.t("losscard").locator("div").all_inner_texts()
+    need(len(card) == 9 and "1:32 splitter" in card[7] and "17.5 dB" in card[7], f"the loss card reads {card}")
+    need("N1 loss window: 14 to 29 dB" in g.t("window").inner_text(), "the class window is missing")
+    need(g.page.locator("#goal").inner_text().startswith("Choose the largest splitter"), "the goal is missing")
+    need(g.t("option-o64").inner_text().split("\n") == ["1:64 splitter", "Serves 64 homes"], f"an option reads {g.t('option-o64').inner_text()!r}")
     no_problems(g)
-    return "Level 1 briefing first; three options only after Start"
+    return "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the window, the goal and three options with the homes they serve"
 
 
-@check("AC2", "AC2, FR-009, FR-010", "Round 1-1 with a 1:32 splitter: solved, 26.9 dB, ledger 7.0 + 2.0 + 0.4 + 17.5")
+@check("AC2", "AC2, FR-006, FR-009", "Round 1-1 with a 1:32 splitter: solved, 26.9 dB, ledger 7.0 + 2.0 + 0.4 + 17.5")
 def ac2(new):
     g = new()
     g.open()
@@ -313,12 +331,13 @@ def ac2(new):
     for part in ("fiber 7.0", "connector pairs 2.0", "splices 0.4", "splitter 17.5", "= 26.9 dB"):
         need(part.lower() in ledger.lower(), f"the ledger lacks '{part}': {ledger}")
     need("1 of 6 solved" in g.progress(), f"progress reads '{g.progress()}'")
+    settle(g)
     g.page.screenshot(path=str(OUT / "03-round-1-1-correct.png"))
     no_problems(g)
     return ledger.strip()
 
 
-@check("AC3a", "AC3a, FR-011, SC-002", "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 1.4 dB over 29 dB, round stays open")
+@check("AC3a", "AC3a, FR-010, SC-002", "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 1.4 dB over 29 dB, round stays open")
 def ac3a(new):
     g = new()
     g.open()
@@ -328,11 +347,13 @@ def ac3a(new):
     check_feedback(g, "r1-1", "o64", label)
     need(g.t("feedback-headline").inner_text() == "Too dark at ONT A.", "the headline should say where it is too dark")
     need("Attempts: 1." in g.tally() and "0 of 6 solved" in g.progress(), "one attempt, nothing solved")
+    settle(g)
     g.page.screenshot(path=str(OUT / "02-round-1-1-too-dark.png"))
+    line = g.t("line-A").inner_text()
     g.play("o32")
     need("Attempts: 2." in g.tally() and "1 of 6 solved" in g.progress(), "the retry should solve the round on attempt 2")
     no_problems(g)
-    return g.t("line-A").inner_text() if g.t("line-A").count() else "retry solved the round"
+    return line + " The retry solved the round on attempt 2."
 
 
 @check("AC3b", "AC3b, FR-011", "Round 1-1 with a 1:16 splitter: works at 23.4 dB, a larger one also fits, the answer is not named")
@@ -349,7 +370,7 @@ def ac3b(new):
     return g.t("feedback-headline").inner_text()
 
 
-@check("AC4", "AC4, FR-006", "Submitting with nothing selected gives guidance and counts nothing")
+@check("AC4", "AC4, FR-005, FR-012", "Submitting with nothing selected gives guidance and counts nothing")
 def ac4(new):
     g = new()
     g.open()
@@ -360,17 +381,21 @@ def ac4(new):
     need("Nothing was counted" in g.announced(), "the guidance was not announced")
     need("Attempts: 0." in g.tally() and g.t("feedback").count() == 0 and g.t("next").is_disabled(), "an empty submission changed the round")
     need(g.t("meter-A").get_attribute("data-state") == "none", "the meter should not be lit")
+    said = g.announced()
     g.select("o16")
     need(g.t("guidance").is_hidden(), "guidance should clear when a design is chosen")
+    g.select("o32")
+    need("Attempts: 0." in g.tally() and g.t("feedback").count() == 0 and "0 of 6 solved" in g.progress(), "selecting a design graded it")
+    need(g.page.locator('input[name="design"]:checked').count() == 1, "exactly one design should be selected")
     no_problems(g)
-    return g.announced()
+    return said + " Selecting a design grades nothing."
 
 
 # --------------------------------------------------------------------------------------------------
 # User Story 2: help, progress, summaries, restart
 # --------------------------------------------------------------------------------------------------
 
-@check("AC5", "AC5, FR-013, FR-014", "Hint 1, hint 2 and the worked solution appear in order, count as help and do not complete the round")
+@check("AC5", "AC5, FR-014", "Hint 1, hint 2 and the worked solution appear in order, count as help and do not complete the round")
 def ac5(new):
     g = new()
     g.open()
@@ -401,7 +426,7 @@ def ac5(new):
     return g.t("level-summary").inner_text().replace("\n", " ")
 
 
-@check("AC6", "AC6, FR-007, FR-008", "Each real submission is one attempt; the answer completes the round once; a repeat changes nothing")
+@check("AC6", "AC6, FR-013", "Each real submission is one attempt; the answer completes the round once; a repeat changes nothing")
 def ac6(new):
     g = new()
     g.open()
@@ -479,7 +504,7 @@ def ac8(new):
     return "cancel and Escape keep the session; confirm clears it"
 
 
-@check("FULL", "SC-001, SC-002, FR-011, FR-016", "All 20 options of the six rounds, submitted in the page, match the hand-worked key")
+@check("FULL", "SC-001, SC-002, FR-006 to FR-011, FR-016, FR-026", "All 20 options of the six rounds, submitted in the page, match the hand-worked key")
 def full(new):
     g = new()
     g.open()
@@ -501,8 +526,10 @@ def full(new):
             need(f"Attempts: {number}." in g.tally(), f"{round_id}/{option_id}: the tally reads '{g.tally()}'")
             submitted += 1
             if round_id == "r2-1" and option_id == "o64":
+                settle(g)
                 g.page.screenshot(path=str(OUT / "04-round-2-1-three-onts.png"))
             if round_id == "r3-2" and option_id == "ontB10":
+                settle(g)
                 g.page.screenshot(path=str(OUT / "05-round-3-2-bright-and-dark.png"))
         g.next()
     g.wait_view("summary")
@@ -675,7 +702,7 @@ def names(new):
     return "buttons, radios, group, dialog, landmarks and scroll regions are named"
 
 
-@check("AC10", "AC10, FR-012, FR-024", "Feedback is text, stays until the next submission or view, names its design and is announced")
+@check("AC10", "AC10, FR-024", "Feedback is text, stays until the next submission or view, names its design and is announced")
 def ac10(new):
     g = new()
     g.open()
@@ -847,7 +874,7 @@ def views_for_reading(new, width=1366, height=768):
     no_problems(g)
 
 
-@check("CONTRAST", "FR-026", "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it")
+@check("CONTRAST", "principle IV, contracts/ui.md", "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it")
 def contrast(new):
     worst = 99.0
     seen = 0
@@ -862,7 +889,7 @@ def contrast(new):
     return f"{seen} pieces of text in 12 views, {len(pairs)} color pairs; the lowest contrast is {worst} to 1"
 
 
-@check("TEXTSIZE", "FR-026, contracts/ui.md", "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12")
+@check("TEXTSIZE", "contracts/ui.md", "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12")
 def text_size(new):
     smallest_text = 99.0
     smallest_label = 99.0
@@ -906,7 +933,7 @@ def narrow(new):
     return f"{len(checked)} view and width combinations at 320, 390 and 768 pixels"
 
 
-@check("ORIGIN", "SC-009, FR-020", "A full playthrough makes no request outside the game's own origin, and the fonts come from the game")
+@check("ORIGIN", "SC-009, FR-028", "A full playthrough makes no request outside the game's own origin, and the fonts come from the game")
 def origin(new):
     g = new()
     g.open()
@@ -950,7 +977,7 @@ def set_broken_source(document):
     document["levels"][0]["briefing"]["sourceIds"].append("R99")
 
 
-@check("CONTENT", "SC-005, FR-019, FR-028", "Content that cannot be graded (U1 to U6), or cannot be read, shows a content error and no challenge")
+@check("CONTENT", "SC-005, FR-019, FR-020", "Content that cannot be graded (U1 to U6), or cannot be read, shows a content error and no challenge")
 def content(new):
     cases = (
         ("U1", set_no_valid, "no-valid-option"),
@@ -1021,7 +1048,7 @@ def dialogs(new):
     return f"{links.count()} sources, each with its section and an https link"
 
 
-@check("UNIT", "SC-001, contracts/rules.md", "The unit tests pass in the browser, on the same modules the game runs")
+@check("UNIT", "SC-001", "The unit tests pass in the browser, on the same modules the game runs")
 def unit(new):
     g = new()
     g.page.goto(g.base + "/tests/index.html")
@@ -1032,7 +1059,7 @@ def unit(new):
     return summary.inner_text().strip()
 
 
-@check("SHOTS", "FR-001, FR-003", "Screenshots of the briefing and of level 3 for the record")
+@check("SHOTS", "FR-002", "Screenshots of the briefing and of level 3 for the record")
 def shots(new):
     g = new(reduced_motion="reduce")
     g.open()
@@ -1052,7 +1079,8 @@ def shots(new):
 def write_card(browser, base):
     from PIL import Image  # imported here so the checks run without Pillow
 
-    g = Game(browser, base, width=1600, height=900, reduced_motion="reduce", scale=1)
+    # 1440 x 810 CSS pixels drawn at 1600 x 900: the page fills the frame down to the foot of the trace.
+    g = Game(browser, base, width=1440, height=810, reduced_motion="reduce", scale=1600 / 1440)
     g.open()
     g.solve_through("r1-2")
     g.next()
