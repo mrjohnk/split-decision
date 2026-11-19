@@ -1,6 +1,6 @@
 # Build log
 
-A running record kept by the build agent while the game was made. Times are UTC. It exists so that
+A running record kept by the build agent while the game was made. Times are UTC and come from the session clock; a range means the step fell between two recorded clock readings. It exists so that
 `ARCADE.md` and the README can be filled from what happened, not from memory.
 
 ## Session facts
@@ -18,9 +18,40 @@ A running record kept by the build agent while the game was made. Times are UTC.
 | Time (UTC) | Step | What happened |
 | --- | --- | --- |
 | 2026-11-19 13:04 | Request | Owner shared the NAF AC6 workshop repository and asked what entering would involve. |
-| 2026-11-19 13:05–13:20 | Reading | Agent cloned the workshop repository, read the lab guide, the StarterKit, the three example games' `ARCADE.md` files and the 98-slide workshop deck, and the Arcade page. |
+| 2026-11-19 13:05 onward | Reading | Agent cloned the workshop repository, read the lab guide, the StarterKit, the three example games' `ARCADE.md` files and the 98-slide workshop deck, and the Arcade page. |
 | 2026-11-19 13:31 | Deadline | Owner reported that submissions close on 2026-11-20. |
-| 2026-11-19 ~13:55 | Decisions | Owner chose the topic (PON loss budget) and the working style (build, then review) in a two-question dialog. |
+| 2026-11-19, before 14:07 | Decisions | Owner chose the topic (PON loss budget) and the working style (build, then review) in a two-question dialog. |
 | 2026-11-19 14:07 | Start | `git init`, `specify init --here --integration claude --script sh`; StarterKit templates, attendee README and LICENSE copied from NAF_AC6. This is the recorded build start. |
-| 2026-11-19 14:10–14:35 | Sources | Loss classes read from ITU-T G.9807.1 (02/2023) clause B.6.1; fiber values from ITU-T G.652 (08/2024) Table 2 and Appendix I; connector and splice guidance from the FOA guide; one published splitter table (TEC GR/TX/OPT-001). ITU-T G.671 could not be read past its abstract, so no number is attributed to it. |
-| 2026-11-19 14:35–15:00 | Inputs | Six rounds designed and worked by hand; arithmetic cross-checked with a throwaway Decimal script. The three StarterKit inputs were personalized. The answer key was sent to the owner for checking. |
+| 2026-11-19 14:07–14:18 | Sources | Loss classes read from ITU-T G.9807.1 (02/2023) clause B.6.1; fiber values from ITU-T G.652 (08/2024) Table 2 and Appendix I; connector and splice guidance from the FOA guide; one published splitter table (TEC GR/TX/OPT-001). ITU-T G.671 could not be read past its abstract, so no number is attributed to it. |
+| 2026-11-19 14:07–14:18 | Inputs | Six rounds designed and worked by hand; arithmetic cross-checked with a throwaway Decimal script. The three StarterKit inputs were personalized. The answer key was sent to the owner for checking. |
+| 2026-11-19 14:18 | Commit | Starting point committed (5ecf5a1). |
+| 2026-11-19 14:18–14:22 | 1 · constitution | `/speckit-constitution` run on `StarterKit/CONSTITUTION.md`. Seven principles carried over as v1.0.0; three conflicts flagged (below). |
+| 2026-11-19 14:18–14:22 | 2 · specify | `/speckit-specify` run on `StarterKit/SPEC.md`. Feature directory `specs/001-loss-budget-game`; 28 functional requirements, 9 success criteria, 20 hand-worked option cases, 4 boundary and 6 unsupported-content cases. Quality checklist passed on the first iteration. No git extension is installed, so no feature branch was created; work stays on `main`. |
+| 2026-11-19 14:18–14:22 | 3 · clarify | `/speckit-clarify` asked five questions. On the owner's instruction the agent answered each with its recommended option and recorded them in the spec's Clarifications section for owner review. |
+
+## Step records
+
+### 1 · Constitution: Sync Impact Report
+
+The command writes this report as a comment at the top of the constitution for review and asks for it to be removed before the file is committed. It is kept here.
+
+```text
+Sync Impact Report
+Version change: (template, unversioned) → 1.0.0
+Bump rationale: first ratified constitution for the project (initial adoption = 1.0.0).
+Source: StarterKit/CONSTITUTION.md, the owner's planning input. All seven principles carried over
+with their evidence clauses; "must" was tightened to MUST, nothing was weakened or removed.
+Modified principles: none renamed. The template's five principle slots were extended to seven
+(I–VII correspond to C1–C7 of the planning input).
+Added sections: Scope and Model Boundaries; Evidence and Workflow; Governance.
+Removed sections: none.
+Conflicts flagged (not silently resolved):
+  1. C2 and the specification's release evidence ask for a teammate's observation and a person's
+     keyboard-only playthrough. The build agent cannot supply a person. Kept as REQUIRED owner
+     evidence; automated checks may supplement it but MUST be reported as automation.
+  2. The planning input says "60-minute workshop build". The build ran after the workshop,
+     outside the room. Scope is unchanged; the wording records the difference.
+  3. C1 requires that rounding never decide an answer. This forces a content rule (every total
+     exact to 0.1 dB) that the plan and the validator must carry.
+Follow-up TODOs: none deferred. Ratification date is the adoption date, 2026-11-19.
+```
