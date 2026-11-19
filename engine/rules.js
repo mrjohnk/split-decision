@@ -1,10 +1,16 @@
 // The evaluator. Everything that decides an answer is in this file.
 //
 // It has no access to the page, the clock, the network or random numbers, and it never changes
-// its inputs. All arithmetic is in whole thousandths of a dB ("milli"), so 9.5 + 2.0 + 0.4 + 17.5
-// is exactly 29.4 and compares exactly with a limit of 29. See contracts/rules.md.
+// its inputs. All arithmetic is in whole thousandths ("milli") of a dB for a loss and of a dBm for
+// a level, so 9.0 + 3.5 + 0.7 + 21.0 is exactly 34.2, and +5 less 34.2 is exactly -29.2 and
+// compares exactly with a limit of -28. See contracts/rules.md.
+//
+// The rule: an ONT's receive level is the launch power at the OLT port less its path loss, and
+// the ONT is inside the window when that level is between the dark limit and the bright limit,
+// both included. States and outcomes are named for what the player sees (dark, bright), not for a
+// side of a limit: with negative levels the ONT that is too dark is under its limit.
 
-export const OUTCOMES = ['best-valid', 'valid-not-best', 'over-max', 'under-min', 'over-and-under'];
+export const OUTCOMES = ['best-valid', 'valid-not-best', 'too-dark', 'too-bright', 'dark-and-bright'];
 
 /**
  * Convert an authored decimal to whole thousandths. Returns null when the value is not a finite
@@ -30,13 +36,20 @@ export function cardMilli(lossCard) {
 }
 
 /**
- * The loss window of a class, in thousandths of a dB. `named` says whether the class name is worth
- * showing to the player: with one window in the content there is nothing to tell apart, so the
- * words say "the window" and "the maximum" without a name.
+ * The optics of a class, in thousandths of a dBm: the launch power at the OLT port and the two
+ * limits of the level an ONT may receive. `named` says whether the class name is worth showing to
+ * the player: with one class in the content there is nothing to tell apart, so the words say "the
+ * window" and "the dark limit" without a name.
  */
 export function windowOf(content, className) {
   const cls = content.classes[className];
-  return { className, named: Object.keys(content.classes).length > 1, minMilli: toMilli(cls.minDb), maxMilli: toMilli(cls.maxDb) };
+  return {
+    className,
+    named: Object.keys(content.classes).length > 1,
+    launchMilli: toMilli(cls.launchDbm),
+    darkMilli: toMilli(cls.darkDbm),
+    brightMilli: toMilli(cls.brightDbm),
+  };
 }
 
 /**
@@ -104,16 +117,22 @@ function ledgerOf(card, path, option) {
   return { lines, totalMilli };
 }
 
-function stateOf(totalMilli, window) {
-  if (totalMilli < window.minMilli) return 'under';
-  if (totalMilli > window.maxMilli) return 'over';
+/** The level an ONT receives: the launch power less everything its path loses (FR-029). */
+function levelOf(totalMilli, window) {
+  return window.launchMilli - totalMilli;
+}
+
+function stateOf(levelMilli, window) {
+  if (levelMilli < window.darkMilli) return 'dark';
+  if (levelMilli > window.brightMilli) return 'bright';
   return 'ok';
 }
 
-function marginOf(totalMilli, state, window) {
-  if (state === 'over') return totalMilli - window.maxMilli;
-  if (state === 'under') return window.minMilli - totalMilli;
-  return window.maxMilli - totalMilli;
+/** The distance to the limit that was missed; for an ONT inside the window, its room above the dark limit. */
+function marginOf(levelMilli, state, window) {
+  if (state === 'dark') return window.darkMilli - levelMilli;
+  if (state === 'bright') return levelMilli - window.brightMilli;
+  return levelMilli - window.darkMilli;
 }
 
 /**
@@ -146,7 +165,8 @@ export function fixedLosses(content, round) {
 
 /**
  * The same losses as the ledger, in the order light meets them on the way from the OLT port to
- * each ONT. Used to draw the loss trace. For every ONT the steps add up to the ledger's total.
+ * each ONT. Used to draw the loss trace, which starts at the launch power and falls by each step.
+ * For every ONT the steps add up to the ledger's total.
  */
 export function tracesOf(content, round, option) {
   const card = cardMilli(content.lossCard);
@@ -184,19 +204,21 @@ export function tracesOf(content, round, option) {
   return traces;
 }
 
-/** Evaluate one option: every ONT's ledger, total and state, and whether the option is valid. */
+/** Evaluate one option: every ONT's ledger, loss, receive level and state, and whether the option is valid. */
 export function evaluateOption(content, round, option) {
   const card = cardMilli(content.lossCard);
   const window = windowOf(content, round.class);
   const onts = pathsOf(round.plant).map((path) => {
     const { lines, totalMilli } = ledgerOf(card, path, option);
-    const state = stateOf(totalMilli, window);
+    const levelMilli = levelOf(totalMilli, window);
+    const state = stateOf(levelMilli, window);
     return {
       id: path.ontId,
       label: path.label,
       totalMilli,
+      levelMilli,
       state,
-      marginMilli: marginOf(totalMilli, state, window),
+      marginMilli: marginOf(levelMilli, state, window),
       ledger: lines,
     };
   });
@@ -229,10 +251,10 @@ export function outcomeOf(roundEvaluation, optionId) {
   const result = roundEvaluation.options.find((o) => o.optionId === optionId);
   if (!result || roundEvaluation.problem) return null;
   if (result.valid) return roundEvaluation.best.optionId === optionId ? 'best-valid' : 'valid-not-best';
-  const over = result.onts.some((ont) => ont.state === 'over');
-  const under = result.onts.some((ont) => ont.state === 'under');
-  if (over && under) return 'over-and-under';
-  return over ? 'over-max' : 'under-min';
+  const dark = result.onts.some((ont) => ont.state === 'dark');
+  const bright = result.onts.some((ont) => ont.state === 'bright');
+  if (dark && bright) return 'dark-and-bright';
+  return dark ? 'too-dark' : 'too-bright';
 }
 
 /**

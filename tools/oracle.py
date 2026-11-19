@@ -61,24 +61,26 @@ def total_loss(card, record, option):
     return loss
 
 
-def judge(total, window):
-    if total > window["maxDb"]:
-        return "over", total - window["maxDb"]
-    if total < window["minDb"]:
-        return "under", window["minDb"] - total
-    return "ok", None
+def judge(total, optics):
+    """The receive level, launch power less loss, against the two limits of the receive window."""
+    level = optics["launchDbm"] - total
+    if level < optics["darkDbm"]:
+        return level, "dark", optics["darkDbm"] - level
+    if level > optics["brightDbm"]:
+        return level, "bright", level - optics["brightDbm"]
+    return level, "ok", None
 
 
-def outcomes(card, window, plant, options):
-    """Each option's totals and states, and the outcome of each against the answer."""
+def outcomes(card, optics, plant, options):
+    """Each option's totals, receive levels and states, and the outcome of each against the answer."""
     records = paths(plant)
     table = {}
     for option in options:
         onts = {}
         for ont_id, record in records.items():
             total = total_loss(card, record, option)
-            state, by = judge(total, window)
-            onts[ont_id] = {"total": total, "state": state, "by": by}
+            level, state, by = judge(total, optics)
+            onts[ont_id] = {"total": total, "level": level, "state": state, "by": by}
         table[option["id"]] = {"served": option["served"], "onts": onts, "valid": all(o["state"] == "ok" for o in onts.values())}
 
     valid = sorted((entry["served"], option_id) for option_id, entry in table.items() if entry["valid"])
@@ -92,10 +94,10 @@ def outcomes(card, window, plant, options):
         states = {o["state"] for o in entry["onts"].values()}
         if entry["valid"]:
             entry["outcome"] = "best-valid" if option_id == answer else "valid-not-best"
-        elif {"over", "under"} <= states:
-            entry["outcome"] = "over-and-under"
+        elif {"dark", "bright"} <= states:
+            entry["outcome"] = "dark-and-bright"
         else:
-            entry["outcome"] = "over-max" if "over" in states else "under-min"
+            entry["outcome"] = "too-dark" if "dark" in states else "too-bright"
     return answer, table
 
 
@@ -113,12 +115,13 @@ def main():
         if got != want:
             problems.append(f"{what}: computed {got}, the key says {want}")
 
-    # The game's one loss window must be the specification's, which the key transcribes.
-    spec_window = key["window"]
-    expect("the classes in the content", sorted(content["classes"]), [spec_window["class"]])
-    if spec_window["class"] in content["classes"]:
-        expect("the window's minimum", content["classes"][spec_window["class"]]["minDb"], spec_window["min"])
-        expect("the window's maximum", content["classes"][spec_window["class"]]["maxDb"], spec_window["max"])
+    # The game's one set of optics must be the specification's, which the key transcribes.
+    spec_optics = key["optics"]
+    expect("the classes in the content", sorted(content["classes"]), [spec_optics["class"]])
+    if spec_optics["class"] in content["classes"]:
+        expect("the launch power", content["classes"][spec_optics["class"]]["launchDbm"], spec_optics["launch"])
+        expect("the dark limit", content["classes"][spec_optics["class"]]["darkDbm"], spec_optics["dark"])
+        expect("the bright limit", content["classes"][spec_optics["class"]]["brightDbm"], spec_optics["bright"])
 
     if set(rounds) != set(key["rounds"]):
         problems.append(f"rounds differ: content has {sorted(rounds)}, the key has {sorted(key['rounds'])}")
@@ -127,9 +130,9 @@ def main():
         game_round = rounds.get(round_id)
         if game_round is None:
             continue
-        window = content["classes"][game_round["class"]]
+        optics = content["classes"][game_round["class"]]
         expect(f"{round_id} class", game_round["class"], wanted["class"])
-        answer, table = outcomes(card, window, game_round["plant"], game_round["options"])
+        answer, table = outcomes(card, optics, game_round["plant"], game_round["options"])
         expect(f"{round_id} answer", answer, wanted["answer"])
         expect(f"{round_id} options", sorted(table), sorted(wanted["options"]))
 
@@ -146,23 +149,40 @@ def main():
             for ont_id, want_ont in sorted(want_option["onts"].items()):
                 got_ont = got_option["onts"][ont_id]
                 expect(f"{round_id}/{option_id} {ont_id} total", got_ont["total"], want_ont["total"])
+                expect(f"{round_id}/{option_id} {ont_id} receive level", got_ont["level"], want_ont["level"])
                 expect(f"{round_id}/{option_id} {ont_id} state", got_ont["state"], want_ont["state"])
                 if want_ont["state"] != "ok":
                     expect(f"{round_id}/{option_id} {ont_id} distance to the limit", got_ont["by"], want_ont["by"])
-            row = "  ".join(f"{ont_id} {got_option['onts'][ont_id]['total']:>5} {got_option['onts'][ont_id]['state']:<5}" for ont_id in sorted(got_option["onts"]))
+            row = "  ".join(f"{ont_id} {got_option['onts'][ont_id]['total']:>5} dB {got_option['onts'][ont_id]['level']:>6} dBm {got_option['onts'][ont_id]['state']:<6}" for ont_id in sorted(got_option["onts"]))
             print(f"{round_id}/{option_id:<7} {got_option['served']:>4} homes  {row}  {got_option['outcome']}")
 
+    # The worked example of each briefing: one design, nothing to choose.
+    for level in content["levels"]:
+        example = level["briefing"]["example"]
+        wanted = key["examples"][level["id"]]
+        records = paths(example["plant"])
+        expect(f"{level['id']} example ONTs", sorted(records), sorted(wanted))
+        design = {"splitters": {}, "attenuators": example.get("attenuators", [])}
+        for ont_id, want_ont in sorted(wanted.items()):
+            total = total_loss(card, records[ont_id], design)
+            level_dbm, state, _ = judge(total, content["classes"][example["class"]])
+            expect(f"{level['id']} example {ont_id} total", total, want_ont["total"])
+            expect(f"{level['id']} example {ont_id} receive level", level_dbm, want_ont["level"])
+            expect(f"{level['id']} example {ont_id} state", state, want_ont["state"])
+            print(f"{level['id']} example {ont_id:<3} {total:>5} dB {level_dbm:>6} dBm {state}")
+
     for entry in key["boundary"]:
-        window = content["classes"][entry["class"]]
+        optics = content["classes"][entry["class"]]
         path = entry["path"]
         total = (path["fiberKm"] * card["fiberDbPerKm"] + path["connectors"] * card["connectorDb"]
                  + path["splices"] * card["spliceDb"] + card["splitterDb"][str(entry["splitterRatio"])])
-        state, by = judge(total, window)
+        level_dbm, state, by = judge(total, optics)
         expect(f"{entry['id']} total", total, entry["total"])
+        expect(f"{entry['id']} receive level", level_dbm, entry["level"])
         expect(f"{entry['id']} state", state, entry["state"])
         if entry["state"] != "ok":
             expect(f"{entry['id']} distance to the limit", by, entry["by"])
-        print(f"{entry['id']:<15} {total:>5} {state}")
+        print(f"{entry['id']:<15} {total:>5} dB {level_dbm:>6} dBm {state}")
 
     print()
     if problems:

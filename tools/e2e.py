@@ -37,12 +37,13 @@ KEY = json.loads((ROOT / "tests" / "fixtures" / "answer-key.json").read_text(enc
 OUT = ROOT / "docs" / "verification"
 PREFIX = "/play/split-decision"  # the game is served from a subpath, as it would be on a project site
 
-# The loss window, from the specification (decision D11) by way of the answer key. Not read from the game.
-LIMITS = {KEY["window"]["class"]: (KEY["window"]["min"], KEY["window"]["max"])}
+# The optics, from the specification (decisions D13 and D14) by way of the answer key. Not read from the game.
+OPTICS = KEY["optics"]
 ROUND_IDS = list(KEY["rounds"].keys())
-STATE_WORDS = {"ok": "Inside the window", "over": "Too dark", "under": "Too bright"}
+STATE_WORDS = {"ok": "Inside the window", "dark": "Too dark", "bright": "Too bright"}
 # Each state has its own shape, counted as [circles, paths, lines]: a ring, a chevron, a sunburst.
-SHAPES = {"ok": [1, 0, 0], "over": [0, 1, 0], "under": [1, 0, 8]}
+SHAPES = {"ok": [1, 0, 0], "dark": [0, 1, 0], "bright": [1, 0, 8]}
+MINUS = "\u2212"
 
 CHECKS = []
 
@@ -242,11 +243,28 @@ def one(value):
     return f"{value:.1f}"
 
 
+def sign(value):
+    return MINUS if value < 0 else ("+" if value > 0 else "")
+
+
+def dbm(value):
+    """A receive level as the page writes it: one decimal, a true minus sign, an explicit plus."""
+    return f"{sign(value)}{abs(value):.1f} dBm"
+
+
+def limit(value):
+    """A limit or the launch power as the page writes it: a whole number with its sign."""
+    return f"{sign(value)}{abs(value):g} dBm"
+
+
+LAUNCH, DARK, BRIGHT = limit(OPTICS["launch"]), limit(OPTICS["dark"]), limit(OPTICS["bright"])
+WINDOW_LINE = f"Launch power: {LAUNCH} at the OLT port. Receive window: {DARK} to {BRIGHT} at each ONT, limits included."
+
+
 def check_feedback(game, round_id, option_id, answer_label):
     """Compare the feedback on screen with the hand-worked key. Returns the feedback text."""
     expected_round = KEY["rounds"][round_id]
     expected = expected_round["options"][option_id]
-    low, high = LIMITS[expected_round["class"]]
     where = f"{round_id}/{option_id}"
     feedback = game.t("feedback")
     need(feedback.count() == 1, f"{where}: no feedback is shown")
@@ -256,24 +274,28 @@ def check_feedback(game, round_id, option_id, answer_label):
     need(f"Serves {expected['served']} " in text, f"{where}: the feedback does not say it serves {expected['served']}")
     for ont_id, ont in expected["onts"].items():
         meter = game.t(f"meter-{ont_id}")
-        need(meter.get_attribute("data-total") == one(ont["total"]), f"{where}/{ont_id}: the meter shows {meter.get_attribute('data-total')}, the key says {one(ont['total'])}")
+        need(meter.get_attribute("data-total") == one(ont["total"]), f"{where}/{ont_id}: the meter's loss is {meter.get_attribute('data-total')}, the key says {one(ont['total'])}")
+        need(meter.get_attribute("data-level") == one(ont["level"]), f"{where}/{ont_id}: the meter's level is {meter.get_attribute('data-level')}, the key says {one(ont['level'])}")
+        need(abs(OPTICS["launch"] - ont["total"] - ont["level"]) < 1e-9, f"{where}/{ont_id}: the key's level is not its launch power less its loss")
         need(meter.get_attribute("data-state") == ont["state"], f"{where}/{ont_id}: the meter state is {meter.get_attribute('data-state')}, the key says {ont['state']}")
         meter_text = meter.inner_text()
-        need(STATE_WORDS[ont["state"]] in meter_text and f"{one(ont['total'])} dB" in meter_text, f"{where}/{ont_id}: the meter text is '{meter_text}'")
+        need(STATE_WORDS[ont["state"]] in meter_text and dbm(ont["level"]) in meter_text, f"{where}/{ont_id}: the meter text is '{meter_text}'")
         icon = meter.locator("svg.state-icon")
         shape = [icon.locator(tag).count() for tag in ("circle", "path", "line")] if icon.count() == 1 else None
         need(shape == SHAPES[ont["state"]], f"{where}/{ont_id}: the shape for '{ont['state']}' is drawn as {shape} (circles, paths, lines)")
         line = game.t(f"line-{ont_id}").inner_text()
-        need(f"ONT {ont_id}" in line and f"{one(ont['total'])} dB" in line, f"{where}/{ont_id}: the line does not name the ONT and its loss: '{line}'")
+        need(f"ONT {ont_id} loses {one(ont['total'])} dB and receives {dbm(ont['level'])}." in line, f"{where}/{ont_id}: the line does not name the ONT, its loss and its receive level: '{line}'")
         need(STATE_WORDS[ont["state"]] in line, f"{where}/{ont_id}: the line lacks the state words: '{line}'")
-        if ont["state"] == "over":
-            need(f"{one(ont['by'])} dB over" in line and f"maximum of {high} dB" in line, f"{where}/{ont_id}: limit and difference missing: '{line}'")
-        elif ont["state"] == "under":
-            need(f"{one(ont['by'])} dB under" in line and f"minimum of {low} dB" in line, f"{where}/{ont_id}: limit and difference missing: '{line}'")
+        if ont["state"] == "dark":
+            need(f"{one(ont['by'])} dB below the dark limit of {DARK}" in line, f"{where}/{ont_id}: limit and difference missing: '{line}'")
+        elif ont["state"] == "bright":
+            need(f"{one(ont['by'])} dB above the bright limit of {BRIGHT}" in line, f"{where}/{ont_id}: limit and difference missing: '{line}'")
         else:
-            need(f"{low} to {high} dB" in line and f"{one(high - ont['total'])} dB to spare" in line, f"{where}/{ont_id}: window and margin missing: '{line}'")
+            need(f"{DARK} to {BRIGHT}" in line and f"{one(ont['level'] - OPTICS['dark'])} dB to spare before the dark limit" in line, f"{where}/{ont_id}: window and margin missing: '{line}'")
         ledger = game.t(f"ledger-text-{ont_id}").text_content()
-        need(ledger.strip().endswith(f"= {one(ont['total'])} dB"), f"{where}/{ont_id}: the ledger does not end at the total: '{ledger}'")
+        sum_text = f"{LAUNCH} {MINUS} {one(ont['total'])} dB = {dbm(ont['level'])}"
+        need(f"= {one(ont['total'])} dB. " in ledger and ledger.strip().endswith(sum_text), f"{where}/{ont_id}: the ledger does not end with the loss and the level sum: '{ledger}'")
+        need(game.t(f"level-sum-{ont_id}").inner_text().replace("\n", " ") == f"Receive level {sum_text}", f"{where}/{ont_id}: under the ledger: '{game.t(f'level-sum-{ont_id}').inner_text()}'")
     headline = game.t("feedback-headline").inner_text()
     if expected["outcome"] == "best-valid":
         need(headline.startswith("Correct."), f"{where}: the headline of the answer is '{headline}'")
@@ -311,25 +333,27 @@ def ac1(new):
     need(g.page.locator('input[name="design"]').count() == 0 and g.t("submit").count() == 0, "a challenge can be answered from the briefing")
     need(g.t("open-briefing").is_disabled(), "Review briefing should wait until a round is open")
     need("0 of 6 solved" in g.progress(), f"progress reads '{g.progress()}'")
-    for part in ("Worked example", "Words used in this level", "Sources:", "A PON runs on a single fiber", "8 dB to 28 dB"):
+    for part in ("Worked example", "Words used in this level", "Sources:", "A PON runs on a single fiber", f"launches it at {LAUNCH}", f"{DARK} to {BRIGHT}", "Receive level"):
         need(part in g.t("view").inner_text(), f"the briefing lacks '{part}'")
     g.start()
     need(g.round_id() == "r1-1", "Start level 1 did not open round 1-1")
     need(g.page.locator('input[name="design"]').count() == 3, "round 1-1 should offer three designs")
     need("Attempts: 0." in g.tally(), "a new round should have no attempts")
     # What a round must show (FR-003).
-    need(g.page.locator(".workorder .plant-svg").count() == 1 and "13.0 km of fiber" in g.t("plant-text").text_content(), "the plant drawing or its text is missing")
-    need(g.t("paths").locator("tbody tr").all_inner_texts() == ["ONT A, farthest home\t14.0 km\t4\t4\tyour choice"], f"the path table reads {g.t('paths').locator('tbody tr').all_inner_texts()}")
+    need(g.page.locator(".workorder .plant-svg").count() == 1 and "16.0 km of fiber" in g.t("plant-text").text_content(), "the plant drawing or its text is missing")
+    need(g.page.locator(".workorder .plant-svg .launch-note").text_content() == LAUNCH, "the plant drawing does not print the launch power at the OLT")
+    need(g.t("paths").locator("tbody tr").all_inner_texts() == ["ONT A, farthest home\t18.0 km\t7\t7\tyour choice"], f"the path table reads {g.t('paths').locator('tbody tr').all_inner_texts()}")
     card = g.t("losscard").locator("div").all_inner_texts()
     need(len(card) == 9 and "1:32 splitter" in card[7] and "17.5 dB" in card[7], f"the loss card reads {card}")
-    need(g.t("window").inner_text() == "Loss window: 8 to 28 dB, limits included.", f"the loss window reads '{g.t('window').inner_text()}'")
+    need(" ".join(g.t("window").inner_text().split()) == WINDOW_LINE, f"the launch power and receive window read '{g.t('window').inner_text()}'")
+    need(g.t("meter-launch").inner_text().split("\n") == ["Launch power", LAUNCH], f"the launch row reads {g.t('meter-launch').inner_text()!r}")
     need(g.page.locator("#goal").inner_text().startswith("Choose the largest splitter"), "the goal is missing")
     need(g.t("option-o64").inner_text().split("\n") == ["1:64 splitter", "Serves 64 homes"], f"an option reads {g.t('option-o64').inner_text()!r}")
     no_problems(g)
-    return "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the window, the goal and three options with the homes they serve"
+    return "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the launch power, the receive window, the goal and three options with the homes they serve"
 
 
-@check("AC2", "AC2, FR-006, FR-009", "Round 1-1 with a 1:32 splitter: solved, 26.9 dB, ledger 7.0 + 2.0 + 0.4 + 17.5")
+@check("AC2", "AC2, FR-006, FR-009, FR-029", "Round 1-1 with a 1:32 splitter: solved, 30.7 dB of loss, −25.7 dBm, ledger 9.0 + 3.5 + 0.7 + 17.5")
 def ac2(new):
     g = new()
     g.open()
@@ -338,7 +362,7 @@ def ac2(new):
     g.play("o32")
     check_feedback(g, "r1-1", "o32", label)
     ledger = g.t("ledger-text-A").text_content()
-    for part in ("fiber 7.0", "connectors 2.0", "splices 0.4", "splitter 17.5", "= 26.9 dB"):
+    for part in ("fiber 9.0", "connectors 3.5", "splices 0.7", "splitter 17.5", "= 30.7 dB", f"+5 dBm {MINUS} 30.7 dB = {MINUS}25.7 dBm"):
         need(part.lower() in ledger.lower(), f"the ledger lacks '{part}': {ledger}")
     need("1 of 6 solved" in g.progress(), f"progress reads '{g.progress()}'")
     settle(g)
@@ -347,7 +371,7 @@ def ac2(new):
     return ledger.strip()
 
 
-@check("AC3a", "AC3a, FR-010, SC-002", "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 2.4 dB over 28 dB, round stays open")
+@check("AC3a", "AC3a, FR-010, SC-002", "Round 1-1 with a 1:64 splitter: too dark, −29.2 dBm, 1.2 dB below the dark limit, round stays open")
 def ac3a(new):
     g = new()
     g.open()
@@ -366,7 +390,7 @@ def ac3a(new):
     return line + " The retry solved the round on attempt 2."
 
 
-@check("AC3b", "AC3b, FR-011", "Round 1-1 with a 1:16 splitter: works at 23.4 dB, a larger one also fits, the answer is not named")
+@check("AC3b", "AC3b, FR-011", "Round 1-1 with a 1:16 splitter: works at −22.2 dBm, a larger one also fits, the answer is not named")
 def ac3b(new):
     g = new()
     g.open()
@@ -422,7 +446,7 @@ def ac5(new):
     g.t("solution").click()
     solution = g.t("solution-text").inner_text()
     answer_label = g.t("option-o32").locator(".option-label").inner_text()
-    need(answer_label in solution and "26.9 dB" in solution and "17.5" in solution, f"the worked solution lacks the answer's ledger: {solution}")
+    need(answer_label in solution and "30.7 dB" in solution and "17.5" in solution and f"{MINUS}25.7 dBm" in solution, f"the worked solution lacks the answer's ledger and level: {solution}")
     need("Hints used: 2. Worked solution: viewed." in g.tally() and "Attempts: 0." in g.tally(), f"the tally reads '{g.tally()}'")
     need(g.t("next").is_disabled() and "0 of 6 solved" in g.progress(), "help must not complete the round")
     g.play("o32")
@@ -490,7 +514,8 @@ def ac8(new):
     g.open()
     g.solve_through("r1-1")
     g.next()
-    g.play("o64")
+    wrong = next(option_id for option_id in KEY["rounds"]["r1-2"]["options"] if option_id != KEY["rounds"]["r1-2"]["answer"])
+    g.play(wrong)
     g.t("hint").click()
     before = g.main_html()
     progress = g.progress()
@@ -524,8 +549,7 @@ def full(new):
             g.start()
         need(g.round_id() == round_id, f"expected {round_id}, got {g.round_id()}")
         expected_round = KEY["rounds"][round_id]
-        low, high = LIMITS[expected_round["class"]]
-        need(f"Loss window: {low} to {high} dB" in g.t("window").inner_text(), f"{round_id}: the window on screen is '{g.t('window').inner_text()}'")
+        need(" ".join(g.t("window").inner_text().split()) == WINDOW_LINE, f"{round_id}: the launch power and window on screen are '{g.t('window').inner_text()}'")
         need(g.page.locator('input[name="design"]').count() == len(expected_round["options"]), f"{round_id}: the number of options differs from the key")
         answer = expected_round["answer"]
         answer_label = g.t(f"option-{answer}").locator(".option-label").inner_text()
@@ -598,7 +622,7 @@ def keyboard(new):
     # Round 1-1: a wrong design first, then the answer by pressing Enter inside the option group.
     g.keyboard_choose("o64")
     press_button("submit")
-    need(g.t("feedback").get_attribute("data-outcome") == "over-max", "the wrong design was not graded")
+    need(g.t("feedback").get_attribute("data-outcome") == "too-dark", "the wrong design was not graded")
     need(g.focused()["testid"] == "submit", "after a wrong design focus should stay on Submit")
     g.keyboard_choose("o32", back=True)
     g.key("Enter")
@@ -616,7 +640,7 @@ def keyboard(new):
     need(g.focused()["testid"] == "solution" and g.t("hint-2").is_visible(), "after hint 2 focus should move to the worked solution button")
     g.key("Enter")
     need(g.focused()["testid"] == "submit" and g.t("solution-text").is_visible(), "after the worked solution focus should move to Submit")
-    g.keyboard_choose("o16", back=True)
+    g.keyboard_choose(KEY["rounds"]["r1-2"]["answer"], back=True)
     press_button("submit")
     need(g.focused()["testid"] == "next", "after the answer focus should be on Next")
     g.key("Space")
@@ -722,13 +746,13 @@ def ac10(new):
     feedback = g.t("feedback").inner_text()
     need(f"Your design: {label}." in feedback, "the feedback does not name the design it describes")
     announced = g.announced()
-    need(label in announced and "Too dark at ONT A." in announced and "30.4 dB" in announced and "Next step:" in announced, f"the announcement is incomplete: {announced}")
+    need(label in announced and "Too dark at ONT A." in announced and f"receives {MINUS}29.2 dBm" in announced and "Next step:" in announced, f"the announcement is incomplete: {announced}")
     g.select("o16")
     g.t("hint").click()
     need(g.t("feedback").inner_text() == feedback, "the feedback should stay until the next submission")
     need(g.t("feedback").get_attribute("data-option") == "o64", "the feedback should still belong to the design that was submitted")
     g.play("o32")
-    need("Correct." in g.announced() and "26.9 dB" in g.announced(), "the correct result was not announced")
+    need("Correct." in g.announced() and f"receives {MINUS}25.7 dBm" in g.announced(), "the correct result was not announced")
     g.next()
     need(g.t("feedback").count() == 0, "feedback from the last round is still shown")
     need(g.t("meter-A").get_attribute("data-state") == "none", "the meter of a new round should not be lit")
@@ -759,10 +783,10 @@ def motion(new):
     moving.play("o64")
     now = moving.page.evaluate("""() => ({
       text: document.querySelector('[data-testid="feedback-headline"]').textContent,
-      total: document.querySelector('[data-testid="meter-A"]').getAttribute('data-total'),
+      level: document.querySelector('[data-testid="meter-A"]').getAttribute('data-level'),
       names: [...new Set(document.getAnimations().map(a => a.animationName))].sort(),
     })""")
-    need(now["text"] == "Too dark at ONT A." and now["total"] == "30.4", f"the result should be in the page before the trace finishes: {now}")
+    need(now["text"] == "Too dark at ONT A." and now["level"] == "-29.2", f"the result should be in the page before the trace finishes: {now}")
     need(now["names"] == ["draw-trace", "show-ends"], f"the only motion should be the trace drawing and its ends appearing: {now['names']}")
     moving.page.wait_for_timeout(1500)
     later = moving.page.evaluate("""() => ({
@@ -980,7 +1004,7 @@ def set_inexact(document):
 
 
 def set_note_mismatch(document):
-    document["levels"][0]["rounds"][0]["options"][2]["expect"] = "under-min"
+    document["levels"][0]["rounds"][0]["options"][2]["expect"] = "too-bright"
 
 
 def set_broken_source(document):
@@ -1044,12 +1068,12 @@ def dialogs(new):
     g.t("open-model").click()
     model = g.t("model-dialog")
     text = model.inner_text()
-    for part in ("The rule", "Loss window", "Loss card", "What the game assumes", "What the game leaves out", "Sources", "8 to 28 dB", "single fiber", "0.5 dB", "not one of the standard's loss classes"):
+    for part in ("The rule", "Launch power and receive window", f"Launch power at the OLT port\t{LAUNCH}", f"Receive window at each ONT\t{DARK} to {BRIGHT}", "Loss card", "What the game assumes", "What the game leaves out", "Sources", "single fiber", "0.5 dB", "not quoted from the standard", "upstream wavelength", "Table B.9.3"):
         need(part in text, f"the model panel lacks '{part}'")
-    need(model.locator(".source-list li").count() == 7, f"the model panel lists {model.locator('.source-list li').count()} sources, the specification has 7")
-    need("The project owner's field practice" in model.locator(".source-list li").nth(6).inner_text(), "the owner's decision on the window is not listed as its source")
+    need(model.locator(".source-list li").count() == 8, f"the model panel lists {model.locator('.source-list li').count()} sources, the specification has 8")
+    need("The project owner's field practice" in model.locator(".source-list li").nth(6).inner_text(), "the owner's decisions on the window and the launch power are not listed as their source")
     links = model.locator(".source-list a")
-    need(links.count() == 6, f"{links.count()} sources have a link; the six published ones should")
+    need(links.count() == 7, f"{links.count()} sources have a link; the seven published ones should")
     for index in range(links.count()):
         link = links.nth(index)
         need(link.get_attribute("href").startswith("https://") and link.get_attribute("target") == "_blank" and "noopener" in link.get_attribute("rel"), "a source link is not a safe outside link")
@@ -1057,7 +1081,7 @@ def dialogs(new):
     g.key("Escape")
     need(model.is_hidden(), "Escape should close the model panel")
     no_problems(g)
-    return "7 sources: 6 published ones with an https link, and the owner's decision on the loss window"
+    return "8 sources: 7 published ones with an https link, and the owner's decisions on the receive window and the launch power"
 
 
 @check("AXE", "principle IV", "The axe-core accessibility engine reports no violation in any view")

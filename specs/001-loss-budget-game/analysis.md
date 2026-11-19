@@ -115,7 +115,7 @@ The owner closed the open point of pass 3 (G5): 8 and 28 are ONT receive levels,
 | H2 | Ambiguity | HIGH | spec.md Clarifications, D14 | The owner wrote a five with a hyphen in front. A launch power of −5 dBm is 7 dB below the weakest transmitter the standard allows (R8) and leaves 3 to 23 dB of usable loss, with which neither level 1's 1:64 option nor level 3 can be built | Read as +5 dBm, the top of the standard's N1 range and inside N2. **Open point for the owner: confirm the sign.** The value is one field of the content file, but the plants were designed for it |
 | H3 | Inconsistency | HIGH | spec.md, Hand-worked Cases; all rounds | The usable loss moved from 8–28 to 13–33 dB. No round kept exactly one answer, and round 1-2's lesson ("only a 1:16 fits a long route") cannot occur within 20 km | All cases re-worked by hand before the content changed; round 1-2 redesigned (D16); the misconception it exposed moved to round 1-1's 1:64 option |
 | H4 | Terminology | MEDIUM | contracts/rules.md; engine; fixture | `over`, `under`, `over-max`, `under-min` were named for sides of the loss window. For a receive level the sides are reversed | Renamed to `dark`, `bright`, `too-dark`, `too-bright`, `dark-and-bright`; the limits are the dark limit and the bright limit (D15) |
-| H5 | Underspecification | MEDIUM | spec.md D4; research.md R-02 | The fiber value was justified as the higher of two directions. The game now checks one direction, downstream, with the upstream value | Kept, because the owner did not change the loss card, and stated to the player: on a long route the game reads darker than a real ONT. The unit test that recomputes with 0.35 dB/km shows which verdicts could differ: only "too dark" ones |
+| H5 | Underspecification | MEDIUM | spec.md D4; research.md R-02 | The fiber value was justified as the higher of two directions. The game now checks one direction, downstream, with the upstream value | Kept, because the owner did not change the loss card, and stated to the player: on a long route the game reads darker than a real ONT. The unit test that recomputes with 0.35 dB/km shows which verdicts would differ: the 1:64 option of rounds 1-1 and 2-1 would be inside the window, so those two answers rest on the loss card's fiber value. **Open point for the owner, with the loss card** |
 | H6 | Coverage | MEDIUM | contracts/content.md; tests/content.test.js | The rule "no hand-typed dB value in authored text" did not catch a hand-typed dBm value | The test's pattern now covers dBm, and the contract says so |
 | H7 | Underspecification | LOW | spec.md, reference R8 | The owner's bright limit, −8 dBm, is 1 dB above the minimum overload the standard requires of an ONU (−9 dBm) | Kept as the owner's figure; the difference is stated in the source list |
 | H8 | Terminology | LOW | README.md, index.html: "An XGS-PON loss-budget puzzle" | Pass 3's G7 asked whether the title should still name XGS-PON | Closed: the launch power is inside the standard's XGS-PON ranges and the dark limit equals its ONU sensitivity |
@@ -123,7 +123,7 @@ The owner closed the open point of pass 3 (G5): 8 and 28 are ONT receive levels,
 
 **Constitution Alignment Issues:** H1 only, resolved by the amendment.
 
-**Metrics (pass 4):** 38 requirements (29 functional, 9 success criteria), all cited by at least one task; 71 tasks; 0 critical findings; 1 open point for the owner (H2).
+**Metrics (pass 4):** 38 requirements (29 functional, 9 success criteria), all cited by at least one task; 71 tasks; 0 critical findings; 2 open points for the owner (H2 and H5).
 
 ## Next Actions
 
@@ -131,4 +131,4 @@ Implementation may begin. Two items stay with the owner: timing a first playthro
 
 After pass 3, three items stayed with the owner: the two above, and the open point G5 (path loss in dB, or receive level in dBm). The owner closed G5 in his second review.
 
-After pass 4, three items stay with the owner: timing a first playthrough (SC-004), saying what each level taught (SC-008), and the open point H2 (the sign of the launch power).
+After pass 4, three items stay with the owner: timing a first playthrough (SC-004), saying what each level taught (SC-008), and the open points H2 (the sign of the launch power) and H5 (the fiber value, now that the level checked is a downstream one).

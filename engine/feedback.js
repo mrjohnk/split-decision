@@ -4,7 +4,7 @@
 
 import { evaluate, evaluateOption, evaluateRound, pathsOf, windowOf, cardMilli, tracesOf, toMilli } from './rules.js';
 import {
-  fill, globalScope, roundScope, optionScope, fmtLoss, fmtNumber, fmtLimit, fmtPlain, fmtKm, ratioText,
+  fill, globalScope, roundScope, optionScope, fmtLoss, fmtNumber, fmtKm, ratioText, fmtLevel, fmtLevelLimit, fmtWindow,
 } from './tokens.js';
 
 export const GUIDANCE = {
@@ -13,12 +13,12 @@ export const GUIDANCE = {
   'content-error': 'This work order has a content error and cannot be graded. Nothing was counted.',
 };
 
-export const STATE_WORDS = { ok: 'Inside the window', over: 'Too dark', under: 'Too bright' };
+export const STATE_WORDS = { ok: 'Inside the window', dark: 'Too dark', bright: 'Too bright' };
 
 const NEXT_STEPS = {
-  'over-max': 'Next step: look for a design that puts less loss on that path.',
-  'under-min': 'Next step: look for a design that adds loss to that path.',
-  'over-and-under': 'Next step: look for a change that reaches only the ONT that needs it.',
+  'too-dark': 'Next step: look for a design that puts less loss on that path.',
+  'too-bright': 'Next step: look for a design that adds loss to that path.',
+  'dark-and-bright': 'Next step: look for a change that reaches only the ONT that needs it.',
   'valid-not-best': 'Next step: test a larger option against the ONT with the highest loss.',
 };
 
@@ -37,13 +37,14 @@ function servedText(option) {
   return `Serves ${option.served} ${option.served === 1 ? 'home' : 'homes'}`;
 }
 
-/** "N1 " when the content has several windows to tell apart, and nothing when it has one. */
+/** "N1 " when the content has several classes to tell apart, and nothing when it has one. */
 function classWord(window) {
   return window.named ? `${window.className} ` : '';
 }
 
-function windowText(window) {
-  return `${fmtPlain(window.minMilli)} to ${fmtLimit(window.maxMilli)}`;
+/** "+5 dBm − 30.7 dB = −25.7 dBm": how an ONT's receive level comes out of its loss. */
+function levelSum(ont, window) {
+  return `${fmtLevelLimit(window.launchMilli)} \u2212 ${fmtLoss(ont.totalMilli)} = ${fmtLevel(ont.levelMilli)}`;
 }
 
 /** The rows of one ONT's ledger table, and the same ledger as one line of text. */
@@ -69,22 +70,29 @@ function describeLedger(ont, card) {
     };
   });
   const joined = rows.map((row) => row.short).join(' + ');
-  const ledgerText = `${joined.charAt(0).toUpperCase()}${joined.slice(1)} = ${fmtLoss(ont.totalMilli)}`;
-  return { rows: rows.map(({ short, ...row }) => row), ledgerText };
+  const lossText = `${joined.charAt(0).toUpperCase()}${joined.slice(1)} = ${fmtLoss(ont.totalMilli)}`;
+  return { rows: rows.map(({ short, ...row }) => row), lossText };
 }
 
+/**
+ * One ONT's result in words: what its path loses, what it receives, and where that level sits
+ * against the window. The ledger text ends with the sum that turns the loss into the level.
+ */
 function describeOnt(ont, window, card) {
   const total = fmtLoss(ont.totalMilli);
+  const level = fmtLevel(ont.levelMilli);
   const margin = fmtLoss(ont.marginMilli);
+  const found = `${ont.label} loses ${total} and receives ${level}.`;
   let line;
-  if (ont.state === 'over') {
-    line = `${ont.label}: ${total}. That is ${margin} over the ${classWord(window)}maximum of ${fmtLimit(window.maxMilli)}.`;
-  } else if (ont.state === 'under') {
-    line = `${ont.label}: ${total}. That is ${margin} under the ${classWord(window)}minimum of ${fmtLimit(window.minMilli)}.`;
+  if (ont.state === 'dark') {
+    line = `${found} That is ${margin} below the ${classWord(window)}dark limit of ${fmtLevelLimit(window.darkMilli)}.`;
+  } else if (ont.state === 'bright') {
+    line = `${found} That is ${margin} above the ${classWord(window)}bright limit of ${fmtLevelLimit(window.brightMilli)}.`;
   } else {
-    line = `${ont.label}: ${total}. Inside the ${classWord(window)}window of ${windowText(window)}, with ${margin} to spare before the maximum.`;
+    line = `${found} Inside the ${classWord(window)}window of ${fmtWindow(window)}, with ${margin} to spare before the dark limit.`;
   }
-  const { rows, ledgerText } = describeLedger(ont, card);
+  const { rows, lossText } = describeLedger(ont, card);
+  const sumText = levelSum(ont, window);
   return {
     id: ont.id,
     label: ont.label,
@@ -92,10 +100,13 @@ function describeOnt(ont, window, card) {
     stateWord: STATE_WORDS[ont.state],
     totalMilli: ont.totalMilli,
     totalText: total,
+    levelMilli: ont.levelMilli,
+    levelText: level,
     marginText: margin,
     line,
     ledger: rows,
-    ledgerText,
+    sumText,
+    ledgerText: `${lossText}. ${sumText}`,
   };
 }
 
@@ -103,7 +114,7 @@ function optionLabel(content, round, option) {
   return fill(option.label, optionScope(content, round, option));
 }
 
-/** What the round view shows before any submission: the work order, its window, options and paths. */
+/** What the round view shows before any submission: the work order, its optics, options and paths. */
 export function describeRound(content, round) {
   const scope = roundScope(content, round);
   const window = windowOf(content, round.class);
@@ -123,9 +134,10 @@ export function describeRound(content, round) {
     story: fill(round.story, scope),
     goal: fill(round.goal, scope),
     className: round.class,
-    windowLabel: window.named ? `${round.class} loss window` : 'Loss window',
-    windowText: windowText(window),
-    window: { minMilli: window.minMilli, maxMilli: window.maxMilli, minText: fmtPlain(window.minMilli), maxText: fmtPlain(window.maxMilli) },
+    launchLabel: window.named ? `${round.class} launch power` : 'Launch power',
+    launchText: fmtLevelLimit(window.launchMilli),
+    windowLabel: window.named ? `${round.class} receive window` : 'Receive window',
+    windowText: fmtWindow(window),
     options: round.options.map((option) => ({ id: option.id, label: optionLabel(content, round, option), servedText: servedText(option) })),
     pathRows,
   };
@@ -151,15 +163,15 @@ export function describeResult(content, round, result) {
   const scope = optionScope(content, round, option);
   const window = result.evidence.window;
   const onts = result.evidence.onts.map((ont) => describeOnt(ont, window, card));
-  const dark = onts.filter((o) => o.state === 'over').map((o) => o.label);
-  const bright = onts.filter((o) => o.state === 'under').map((o) => o.label);
+  const dark = onts.filter((o) => o.state === 'dark').map((o) => o.label);
+  const bright = onts.filter((o) => o.state === 'bright').map((o) => o.label);
   const outcome = result.reasonCode;
 
   let headline;
   if (outcome === 'best-valid') headline = onts.length === 1 ? `Correct. ${onts[0].label} is inside the window.` : 'Correct. Every ONT is inside the window.';
   else if (outcome === 'valid-not-best') headline = 'This design works, and a larger one also fits.';
-  else if (outcome === 'over-max') headline = `Too dark at ${listOf(dark)}.`;
-  else if (outcome === 'under-min') headline = `Too bright at ${listOf(bright)}.`;
+  else if (outcome === 'too-dark') headline = `Too dark at ${listOf(dark)}.`;
+  else if (outcome === 'too-bright') headline = `Too bright at ${listOf(bright)}.`;
   else headline = `Too bright at ${listOf(bright)} and too dark at ${listOf(dark)}.`;
 
   const correct = result.status === 'correct';
@@ -215,7 +227,8 @@ export function describeBriefing(content, level) {
     example: {
       title: fill(briefing.example.title, exampleScope),
       className: exampleRound.class,
-      windowText: windowText(window),
+      launchText: fmtLevelLimit(window.launchMilli),
+      windowText: fmtWindow(window),
       onts: evaluated.onts.map((ont) => describeOnt(ont, window, card)),
       result: fill(briefing.example.result, exampleScope),
     },
@@ -234,7 +247,7 @@ export function exampleAsRound(level) {
   };
 }
 
-/** The model panel: the rule, the assumptions, what is left out, the loss card and the sources. */
+/** The model panel: the rule, the optics, the assumptions, what is left out, the loss card and the sources. */
 export function describeModel(content) {
   const scope = globalScope(content);
   const card = cardMilli(content.lossCard);
@@ -247,16 +260,21 @@ export function describeModel(content) {
       .sort((a, b) => a - b)
       .map((ratio) => ({ label: `${ratioText(ratio)} splitter`, value: fmtLoss(card.splitter[String(ratio)]) })),
   ];
-  const classes = Object.keys(content.classes).map((name) => {
+  // Two rows for each class: its launch power and its receive window. A single class has no name to show.
+  const optics = Object.keys(content.classes).flatMap((name) => {
     const window = windowOf(content, name);
-    return { name, label: window.named ? `${name} class` : 'Loss window', text: windowText(window) };
+    const of = window.named ? `, class ${name}` : '';
+    return [
+      { label: `Launch power at the OLT port${of}`, value: fmtLevelLimit(window.launchMilli) },
+      { label: `Receive window at each ONT${of}`, value: fmtWindow(window) },
+    ];
   });
   return {
     rule: content.model.rule.map((text) => fill(text, scope)),
     assumptions: content.model.assumptions.map((text) => fill(text, scope)),
     leftOut: content.model.leftOut.map((text) => fill(text, scope)),
     lossCard,
-    classes,
+    optics,
     sources: content.sources,
   };
 }
@@ -271,24 +289,34 @@ function describeStep(step, card) {
   return `Attenuator ${step.at === 'olt' ? 'at the OLT port' : 'at this ONT'}: ${loss}`;
 }
 
+/** The lowest level the trace's scale must show: at least 12 dB below the dark limit, in steps of 5. */
+function bottomOf(window, levels) {
+  const lowest = Math.min(window.darkMilli, ...levels);
+  return Math.min(window.darkMilli - 12000, Math.floor((lowest - 2000) / 5000) * 5000);
+}
+
 /**
- * The loss trace of a design: for each ONT the losses in the order light meets them, with the
- * running total after each. `option` may be null: then only the scale and the window are returned.
+ * The loss trace of a design, on a scale of light level in dBm. Every ONT's line starts at the
+ * launch power and falls by each loss in the order light meets it, down to the level the ONT
+ * receives. `option` may be null: then only the scale and the window are returned.
  */
 export function describeTrace(content, round, option) {
   const window = windowOf(content, round.class);
   const card = cardMilli(content.lossCard);
   const base = {
     className: round.class,
-    windowName: window.named ? `${round.class} window` : 'Loss window',
-    minMilli: window.minMilli,
-    maxMilli: window.maxMilli,
-    minText: fmtLimit(window.minMilli),
-    maxText: fmtLimit(window.maxMilli),
-    windowText: windowText(window),
+    windowName: window.named ? `${round.class} receive window` : 'Receive window',
+    launchMilli: window.launchMilli,
+    launchText: fmtLevelLimit(window.launchMilli),
+    darkMilli: window.darkMilli,
+    brightMilli: window.brightMilli,
+    darkText: fmtLevelLimit(window.darkMilli),
+    brightText: fmtLevelLimit(window.brightMilli),
+    windowText: fmtWindow(window),
+    topMilli: window.launchMilli,
     series: [],
   };
-  if (!option) return { ...base, hasShared: false, domainMaxMilli: Math.max(40000, Math.ceil((window.maxMilli + 2000) / 5000) * 5000) };
+  if (!option) return { ...base, hasShared: false, bottomMilli: bottomOf(window, []) };
 
   const evaluated = evaluateOption(content, round, option);
   const traces = tracesOf(content, round, option);
@@ -299,19 +327,19 @@ export function describeTrace(content, round, option) {
   }
   const series = traces.map((trace) => {
     const ont = evaluated.onts.find((o) => o.id === trace.ontId);
-    let running = 0;
+    let level = window.launchMilli;
     const steps = trace.steps.map((step) => {
-      const fromMilli = running;
-      running += step.lossMilli;
+      const fromMilli = level;
+      level -= step.lossMilli;
       const sharers = users.get(step.key);
       const who = traces.length === 1 ? '' : `${sharers.length === traces.length ? 'Every ONT' : listOf(sharers.map((t) => t.label))}: `;
       return {
         key: step.key,
         kind: step.kind,
         fromMilli,
-        toMilli: running,
+        toMilli: level,
         sharedBy: sharers.map((t) => t.ontId),
-        text: `${who}${describeStep(step, card)}. Total so far ${fmtLoss(running)}.`,
+        text: `${who}${describeStep(step, card)}. Level after it ${fmtLevel(level)}.`,
       };
     });
     return {
@@ -321,15 +349,16 @@ export function describeTrace(content, round, option) {
       stateWord: STATE_WORDS[ont.state],
       totalMilli: ont.totalMilli,
       totalText: fmtLoss(ont.totalMilli),
+      levelMilli: ont.levelMilli,
+      levelText: fmtLevel(ont.levelMilli),
       steps,
     };
   });
-  const highest = Math.max(window.maxMilli, ...series.map((s) => s.totalMilli));
   return {
     ...base,
     series,
     hasShared: series.some((line) => line.steps.some((step) => step.sharedBy.length > 1)),
-    domainMaxMilli: Math.max(40000, Math.ceil((highest + 2000) / 5000) * 5000),
+    bottomMilli: bottomOf(window, series.map((line) => line.levelMilli)),
   };
 }
 

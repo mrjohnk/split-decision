@@ -1,70 +1,76 @@
 {
-  "about": "Hand-worked expected results, transcribed from specs/001-loss-budget-game/spec.md (Hand-worked Cases). Rounds 1-1 and 1-2 were written before the evaluator existed; all the cases were re-worked by hand for the owner's 8 to 28 dB loss window (decision D11) before the content file was changed. Never regenerate this file from the code under test.",
-  "units": "dB",
-  "window": {"about": "The game's one loss window, from the specification's Technical Model. Limits included.", "class": "design", "min": 8, "max": 28},
+  "about": "Hand-worked expected results, transcribed from specs/001-loss-budget-game/spec.md (Hand-worked Cases). Every case was re-worked by hand for the owner's receive window and launch power (decisions D13 and D14) before the content file was changed. Never regenerate this file from the code under test.",
+  "units": "total: path loss in dB. level: receive level in dBm, the launch power less the total. by: distance to the limit that was missed, in dB.",
+  "optics": {"about": "The game's one set of optics, from the specification's Technical Model. Limits included.", "class": "design", "launch": 5, "dark": -28, "bright": -8},
   "rounds": {
     "r1-1": {
       "class": "design",
       "answer": "o32",
       "options": {
-        "o16": {"served": 16, "outcome": "valid-not-best", "onts": {"A": {"total": 23.4, "state": "ok"}}},
-        "o32": {"served": 32, "outcome": "best-valid", "onts": {"A": {"total": 26.9, "state": "ok"}}},
-        "o64": {"served": 64, "outcome": "over-max", "onts": {"A": {"total": 30.4, "state": "over", "by": 2.4}}}
+        "o16": {"served": 16, "outcome": "valid-not-best", "onts": {"A": {"total": 27.2, "level": -22.2, "state": "ok"}}},
+        "o32": {"served": 32, "outcome": "best-valid", "onts": {"A": {"total": 30.7, "level": -25.7, "state": "ok"}}},
+        "o64": {"served": 64, "outcome": "too-dark", "onts": {"A": {"total": 34.2, "level": -29.2, "state": "dark", "by": 1.2}}}
       }
     },
     "r1-2": {
       "class": "design",
-      "answer": "o16",
+      "answer": "o64",
       "options": {
-        "o16": {"served": 16, "outcome": "best-valid", "onts": {"A": {"total": 25.9, "state": "ok"}}},
-        "o32": {"served": 32, "outcome": "over-max", "onts": {"A": {"total": 29.4, "state": "over", "by": 1.4}}},
-        "o64": {"served": 64, "outcome": "over-max", "onts": {"A": {"total": 32.9, "state": "over", "by": 4.9}}}
+        "o16": {"served": 16, "outcome": "valid-not-best", "onts": {"A": {"total": 24.2, "level": -19.2, "state": "ok"}}},
+        "o32": {"served": 32, "outcome": "valid-not-best", "onts": {"A": {"total": 27.7, "level": -22.7, "state": "ok"}}},
+        "o64": {"served": 64, "outcome": "best-valid", "onts": {"A": {"total": 31.2, "level": -26.2, "state": "ok"}}}
       }
     },
     "r2-1": {
       "class": "design",
       "answer": "o32",
       "options": {
-        "o16": {"served": 16, "outcome": "valid-not-best", "onts": {"A": {"total": 18.4, "state": "ok"}, "B": {"total": 19.4, "state": "ok"}, "C": {"total": 21.6, "state": "ok"}}},
-        "o32": {"served": 32, "outcome": "best-valid", "onts": {"A": {"total": 21.9, "state": "ok"}, "B": {"total": 22.9, "state": "ok"}, "C": {"total": 25.1, "state": "ok"}}},
-        "o64": {"served": 64, "outcome": "over-max", "onts": {"A": {"total": 25.4, "state": "ok"}, "B": {"total": 26.4, "state": "ok"}, "C": {"total": 28.6, "state": "over", "by": 0.6}}}
+        "o16": {"served": 16, "outcome": "valid-not-best", "onts": {"A": {"total": 23.4, "level": -18.4, "state": "ok"}, "B": {"total": 24.4, "level": -19.4, "state": "ok"}, "C": {"total": 26.6, "level": -21.6, "state": "ok"}}},
+        "o32": {"served": 32, "outcome": "best-valid", "onts": {"A": {"total": 26.9, "level": -21.9, "state": "ok"}, "B": {"total": 27.9, "level": -22.9, "state": "ok"}, "C": {"total": 30.1, "level": -25.1, "state": "ok"}}},
+        "o64": {"served": 64, "outcome": "too-dark", "onts": {"A": {"total": 30.4, "level": -25.4, "state": "ok"}, "B": {"total": 31.4, "level": -26.4, "state": "ok"}, "C": {"total": 33.6, "level": -28.6, "state": "dark", "by": 0.6}}}
       }
     },
     "r2-2": {
       "class": "design",
       "answer": "c4x16",
       "options": {
-        "c8x16": {"served": 128, "outcome": "over-max", "onts": {"A": {"total": 30.5, "state": "over", "by": 2.5}, "B": {"total": 31.0, "state": "over", "by": 3.0}}},
-        "c2x16": {"served": 32, "outcome": "valid-not-best", "onts": {"A": {"total": 23.5, "state": "ok"}, "B": {"total": 24.0, "state": "ok"}}},
-        "c4x16": {"served": 64, "outcome": "best-valid", "onts": {"A": {"total": 27.0, "state": "ok"}, "B": {"total": 27.5, "state": "ok"}}}
+        "c8x16": {"served": 128, "outcome": "too-dark", "onts": {"A": {"total": 35.5, "level": -30.5, "state": "dark", "by": 2.5}, "B": {"total": 36.0, "level": -31.0, "state": "dark", "by": 3.0}}},
+        "c2x16": {"served": 32, "outcome": "valid-not-best", "onts": {"A": {"total": 28.5, "level": -23.5, "state": "ok"}, "B": {"total": 29.0, "level": -24.0, "state": "ok"}}},
+        "c4x16": {"served": 64, "outcome": "best-valid", "onts": {"A": {"total": 32.0, "level": -27.0, "state": "ok"}, "B": {"total": 32.5, "level": -27.5, "state": "ok"}}}
       }
     },
     "r3-1": {
       "class": "design",
-      "answer": "a5",
+      "answer": "a10",
       "options": {
-        "none": {"served": 2, "outcome": "under-min", "onts": {"A": {"total": 5.2, "state": "under", "by": 2.8}, "B": {"total": 5.3, "state": "under", "by": 2.7}}},
-        "a1": {"served": 2, "outcome": "under-min", "onts": {"A": {"total": 6.2, "state": "under", "by": 1.8}, "B": {"total": 6.3, "state": "under", "by": 1.7}}},
-        "a5": {"served": 2, "outcome": "best-valid", "onts": {"A": {"total": 10.2, "state": "ok"}, "B": {"total": 10.3, "state": "ok"}}},
-        "a25": {"served": 2, "outcome": "over-max", "onts": {"A": {"total": 30.2, "state": "over", "by": 2.2}, "B": {"total": 30.3, "state": "over", "by": 2.3}}}
+        "none": {"served": 4, "outcome": "too-bright", "onts": {"A": {"total": 9.2, "level": -4.2, "state": "bright", "by": 3.8}, "B": {"total": 9.3, "level": -4.3, "state": "bright", "by": 3.7}}},
+        "a3": {"served": 4, "outcome": "too-bright", "onts": {"A": {"total": 12.2, "level": -7.2, "state": "bright", "by": 0.8}, "B": {"total": 12.3, "level": -7.3, "state": "bright", "by": 0.7}}},
+        "a10": {"served": 4, "outcome": "best-valid", "onts": {"A": {"total": 19.2, "level": -14.2, "state": "ok"}, "B": {"total": 19.3, "level": -14.3, "state": "ok"}}},
+        "a25": {"served": 4, "outcome": "too-dark", "onts": {"A": {"total": 34.2, "level": -29.2, "state": "dark", "by": 1.2}, "B": {"total": 34.3, "level": -29.3, "state": "dark", "by": 1.3}}}
       }
     },
     "r3-2": {
       "class": "design",
       "answer": "ontA10",
       "options": {
-        "olt10": {"served": 33, "outcome": "over-max", "onts": {"A": {"total": 16.3, "state": "ok"}, "B": {"total": 36.4, "state": "over", "by": 8.4}}},
-        "ontA10": {"served": 33, "outcome": "best-valid", "onts": {"A": {"total": 16.3, "state": "ok"}, "B": {"total": 26.4, "state": "ok"}}},
-        "ontB10": {"served": 33, "outcome": "over-and-under", "onts": {"A": {"total": 6.3, "state": "under", "by": 1.7}, "B": {"total": 36.4, "state": "over", "by": 8.4}}},
-        "none": {"served": 33, "outcome": "under-min", "onts": {"A": {"total": 6.3, "state": "under", "by": 1.7}, "B": {"total": 26.4, "state": "ok"}}}
+        "olt10": {"served": 33, "outcome": "too-dark", "onts": {"A": {"total": 16.3, "level": -11.3, "state": "ok"}, "B": {"total": 36.4, "level": -31.4, "state": "dark", "by": 3.4}}},
+        "ontA10": {"served": 33, "outcome": "best-valid", "onts": {"A": {"total": 16.3, "level": -11.3, "state": "ok"}, "B": {"total": 26.4, "level": -21.4, "state": "ok"}}},
+        "ontB10": {"served": 33, "outcome": "dark-and-bright", "onts": {"A": {"total": 6.3, "level": -1.3, "state": "bright", "by": 6.7}, "B": {"total": 36.4, "level": -31.4, "state": "dark", "by": 3.4}}},
+        "none": {"served": 33, "outcome": "too-bright", "onts": {"A": {"total": 6.3, "level": -1.3, "state": "bright", "by": 6.7}, "B": {"total": 26.4, "level": -21.4, "state": "ok"}}}
       }
     }
   },
-  "fixedBeforeChoice": {"about": "Loss from fixed elements only, installed splitters included, as written in the specification's case headings.", "r1-1": {"A": 9.4}, "r1-2": {"A": 11.9}, "r2-1": {"A": 4.4, "B": 5.4, "C": 7.6}, "r2-2": {"A": 20.0, "B": 20.5}, "r3-1": {"A": 5.2, "B": 5.3}, "r3-2": {"A": 6.3, "B": 26.4}},
+  "fixedBeforeChoice": {"about": "Loss from fixed elements only, installed splitters included, as written in the specification's case headings.", "r1-1": {"A": 13.2}, "r1-2": {"A": 10.2}, "r2-1": {"A": 9.4, "B": 10.4, "C": 12.6}, "r2-2": {"A": 25.0, "B": 25.5}, "r3-1": {"A": 9.2, "B": 9.3}, "r3-2": {"A": 6.3, "B": 26.4}},
+  "examples": {
+    "about": "The worked examples of the three briefings, from the specification's table. Each has one design and no choice.",
+    "level-1": {"X": {"total": 21.2, "level": -16.2, "state": "ok"}},
+    "level-2": {"X": {"total": 28.2, "level": -23.2, "state": "ok"}, "Y": {"total": 30.5, "level": -25.5, "state": "ok"}},
+    "level-3": {"X": {"total": 20.5, "level": -15.5, "state": "ok"}}
+  },
   "boundary": [
-    {"id": "B1", "about": "Exactly at the maximum", "class": "design", "path": {"fiberKm": 16.0, "connectors": 4, "splices": 5}, "splitterRatio": 32, "total": 28.0, "state": "ok"},
-    {"id": "B2", "about": "0.1 dB over the maximum", "class": "design", "path": {"fiberKm": 16.0, "connectors": 4, "splices": 6}, "splitterRatio": 32, "total": 28.1, "state": "over", "by": 0.1},
-    {"id": "B3", "about": "Exactly at the minimum", "class": "design", "path": {"fiberKm": 4.0, "connectors": 4, "splices": 5}, "splitterRatio": 2, "total": 8.0, "state": "ok"},
-    {"id": "B4", "about": "0.1 dB under the minimum", "class": "design", "path": {"fiberKm": 4.0, "connectors": 4, "splices": 4}, "splitterRatio": 2, "total": 7.9, "state": "under", "by": 0.1}
+    {"id": "B1", "about": "Exactly at the dark limit", "class": "design", "path": {"fiberKm": 18.0, "connectors": 5, "splices": 5}, "splitterRatio": 64, "total": 33.0, "level": -28.0, "state": "ok"},
+    {"id": "B2", "about": "0.1 dB below the dark limit", "class": "design", "path": {"fiberKm": 18.0, "connectors": 5, "splices": 6}, "splitterRatio": 64, "total": 33.1, "level": -28.1, "state": "dark", "by": 0.1},
+    {"id": "B3", "about": "Exactly at the bright limit", "class": "design", "path": {"fiberKm": 6.0, "connectors": 5, "splices": 5}, "splitterRatio": 4, "total": 13.0, "level": -8.0, "state": "ok"},
+    {"id": "B4", "about": "0.1 dB above the bright limit", "class": "design", "path": {"fiberKm": 6.0, "connectors": 5, "splices": 4}, "splitterRatio": 4, "total": 12.9, "level": -7.9, "state": "bright", "by": 0.1}
   ]
 }

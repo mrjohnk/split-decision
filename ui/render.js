@@ -36,13 +36,17 @@ export function updateScrollRegions(root = document) {
   }
 }
 
+/** One ONT's ledger: every loss on its path and their total, then the sum that gives its receive level. */
 function ledgerTable(ont, captionPrefix = '') {
-  return scrollRegion(`Loss ledger for ${ont.label}`, h('table', { class: 'ledger' },
-    h('caption', {}, `${captionPrefix}${ont.label}`),
-    h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'Element'), h('th', { scope: 'col' }, 'Detail'), h('th', { scope: 'col', class: 'num' }, 'Loss, dB'))),
-    h('tbody', {}, ont.ledger.map((row) => h('tr', {}, h('th', { scope: 'row' }, row.label), h('td', {}, row.detail), h('td', { class: 'num' }, row.loss)))),
-    h('tfoot', {}, h('tr', {}, h('th', { scope: 'row', colspan: '2' }, 'Total'), h('td', { class: 'num' }, ont.totalText.replace(' dB', '')))),
-  ));
+  return h('div', { class: 'ledger-block' },
+    scrollRegion(`Loss ledger for ${ont.label}`, h('table', { class: 'ledger' },
+      h('caption', {}, `${captionPrefix}${ont.label}`),
+      h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'Element'), h('th', { scope: 'col' }, 'Detail'), h('th', { scope: 'col', class: 'num' }, 'Loss, dB'))),
+      h('tbody', {}, ont.ledger.map((row) => h('tr', {}, h('th', { scope: 'row' }, row.label), h('td', {}, row.detail), h('td', { class: 'num' }, row.loss)))),
+      h('tfoot', {}, h('tr', {}, h('th', { scope: 'row', colspan: '2' }, 'Total loss'), h('td', { class: 'num' }, ont.totalText.replace(' dB', '')))),
+    )),
+    h('p', { class: 'ledger-level', 'data-testid': `level-sum-${ont.id}` }, h('span', { class: 'ledger-level-name' }, 'Receive level'), h('span', { class: 'ledger-level-sum' }, ont.sumText)),
+  );
 }
 
 /** A host element that draws an SVG at its own width. redrawAll() calls it after layout and on resize. */
@@ -75,16 +79,24 @@ function sourcesLine(sources) {
   ]), '.');
 }
 
-/** The legend of the trace: one row for each ONT, with its total and state once a design is lit. */
+/**
+ * The legend of the trace: the launch power, where every line starts, then one row for each ONT,
+ * with its receive level and state once a design is lit.
+ */
 function meterRows(trace, pathRows) {
   const lit = new Map(trace.series.map((line, index) => [line.ontId, { line, index }]));
+  const launch = h('li', { class: 'meter is-launch', 'data-testid': 'meter-launch' },
+    s('svg', { class: 'meter-key', viewBox: '0 0 26 12', width: 26, height: 12, 'aria-hidden': 'true', focusable: 'false' },
+      s('path', { class: 'launch-key', d: 'M2,2 H12 L22,10' })),
+    h('span', { class: 'meter-name' }, 'Launch power'),
+    h('span', { class: 'meter-total' }, trace.launchText));
   const shared = trace.hasShared
     ? h('li', { class: 'meter is-shared', 'data-testid': 'meter-shared' },
       s('svg', { class: 'meter-key', viewBox: '0 0 26 12', width: 26, height: 12, 'aria-hidden': 'true', focusable: 'false' },
         s('line', { class: 'trace-line is-shared', x1: 1, x2: 25, y1: 6, y2: 6 })),
       h('span', { class: 'meter-name' }, 'Path the ONTs share'))
     : null;
-  return h('ul', { class: 'meters' }, shared, pathRows.map((row, index) => {
+  return h('ul', { class: 'meters' }, launch, shared, pathRows.map((row, index) => {
     const hit = lit.get(row.ontId);
     const key = s('svg', { class: 'meter-key', viewBox: '0 0 26 12', width: 26, height: 12, 'aria-hidden': 'true', focusable: 'false' },
       s('line', { class: `trace-line series-${index % 8}`, x1: 1, x2: 16, y1: 6, y2: 6 }),
@@ -94,8 +106,10 @@ function meterRows(trace, pathRows) {
         key, h('span', { class: 'meter-name' }, row.label), h('span', { class: 'meter-wait' }, 'not lit yet'));
     }
     const { line } = hit;
-    return h('li', { class: 'meter', 'data-testid': `meter-${row.ontId}`, 'data-state': line.state, 'data-total': line.totalText.replace(' dB', '') },
-      key, h('span', { class: 'meter-name' }, row.label), h('span', { class: 'meter-total' }, line.totalText), stateBadge(line.state, line.stateWord));
+    return h('li', {
+      class: 'meter', 'data-testid': `meter-${row.ontId}`, 'data-state': line.state,
+      'data-level': (line.levelMilli / 1000).toFixed(1), 'data-total': line.totalText.replace(' dB', ''),
+    }, key, h('span', { class: 'meter-name' }, row.label), h('span', { class: 'meter-total' }, line.levelText), stateBadge(line.state, line.stateWord));
   }));
 }
 
@@ -161,7 +175,7 @@ function briefingBody(content, level, headingTag, headingId) {
       h('div', { class: 'prose' }, briefing.intro.map((paragraph) => h('p', {}, paragraph))),
       h('figure', { class: 'example' },
         h('figcaption', { class: 'example-title' }, briefing.example.title),
-        drawing('plant-host', (host, width) => drawPlant(host, exampleRound.plant, exampleRound.options[0], width)),
+        drawing('plant-host', (host, width) => drawPlant(host, exampleRound.plant, exampleRound.options[0], width, exampleView.launchText)),
         h('p', { class: 'visually-hidden' }, describePlant(content, exampleRound, exampleRound.options[0])),
         instrument('Loss trace', trace, exampleView.pathRows, { animate: false, headingTag: subTag }),
         h('div', { class: 'ledgers' }, briefing.example.onts.map((ont) => ledgerTable(ont))),
@@ -268,9 +282,13 @@ function renderRound(app) {
     h('p', { class: 'place' }, `${view.place}, level ${state.levelIndex + 1}: ${level.title}`),
     h('h1', { id: 'view-title', tabindex: '-1', class: 'view-title' }, view.title),
     h('p', { class: 'story' }, view.story),
-    h('p', { class: 'window-line', 'data-testid': 'window' }, h('strong', {}, `${view.windowLabel}: ${view.windowText}`), ', limits included.'),
+    // Two short lines, and a level never breaks between its number and its unit.
+    h('p', { class: 'window-line', 'data-testid': 'window' },
+      h('span', { class: 'window-item' }, h('strong', {}, `${view.launchLabel}: `, h('span', { class: 'nowrap' }, view.launchText)), ' at the OLT port.'),
+      ' ',
+      h('span', { class: 'window-item' }, h('strong', {}, `${view.windowLabel}: `, h('span', { class: 'nowrap' }, view.windowText)), ' at each ONT, limits included.')),
     h('figure', { class: 'plant' },
-      drawing('plant-host', (host, width) => drawPlant(host, round.plant, selectedOptionOf(app), width)),
+      drawing('plant-host', (host, width) => drawPlant(host, round.plant, selectedOptionOf(app), width, view.launchText)),
       h('figcaption', { class: 'visually-hidden', 'data-testid': 'plant-text' }, describePlant(content, round, selectedOption)),
     ),
     h('h2', { class: 'table-title' }, 'Each ONT\'s path from the OLT port'),
@@ -352,7 +370,7 @@ function renderSummary(app) {
     ),
     h('h2', {}, 'What each level practiced'),
     h('ul', { class: 'practiced' }, content.levels.map((level) => h('li', {}, h('strong', {}, `${level.title}. `), describeBriefing(content, level).practiced))),
-    h('p', { class: 'card-note' }, 'A real design also checks each direction at its own wavelength and keeps margin for repairs. Model and sources lists what this game leaves out.'),
+    h('p', { class: 'card-note' }, 'A real design also checks the light going the other way, allows for the spread of real transmitters and keeps margin for repairs. Model and sources lists what this game leaves out.'),
     h('div', { class: 'actions' }, h('button', { type: 'button', class: 'primary', 'data-action': 'request-restart', 'data-testid': 'play-again' }, 'Play again')),
   );
 }
@@ -385,8 +403,8 @@ export function fillModelDialog(dialog, app) {
     h('div', { class: 'dialog-body model' },
       h('h2', { id: 'model-dialog-title', tabindex: '-1' }, 'Model and sources'),
       h('h3', {}, 'The rule'), list(model.rule),
-      h('h3', {}, model.classes.length > 1 ? 'Loss windows' : 'Loss window'),
-      h('table', { class: 'model-table' }, h('tbody', {}, model.classes.map((c) => h('tr', {}, h('th', { scope: 'row' }, c.label), h('td', { class: 'num' }, c.text))))),
+      h('h3', {}, 'Launch power and receive window'),
+      h('table', { class: 'model-table' }, h('tbody', {}, model.optics.map((row) => h('tr', {}, h('th', { scope: 'row' }, row.label), h('td', { class: 'num' }, row.value))))),
       h('h3', {}, 'Loss card'),
       h('table', { class: 'model-table' }, h('tbody', {}, model.lossCard.map((row) => h('tr', {}, h('th', { scope: 'row' }, row.label), h('td', { class: 'num' }, row.value))))),
       h('h3', {}, 'What the game assumes'), list(model.assumptions),

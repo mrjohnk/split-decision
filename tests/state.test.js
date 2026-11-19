@@ -43,7 +43,7 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
     let state = play(inRound11(), select('o64'), 'submit');
     assertEqual(rec(state, 'r1-1').attempts, 1);
     assertEqual(rec(state, 'r1-1').solved, false);
-    assertEqual(rec(state, 'r1-1').last.reasonCode, 'over-max');
+    assertEqual(rec(state, 'r1-1').last.reasonCode, 'too-dark');
     assertEqual(rec(state, 'r1-1').last.optionId, 'o64');
 
     state = play(state, select('o16'), 'submit');

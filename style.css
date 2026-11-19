@@ -215,6 +215,12 @@ td.num, tbody th.num, tfoot th.num { white-space: nowrap; }
 .story { max-width: 66ch; }
 .window-line { display: inline-block; margin: 16px 0 4px; padding: 8px 12px; border: 1.5px solid var(--ink); border-radius: 2px; }
 .window-line strong { font-weight: 600; }
+.window-item { display: block; }
+.nowrap { white-space: nowrap; }
+.ledger-block { min-width: 0; }
+.ledger-level { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; margin-top: 6px; padding-top: 6px; border-top: 1.5px solid var(--ink); font-weight: 600; }
+.ledger-level-name { font-weight: 500; }
+.ledger-level-sum { white-space: nowrap; }
 .plant { margin: 14px 0 0; }
 .plant-host { padding-top: 6px; }
 
@@ -228,6 +234,7 @@ td.num, tbody th.num, tfoot th.num { white-space: nowrap; }
 .ont-text { fill: var(--ink); font: 600 14px var(--font-text); }
 .plant-note { fill: var(--ink-2); font: 400 12px var(--font-text); }
 .plant-note.is-open { fill: var(--mark-deep); font-weight: 500; }
+.launch-note { fill: var(--ink); font: 600 12px var(--font-text); }
 .seg-km { fill: var(--ink); font: 500 13px var(--font-text); }
 .seg-counts { fill: var(--ink-2); font: 400 12px var(--font-text); }
 .splitter-shape { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
@@ -316,7 +323,7 @@ td.num, tbody th.num, tfoot th.num { white-space: nowrap; }
 
 .meters { list-style: none; margin-top: 6px; border-top: 1px solid var(--screen-grid); }
 .meter {
-  display: grid; grid-template-columns: 26px minmax(0, 1fr) 4.4em 10.2em; gap: 2px 10px; align-items: center;
+  display: grid; grid-template-columns: 26px minmax(0, 1fr) 5.6em 10.2em; gap: 2px 10px; align-items: center;
   padding: 8px 2px; border-bottom: 1px solid var(--screen-grid); font-size: 1rem;
 }
 .meter:last-child { border-bottom: 0; }
@@ -325,6 +332,7 @@ td.num, tbody th.num, tfoot th.num { white-space: nowrap; }
 .meter .state { font-weight: 500; }
 .meter.is-shared { color: var(--screen-ink-2); }
 .meter.is-shared .meter-name { grid-column: 2 / -1; }
+.launch-key { fill: none; stroke: var(--screen-ink-2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 @media (max-width: 520px) {
   .meter { grid-template-columns: 26px minmax(0, 1fr) auto; }
   .meter-wait { grid-column: 3; }
@@ -441,11 +449,11 @@ dialog::backdrop { background: rgba(20, 38, 58, 0.62); }
    ---------------------------------------------------------------------------------------------- */
 
 @media (forced-colors: active) {
-  .fiber-line, .trace-line, .window-edge, .leader, .trace-grid line { stroke: CanvasText; }
+  .fiber-line, .trace-line, .window-edge, .leader, .trace-grid line, .launch-key { stroke: CanvasText; }
   .olt-box, .end-dot, .att-box, .splitter-shape.is-chosen { fill: CanvasText; }
   .olt-text { fill: Canvas; }
   .ont-box, .splitter-shape { fill: Canvas; stroke: CanvasText; }
-  .tick, .zone-name, .trace-empty, .end-label, .plant-note, .seg-km, .seg-counts, .ont-text, .splitter-ratio, .att-text { fill: CanvasText; }
+  .tick, .zone-name, .trace-empty, .end-label, .plant-note, .launch-note, .seg-km, .seg-counts, .ont-text, .splitter-ratio, .att-text { fill: CanvasText; }
   .window-band { fill: none; }
   .instrument { border: 1px solid CanvasText; }
   .option:has(input:checked) { outline: 2px solid Highlight; outline-offset: -2px; }

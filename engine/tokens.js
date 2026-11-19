@@ -1,8 +1,8 @@
 // Value tokens in authored text.
 //
-// Authored text never carries a hand-typed dB value. It carries tokens such as {max} or {total:A},
-// which are filled here from the loss card, the classes and the evaluator at the moment the text is
-// shown. If the data changes, every sentence follows it. See data-model.md, "Value tokens".
+// Authored text never carries a hand-typed dB or dBm value. It carries tokens such as {dark} or
+// {rx:A}, which are filled here from the loss card, the classes and the evaluator at the moment the
+// text is shown. If the data changes, every sentence follows it. See data-model.md, "Value tokens".
 //
 // This module does not decide an answer. It only formats what engine/rules.js computed.
 
@@ -31,6 +31,32 @@ export function fmtLimit(milli) {
   return `${fmtPlain(milli)} dB`;
 }
 
+const MINUS = '\u2212';
+
+/** The sign of a level: a true minus sign, an explicit plus, and nothing for zero. */
+function signOf(tenths) {
+  if (tenths < 0) return MINUS;
+  return tenths > 0 ? '+' : '';
+}
+
+/** "−25.7 dBm" or "+3.5 dBm": a computed level, always signed, with one decimal place. */
+export function fmtLevel(milli) {
+  const tenths = Math.round(milli / 100);
+  return `${signOf(tenths)}${(Math.abs(tenths) / 10).toFixed(1)} dBm`;
+}
+
+/** "−28 dBm" or "+5 dBm": a limit or the launch power. Whole numbers are written without a decimal. */
+export function fmtLevelLimit(milli) {
+  const tenths = Math.round(milli / 100);
+  const size = Math.abs(tenths);
+  return `${signOf(tenths)}${size % 10 === 0 ? String(size / 10) : (size / 10).toFixed(1)} dBm`;
+}
+
+/** "−28 dBm to −8 dBm": a receive window, from its dark limit to its bright limit. */
+export function fmtWindow(window) {
+  return `${fmtLevelLimit(window.darkMilli)} to ${fmtLevelLimit(window.brightMilli)}`;
+}
+
 /** "14.0 km" from thousandths of a km. */
 export function fmtKm(milliKm) {
   return `${(milliKm / 1000).toFixed(1)} km`;
@@ -49,7 +75,7 @@ export function tokensIn(text) {
 }
 
 /**
- * Tokens available everywhere: the loss card and the class limits.
+ * Tokens available everywhere: the loss card, and each class's launch power and limits.
  * A scope is a function (name, arg) → string, or undefined when it does not know the token.
  */
 export function globalScope(content) {
@@ -64,10 +90,11 @@ export function globalScope(content) {
     if (name === 'splitter') {
       return Object.prototype.hasOwnProperty.call(card.splitter, arg) ? fmtLoss(card.splitter[arg]) : undefined;
     }
-    if (name === 'min' || name === 'max') {
+    if (name === 'launch' || name === 'dark' || name === 'bright') {
       if (!Object.prototype.hasOwnProperty.call(content.classes, arg)) return undefined;
       const window = windowOf(content, arg);
-      return fmtLimit(name === 'min' ? window.minMilli : window.maxMilli);
+      if (name === 'launch') return fmtLevelLimit(window.launchMilli);
+      return fmtLevelLimit(name === 'dark' ? window.darkMilli : window.brightMilli);
     }
     return undefined;
   };
@@ -79,7 +106,10 @@ function installedSplitters(plant) {
   return out;
 }
 
-/** Tokens for a round's own text (story, goal, hints): its class, and each ONT's fixed losses. */
+/**
+ * Tokens for a round's own text (story, goal, hints): its class, each ONT's fixed losses, and the
+ * level each ONT would receive with the fixed elements alone ({drawn:ONT}).
+ */
 export function roundScope(content, round) {
   const base = globalScope(content);
   const window = windowOf(content, round.class);
@@ -88,9 +118,10 @@ export function roundScope(content, round) {
   return (name, arg) => {
     if (arg === null) {
       if (name === 'class') return round.class;
-      if (name === 'min') return fmtLimit(window.minMilli);
-      if (name === 'max') return fmtLimit(window.maxMilli);
-      if (name === 'window') return `${fmtPlain(window.minMilli)} to ${fmtLimit(window.maxMilli)}`;
+      if (name === 'launch') return fmtLevelLimit(window.launchMilli);
+      if (name === 'dark') return fmtLevelLimit(window.darkMilli);
+      if (name === 'bright') return fmtLevelLimit(window.brightMilli);
+      if (name === 'window') return fmtWindow(window);
       return base(name, arg);
     }
     if (name === 'ratio') {
@@ -104,6 +135,7 @@ export function roundScope(content, round) {
       if (name === 'splices') return fmtLoss(ont.splicesMilli);
       if (name === 'installed') return fmtLoss(ont.installedMilli);
       if (name === 'km') return fmtKm(ont.fiberMilliKm);
+      if (name === 'drawn') return fmtLevel(window.launchMilli - ont.fixedMilli);
     }
     return base(name, arg);
   };
@@ -133,6 +165,7 @@ export function optionScope(content, round, option, answerLabel = null) {
     const ont = Object.prototype.hasOwnProperty.call(byId, arg) ? byId[arg] : null;
     if (ont) {
       if (name === 'total') return fmtLoss(ont.totalMilli);
+      if (name === 'rx') return fmtLevel(ont.levelMilli);
       if (name === 'margin') return fmtLoss(ont.marginMilli);
       if (name === 'chosen') return fmtLoss(sum(ont, (line) => line.chosen === true));
       if (name === 'small') return fmtLoss(sum(ont, (line) => line.kind === 'connectors' || line.kind === 'splices'));

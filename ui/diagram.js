@@ -1,6 +1,7 @@
 // The two drawings of the game, as inline SVG built from the round's data:
 //   drawPlant  — the PON, from the OLT port to each ONT
-//   drawTrace  — the loss trace: how each ONT's light falls on the way, against the class window
+//   drawTrace  — the loss trace: how each ONT's light level falls from the launch power on the
+//                 way, against the receive window
 //
 // Nothing here decides an answer. Every number drawn was computed by engine/rules.js and arrives
 // through engine/feedback.js. Each drawing has a text equivalent on the page (the path table, the
@@ -51,9 +52,10 @@ function countsText(segment, short = false) {
 
 /**
  * Draw the PON into `host`. `option` is the design currently selected, or null: its splitter
- * ratios and attenuators are drawn in the designer's orange.
+ * ratios and attenuators are drawn in the designer's orange. `launchText` is the launch power,
+ * printed above the OLT, where the light starts.
  */
-export function drawPlant(host, plant, option, width) {
+export function drawPlant(host, plant, option, width, launchText = '') {
   const { root, onts, maxDepth } = layoutPlant(plant);
   const narrow = width < 460;
   const padLeft = 8;
@@ -81,6 +83,7 @@ export function drawPlant(host, plant, option, width) {
     s('text', { class: 'olt-text', x: padLeft + oltW / 2, y: oltY + 5, 'text-anchor': 'middle' }, 'OLT'),
     s('text', { class: 'plant-note', x: padLeft, y: oltY + 34 }, plant.oltLabel),
   );
+  if (launchText) marks.append(s('text', { class: 'launch-note', x: padLeft, y: oltY - 22 }, launchText));
 
   const drawSegment = (fromX, fromY, item) => {
     const toX = xOf(item) - (item.kind === 'ont' ? 0 : 12);
@@ -170,7 +173,7 @@ export function stateGlyph(state, cx, cy, r = 5) {
   const g = s('g', { class: `glyph glyph-${state}` });
   if (state === 'ok') {
     g.append(s('circle', { cx, cy, r, fill: 'none' }));
-  } else if (state === 'over') {
+  } else if (state === 'dark') {
     g.append(s('path', { d: `M${cx - r},${cy - r * 0.6} L${cx},${cy + r * 0.7} L${cx + r},${cy - r * 0.6}`, fill: 'none' }));
   } else {
     g.append(s('circle', { cx, cy, r: r * 0.36, class: 'glyph-fill' }));
@@ -218,40 +221,50 @@ function isClear(box, segments, gap = 4) {
   });
 }
 
+/** A level on the scale: "+5", "0", "−8". Whole dBm are written without a decimal. */
+function tickText(milli) {
+  const sign = milli < 0 ? '\u2212' : (milli > 0 ? '+' : '');
+  return `${sign}${Math.abs(milli) / 1000}`;
+}
+
 /**
- * Draw the loss trace into `host`. `trace` comes from describeTrace(): the scale, the window, and
- * for each ONT the steps of its path with running totals. With no series, only the scale and the
- * window are drawn. When `animate` is true and motion is allowed, each trace draws itself once.
+ * Draw the loss trace into `host`. `trace` comes from describeTrace(): the scale, the launch
+ * power, the receive window, and for each ONT the steps of its path with the level after each.
+ * The scale is light level in dBm, with the launch power at the top. With no series, only the
+ * scale and the window are drawn. When `animate` is true and motion is allowed, each trace draws
+ * itself once.
  */
 export function drawTrace(host, trace, width, { animate = false } = {}) {
   const narrow = width < 460;
-  const left = narrow ? 34 : 44;
-  const right = narrow ? 78 : 104;
-  const top = 18;
+  const left = narrow ? 36 : 46;
+  const right = narrow ? 84 : 110;
+  const top = 24;
   const bottom = 22;
   const plotH = narrow ? 176 : 200;
   const height = top + plotH + bottom;
   const plotW = Math.max(60, width - left - right);
-  const y = (milli) => top + (milli / trace.domainMaxMilli) * plotH;
-  const yMin = y(trace.minMilli);
-  const yMax = y(trace.maxMilli);
+  const span = trace.topMilli - trace.bottomMilli;
+  const y = (milli) => top + ((trace.topMilli - milli) / span) * plotH;
+  const yBright = y(trace.brightMilli);
+  const yDark = y(trace.darkMilli);
 
   const svg = s('svg', { class: 'trace-svg', viewBox: `0 0 ${width} ${height}`, width, height, 'aria-hidden': 'true', focusable: 'false' });
 
-  // Scale: a recessive hairline for each 10 dB. The two limits of the window are always labeled;
-  // a 10 dB line is labeled only where its number would not touch one of them.
-  const edges = [trace.minMilli, trace.maxMilli];
+  // Scale: a recessive hairline for each 10 dBm. The launch power and the two limits of the
+  // window are always labeled; a 10 dBm line is labeled only where its number would not touch
+  // one of them.
+  const named = [trace.launchMilli, trace.brightMilli, trace.darkMilli];
   const grid = s('g', { class: 'trace-grid' });
-  for (let tick = 0; tick <= trace.domainMaxMilli; tick += 10000) {
+  for (let tick = Math.floor(trace.topMilli / 10000) * 10000; tick >= trace.bottomMilli; tick -= 10000) {
     grid.append(s('line', { x1: left, x2: left + plotW, y1: y(tick), y2: y(tick) }));
-    if (edges.every((edge) => Math.abs(edge - tick) >= 4000)) {
-      grid.append(s('text', { class: 'tick', x: left - 8, y: y(tick) + 4, 'text-anchor': 'end' }, String(tick / 1000)));
+    if (named.every((level) => Math.abs(level - tick) >= 5000)) {
+      grid.append(s('text', { class: 'tick', x: left - 8, y: y(tick) + 4, 'text-anchor': 'end' }, tickText(tick)));
     }
   }
-  for (const edge of edges) {
-    grid.append(s('text', { class: 'tick tick-edge', x: left - 8, y: y(edge) + 4, 'text-anchor': 'end' }, String(edge / 1000)));
+  for (const level of named) {
+    grid.append(s('text', { class: 'tick tick-edge', x: left - 8, y: y(level) + 4, 'text-anchor': 'end' }, tickText(level)));
   }
-  grid.append(s('text', { class: 'tick axis-title', x: left - 8, y: top - 8, 'text-anchor': 'end' }, 'dB'));
+  grid.append(s('text', { class: 'tick axis-title', x: left - 8, y: top - 13, 'text-anchor': 'end' }, 'dBm'));
   svg.append(grid);
 
   const longest = Math.max(1, ...trace.series.map((line) => line.steps.reduce((sum, step) => sum + UNITS[step.kind], 0)));
@@ -263,19 +276,20 @@ export function drawTrace(host, trace, width, { animate = false } = {}) {
     const w = text.length * 6.4;
     return { text, x, baseline, anchor, box: { x: anchor === 'end' ? x - w : x, y: baseline - 11, w, h: 14 } };
   };
-  const firstClear = (candidates) => candidates.find((candidate) => candidate && isClear(candidate.box, segments));
+  const inPlot = (box) => box.x >= left && box.x + box.w <= left + plotW;
+  const firstClear = (candidates) => candidates.find((candidate) => candidate && inPlot(candidate.box) && isClear(candidate.box, segments));
 
-  // The window's name sits inside the band at the top left: the long name if no trace crosses it,
-  // else the short one, else none. The limits are on the scale either way.
+  // The window's name sits inside the band at the top left: the long name if it fits and no trace
+  // crosses it, else the short one, else none. The limits are on the scale either way.
   const windowLabel = firstClear([
-    labelBox(`${trace.windowName}, ${trace.windowText}`, left + 8, yMin + 16),
-    labelBox(trace.windowName, left + 8, yMin + 16),
+    labelBox(`${trace.windowName}, ${trace.windowText}`, left + 8, yBright + 16),
+    labelBox(trace.windowName, left + 8, yBright + 16),
   ]);
   // "Too bright" sits at the top right, where light that only falls does not usually run. When a
   // trace does end up there, it moves to the left, just above the window.
   const brightLabel = firstClear([
     labelBox('Too bright', left + plotW - 8, top + 15, 'end'),
-    yMin - top >= 28 ? labelBox('Too bright', left + 8, yMin - 7) : null,
+    yBright - top >= 28 ? labelBox('Too bright', left + 8, yBright - 7) : null,
   ]);
   const darkLabel = firstClear([labelBox('Too dark', left + 8, top + plotH - 8)]);
   const zoneText = (label, extra = '') => (label
@@ -284,15 +298,15 @@ export function drawTrace(host, trace, width, { animate = false } = {}) {
 
   const zones = s('g', { class: 'trace-zones' });
   zones.append(
-    s('rect', { class: 'window-band', x: left, y: yMin, width: plotW, height: yMax - yMin }),
-    s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yMin, y2: yMin }),
-    s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yMax, y2: yMax }),
+    s('rect', { class: 'window-band', x: left, y: yBright, width: plotW, height: yDark - yBright }),
+    s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yBright, y2: yBright }),
+    s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yDark, y2: yDark }),
     ...[zoneText(brightLabel), zoneText(windowLabel, ' zone-window'), zoneText(darkLabel)].filter(Boolean),
   );
   svg.append(zones);
 
   if (trace.series.length === 0) {
-    svg.append(s('text', { class: 'trace-empty', x: left + plotW / 2, y: (yMin + yMax) / 2 + 22, 'text-anchor': 'middle' }, narrow ? 'Submit a design to see the light.' : 'Submit a design to see where each ONT lands.'));
+    svg.append(s('text', { class: 'trace-empty', x: left + plotW / 2, y: (yBright + yDark) / 2 + 22, 'text-anchor': 'middle' }, narrow ? 'Submit a design to see the light.' : 'Submit a design to see where each ONT lands.'));
     host.replaceChildren(svg);
     return;
   }
@@ -334,7 +348,7 @@ export function drawTrace(host, trace, width, { animate = false } = {}) {
       }
       x += w;
     }
-    ends.push({ line, index, x, y: y(line.totalMilli) });
+    ends.push({ line, index, x, y: y(line.levelMilli) });
   });
 
   // Shared stretches go underneath, so an ONT's own color lies on top where lines meet.
@@ -380,8 +394,8 @@ export function drawTrace(host, trace, width, { animate = false } = {}) {
     }
     endGroup.append(
       s('circle', { class: `end-dot series-${index % 8}`, cx: ex, cy: ey, r: 5 }),
-      s('text', { class: 'end-label', x: lx, y: labelY + 4 }, `${line.ontId} ${line.totalText.replace(' dB', '')}`),
-      stateGlyph(line.state, lx + (narrow ? 50 : 54), labelY, 5),
+      s('text', { class: 'end-label', x: lx, y: labelY + 4 }, `${line.ontId} ${line.levelText.replace(' dBm', '')}`),
+      stateGlyph(line.state, lx + (narrow ? 56 : 62), labelY, 5),
     );
   }
   svg.append(endGroup, tips);

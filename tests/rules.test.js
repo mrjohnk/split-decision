@@ -3,8 +3,9 @@
 // cases of the specification. They are never computed by the code under test.
 
 import {
-  toMilli, pathsOf, fixedLosses, evaluateOption, evaluateRound, outcomeOf, evaluate, tracesOf,
+  toMilli, pathsOf, fixedLosses, evaluateOption, evaluateRound, outcomeOf, evaluate, tracesOf, windowOf, OUTCOMES,
 } from '../engine/rules.js';
+import { exampleAsRound } from '../engine/feedback.js';
 import { clone, deepFreeze } from './harness.js';
 
 const milli = (decibels) => Math.round(decibels * 1000);
@@ -45,20 +46,30 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
     assertEqual(toMilli(0.1), 100);
     assertEqual(toMilli(17.5), 17500);
     assertEqual(toMilli(29), 29000);
+    assertEqual(toMilli(-28), -28000, 'a level may be negative');
+    assertEqual(toMilli(-8.5), -8500);
     assertEqual(toMilli(0.0005), null, 'half a thousandth is not exact');
     assertEqual(toMilli(Number.NaN), null);
     assertEqual(toMilli('3.5'), null, 'a string is not a number');
   });
 
-  test('rules/the game has one loss window, the specification\'s: 8 to 28 dB (decision D11)', () => {
-    assertDeepEqual(Object.keys(content.classes), [key.window.class]);
-    assertEqual(content.classes[key.window.class].minDb, 8);
-    assertEqual(content.classes[key.window.class].maxDb, 28);
-    assertEqual(key.window.min, 8);
-    assertEqual(key.window.max, 28);
+  test('rules/the game has one set of optics, the specification\'s: +5 dBm, and -28 to -8 dBm (decisions D13 and D14)', () => {
+    assertDeepEqual(Object.keys(content.classes), [key.optics.class]);
+    const cls = content.classes[key.optics.class];
+    assertEqual(cls.launchDbm, 5);
+    assertEqual(cls.darkDbm, -28);
+    assertEqual(cls.brightDbm, -8);
+    assertEqual(key.optics.launch, 5);
+    assertEqual(key.optics.dark, -28);
+    assertEqual(key.optics.bright, -8);
+    assertDeepEqual(windowOf(content, key.optics.class), { className: 'design', named: false, launchMilli: 5000, darkMilli: -28000, brightMilli: -8000 });
     for (const level of content.levels) {
-      for (const round of level.rounds) assertEqual(round.class, key.window.class, `${round.id} uses the one window`);
+      for (const round of level.rounds) assertEqual(round.class, key.optics.class, `${round.id} uses the one set`);
     }
+  });
+
+  test('rules/the outcomes are named for what the player sees (decision D15)', () => {
+    assertDeepEqual(OUTCOMES, ['best-valid', 'valid-not-best', 'too-dark', 'too-bright', 'dark-and-bright']);
   });
 
   test('rules/the answer key covers 20 option cases and 4 boundary cases', () => {
@@ -115,8 +126,11 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
           const want = expected.onts[ont.id];
           assertTrue(want, `unexpected ONT ${ont.id}`);
           assertEqual(ont.totalMilli, milli(want.total), `${ont.id} total`);
+          assertEqual(ont.levelMilli, milli(want.level), `${ont.id} receive level`);
+          assertEqual(ont.levelMilli, milli(key.optics.launch) - ont.totalMilli, `${ont.id} level is launch power less loss (FR-029)`);
           assertEqual(ont.state, want.state, `${ont.id} state`);
           if (want.state !== 'ok') assertEqual(ont.marginMilli, milli(want.by), `${ont.id} distance to the limit`);
+          else assertEqual(ont.marginMilli, ont.levelMilli - milli(key.optics.dark), `${ont.id} room above the dark limit`);
           const sum = ont.ledger.reduce((total, line) => total + line.lossMilli, 0);
           assertEqual(sum, ont.totalMilli, `${ont.id} ledger adds up to the total`);
         }
@@ -139,9 +153,30 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
       const result = evaluateOption(content, round, round.options[0]);
       const ont = result.onts[0];
       assertEqual(ont.totalMilli, milli(entry.total), 'total');
+      assertEqual(ont.levelMilli, milli(entry.level), 'receive level');
       assertEqual(ont.state, entry.state, 'state');
       if (entry.state !== 'ok') assertEqual(ont.marginMilli, milli(entry.by), 'distance to the limit');
       assertEqual(result.valid, entry.state === 'ok', 'valid');
+    });
+  }
+
+  test('rules/the boundary cases sit exactly on the two limits and 0.1 dB outside them', () => {
+    const levels = Object.fromEntries(key.boundary.map((entry) => [entry.id, entry.level]));
+    assertDeepEqual(levels, { B1: key.optics.dark, B2: key.optics.dark - 0.1, B3: key.optics.bright, B4: key.optics.bright + 0.1 });
+  });
+
+  for (const levelId of ['level-1', 'level-2', 'level-3']) {
+    test(`rules/${levelId}/the worked example gives the hand-worked totals and receive levels`, () => {
+      const level = content.levels.find((l) => l.id === levelId);
+      const round = exampleAsRound(level);
+      const result = evaluateOption(content, round, round.options[0]);
+      const expected = key.examples[levelId];
+      assertDeepEqual(result.onts.map((o) => o.id).sort(), Object.keys(expected).sort());
+      for (const ont of result.onts) {
+        assertEqual(ont.totalMilli, milli(expected[ont.id].total), `${ont.id} total`);
+        assertEqual(ont.levelMilli, milli(expected[ont.id].level), `${ont.id} receive level`);
+        assertEqual(ont.state, expected[ont.id].state, `${ont.id} state`);
+      }
     });
   }
 
@@ -177,12 +212,15 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
     assertEqual(evaluate(content, round, 'o32').status, 'content-error');
   });
 
-  test('rules/the one-value fiber simplification changes no shipped verdict', () => {
-    // research.md R-02: downstream fiber loses 0.35 dB/km (ITU-T G.652, Table I.1). Recompute
-    // everything with that value and require the same state for every ONT of every option.
+  test('rules/the upstream fiber value changes no "inside" and no "too bright" verdict', () => {
+    // research.md R-02: the light an ONT receives is downstream light, and downstream fiber loses
+    // 0.35 dB/km (ITU-T G.652, Table I.1), less than the loss card's upstream value. Recompute
+    // everything with 0.35. An ONT the game calls inside or too bright must stay so. An ONT the
+    // game calls too dark may be light enough at the downstream value: the game says so.
     const downstream = clone(content);
     downstream.lossCard.fiberDbPerKm = 0.35;
     let compared = 0;
+    const lighter = [];
     for (const level of content.levels) {
       for (const round of level.rounds) {
         const other = findRound(downstream, round.id);
@@ -190,16 +228,19 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
           const a = evaluateOption(content, round, option);
           const b = evaluateOption(downstream, other, other.options.find((o) => o.id === option.id));
           for (let i = 0; i < a.onts.length; i += 1) {
-            // The maximum is decided by the higher (upstream) value, the minimum by the lower one.
-            // A state can only differ if the two values disagree about a limit.
-            assertEqual(b.onts[i].state === 'under', a.onts[i].state === 'under', `${round.id}/${option.id}/${a.onts[i].id} minimum check`);
+            assertEqual(b.onts[i].state === 'bright', a.onts[i].state === 'bright', `${round.id}/${option.id}/${a.onts[i].id} bright limit`);
             if (a.onts[i].state === 'ok') assertTrue(b.onts[i].state === 'ok', `${round.id}/${option.id}/${a.onts[i].id} stays inside`);
+            if (a.onts[i].state === 'dark' && b.onts[i].state !== 'dark') lighter.push(`${round.id}/${option.id}/${a.onts[i].id}`);
             compared += 1;
           }
         }
       }
     }
     assertEqual(compared, 37, 'ONT results compared');
+    // Hand-checked: two cases, both 18.0 km behind a 1:64 splitter. At 0.35 dB/km the fiber loses
+    // 6.3 dB, not 9.0. Round 1-1: 31.5 dB, -26.5 dBm. Round 2-1, ONT C: 30.9 dB, -25.9 dBm. Both
+    // would be inside the window. The 1:8 cascade of round 2-2 and every overshoot stay too dark.
+    assertDeepEqual(lighter, ['r1-1/o64/A', 'r2-1/o64/C'], 'the ONTs that are too dark only because of the upstream fiber value');
   });
 
   test('rules/the loss trace of every option adds up to the ledger total, step by step', () => {

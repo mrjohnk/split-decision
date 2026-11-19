@@ -27,7 +27,7 @@ export function validateContent(doc) {
   if (doc.schemaVersion !== 1) report('schema', 'document', 'schemaVersion must be 1. This game reads version 1 content only.');
   if (!isText(doc.title)) report('schema', 'document', 'The document needs a title.');
   if (!isObject(doc.lossCard)) report('schema', 'lossCard', 'The loss card is missing.');
-  if (!isObject(doc.classes) || Object.keys(doc.classes || {}).length === 0) report('schema', 'classes', 'At least one loss class is needed.');
+  if (!isObject(doc.classes) || Object.keys(doc.classes || {}).length === 0) report('schema', 'classes', 'At least one class of optics is needed.');
   if (!Array.isArray(doc.sources)) report('schema', 'sources', 'The list of sources is missing.');
   if (!isObject(doc.model) || !['rule', 'assumptions', 'leftOut'].every((key) => isTextList((doc.model || {})[key]))) {
     report('schema', 'model', 'The model notes need three lists of text: rule, assumptions and leftOut.');
@@ -42,7 +42,12 @@ export function validateContent(doc) {
     if (!sourceIds.has(id)) report('unknown-source', 'lossCard', `The loss card cites source "${id}", which is not defined.`);
   }
   for (const [name, cls] of Object.entries(doc.classes)) {
-    if (isObject(cls) && !sourceIds.has(cls.sourceId)) report('unknown-source', `class ${name}`, `Class ${name} cites source "${cls.sourceId}", which is not defined.`);
+    if (!isObject(cls)) continue;
+    for (const [field, what] of [['sourceId', 'receive window'], ['launchSourceId', 'launch power']]) {
+      if (isText(cls[field]) && !sourceIds.has(cls[field])) {
+        report('unknown-source', `class ${name}`, `Class ${name} cites source "${cls[field]}" for its ${what}, which is not defined.`);
+      }
+    }
   }
 
   // The evaluator and the value tokens need a sound loss card and class table. Without them,
@@ -126,16 +131,20 @@ function checkLossCard(card, report) {
 function checkClasses(classes, report) {
   for (const [name, cls] of Object.entries(classes)) {
     const where = `class ${name}`;
-    if (!isObject(cls)) {
-      report('schema', where, 'A class needs minDb, maxDb and sourceId.');
+    if (!isObject(cls) || ['launchDbm', 'darkDbm', 'brightDbm'].some((field) => typeof cls[field] !== 'number')) {
+      report('schema', where, 'A class needs launchDbm, darkDbm, brightDbm, sourceId and launchSourceId.');
       continue;
     }
-    const min = toMilli(cls.minDb);
-    const max = toMilli(cls.maxDb);
-    if (min === null || max === null || min < 0 || max <= min) {
-      report('bad-number', where, 'minDb must be 0 or more and maxDb greater than minDb, both exact to 0.001 dB.');
+    const launch = toMilli(cls.launchDbm);
+    const dark = toMilli(cls.darkDbm);
+    const bright = toMilli(cls.brightDbm);
+    // The bright limit lies above the dark limit, and the launch power above both: light only
+    // falls on the way to an ONT, so a launch power inside the window would leave no "too bright".
+    if (launch === null || dark === null || bright === null || bright <= dark || launch <= bright) {
+      report('bad-number', where, 'brightDbm must be greater than darkDbm, and launchDbm greater than brightDbm, all exact to 0.001 dBm.');
     }
-    if (!isText(cls.sourceId)) report('schema', where, 'A class cites the source of its limits in sourceId.');
+    if (!isText(cls.sourceId)) report('schema', where, 'A class cites the source of its receive window in sourceId.');
+    if (!isText(cls.launchSourceId)) report('schema', where, 'A class cites the source of its launch power in launchSourceId.');
   }
 }
 
