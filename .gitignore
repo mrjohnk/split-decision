@@ -1,0 +1,17 @@
+# OS and editor files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Developer tooling output
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+test-results/
+playwright-report/
+
+# Local agent session files and secrets stay out of the repository
+.claude/settings.local.json
+.env
+.env.*
