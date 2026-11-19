@@ -57,7 +57,7 @@ export function globalScope(content) {
   return (name, arg) => {
     if (arg === null) {
       if (name === 'fiber') return fmtLoss(card.fiberPerKm);
-      if (name === 'connector') return fmtLoss(card.connectorPair);
+      if (name === 'connector') return fmtLoss(card.connector);
       if (name === 'splice') return fmtLoss(card.splice);
       return undefined;
     }

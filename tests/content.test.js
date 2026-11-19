@@ -116,10 +116,10 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
   expectError('option sets a splitter that is not open', (doc) => { option(doc, 'r3-1', 'a5').splitters.s1 = 16; }, 'open-splitter', 'r3-1');
   expectError('attenuator at an unknown place', (doc) => { option(doc, 'r3-2', 'ontA10').attenuators[0].at = 'Z'; }, 'attenuator-place', 'r3-2');
   expectError('negative splice count', (doc) => { round(doc, 'r1-1').plant.trunk.splices = -1; }, 'bad-number', 'r1-1');
-  expectError('fractional connector count', (doc) => { round(doc, 'r1-1').plant.trunk.connectorPairs = 1.5; }, 'bad-number', 'r1-1');
+  expectError('fractional connector count', (doc) => { round(doc, 'r1-1').plant.trunk.connectors = 1.5; }, 'bad-number', 'r1-1');
   expectError('length finer than a metre', (doc) => { round(doc, 'r1-1').plant.trunk.fiberKm = 13.0005; }, 'bad-number', 'r1-1');
   expectError('served is zero', (doc) => { option(doc, 'r1-1', 'o16').served = 0; }, 'bad-number', 'r1-1');
-  expectError('class minimum above maximum', (doc) => { doc.classes.N1.minDb = 30; }, 'bad-number', 'N1');
+  expectError('class minimum above maximum', (doc) => { doc.classes.design.minDb = 30; }, 'bad-number', 'design');
   expectError('wrong option without a note', (doc) => { const o = option(doc, 'r1-1', 'o64'); delete o.note; delete o.expect; }, 'missing-note', 'r1-1');
   expectError('note without expect', (doc) => { delete option(doc, 'r1-1', 'o64').expect; }, 'note-mismatch', 'r1-1');
   expectError('unknown token', (doc) => { round(doc, 'r1-1').hints[0] = 'Add {bogus} to the total.'; }, 'unknown-token', 'r1-1');
@@ -142,28 +142,28 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
 
   test('content/a trial round is graded without changing the engine', () => {
     // A new plant shape (an open second stage behind an installed first stage, plus an attenuator
-    // option) replaces round 1-2. Hand-worked, N1 window 14 to 29 dB:
-    //   ONT T: fiber 3.0 + 1.0 = 4.0 km (2.0), 3 connector pairs (1.5), 2 splices (0.2),
+    // option) replaces round 1-2. Hand-worked, loss window 8 to 28 dB:
+    //   ONT T: fiber 3.0 + 1.0 = 4.0 km (2.0), 3 connectors (1.5), 2 splices (0.2),
     //          installed 1:4 (7.0) = 10.7 before the choice.
     //   1:4 second stage (7.0)  = 17.7 inside, serves 16
     //   1:16 second stage (14.0) = 24.7 inside, serves 64      <- the answer
-    //   1:64 second stage (21.0) = 31.7, over by 2.7, serves 256
-    //   1:16 second stage + 5 dB at the OLT = 29.7, over by 0.7, serves 64
+    //   1:64 second stage (21.0) = 31.7, over by 3.7, serves 256
+    //   1:16 second stage + 5 dB at the OLT = 29.7, over by 1.7, serves 64
     const doc = clone(shipped);
     doc.levels[0].rounds[1] = {
       id: 'trial', title: 'Trial Road', place: 'Trial work order', story: 'A trial round.',
-      goal: 'Choose the design that serves the most homes inside the {class} window.', class: 'N1',
+      goal: 'Choose the design that serves the most homes inside the window.', class: 'design',
       plant: {
         oltLabel: 'OLT port',
         trunk: {
-          fiberKm: 3.0, connectorPairs: 2, splices: 1,
+          fiberKm: 3.0, connectors: 2, splices: 1,
           to: {
             type: 'splitter', id: 'first', label: 'First stage', ratio: 4,
             legs: [{
-              fiberKm: 1.0, connectorPairs: 1, splices: 1,
+              fiberKm: 1.0, connectors: 1, splices: 1,
               to: {
                 type: 'splitter', id: 'second', label: 'Second stage', ratio: null,
-                legs: [{ fiberKm: 0, connectorPairs: 0, splices: 0, to: { type: 'ont', id: 'T', label: 'ONT T' } }],
+                legs: [{ fiberKm: 0, connectors: 0, splices: 0, to: { type: 'ont', id: 'T', label: 'ONT T' } }],
               },
             }],
           },

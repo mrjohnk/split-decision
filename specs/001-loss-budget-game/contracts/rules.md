@@ -11,7 +11,7 @@ All arithmetic is in whole thousandths of a dB ("milli"). `toMilli(x)` converts 
 Walks the plant and returns one path for each ONT, in the order the ONTs appear:
 
 ```text
-{ ontId, label, note, fiberMilliKm, connectorPairs, splices, splitters: [{ id, label, ratio | null }] }
+{ ontId, label, note, fiberMilliKm, connectors, splices, splitters: [{ id, label, ratio | null }] }
 ```
 
 `fiberMilliKm` is the summed fiber length in thousandths of a km.
@@ -22,7 +22,7 @@ For each path:
 
 ```text
 total = fiberKm × card.fiberDbPerKm
-      + connectorPairs × card.connectorPairDb
+      + connectors × card.connectorDb
       + splices × card.spliceDb
       + Σ card.splitterDb[ratio]            ratio is fixed, or option.splitters[id] for an open splitter
       + Σ attenuator.db                     for attenuators at "olt" and at this ONT
@@ -46,7 +46,7 @@ valid options, most homes first
   otherwise                  → best = { optionId, served } of the first
 ```
 
-Returns `{ window: { className, minMilli, maxMilli }, options, best, problem }`.
+Returns `{ window: { className, named, minMilli, maxMilli }, options, best, problem }`. `named` is true when the content has more than one class, and only then do the words shown to the player carry the class name.
 
 ## `outcomeOf(roundEvaluation, optionId)`
 

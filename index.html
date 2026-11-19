@@ -53,6 +53,14 @@
     <p class="noscript">Split Decision needs JavaScript. It runs entirely in your browser and sends nothing anywhere.</p>
   </noscript>
 
+  <!-- A classic script on purpose: it still runs when a browser refuses to load modules from a folder. -->
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.querySelector('.loading').textContent = 'This page was opened straight from a folder, and a browser will not load the game that way. '
+        + 'Serve the folder instead: open a terminal in this folder, run "python3 -m http.server 8000 --bind 127.0.0.1", and open http://127.0.0.1:8000. The README has the details.';
+      document.getElementById('main').setAttribute('data-view', 'needs-server');
+    }
+  </script>
   <script type="module" src="main.js"></script>
 </body>
 </html>

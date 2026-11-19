@@ -24,26 +24,26 @@ def load(relative):
 
 
 def paths(plant):
-    """One record for each ONT: fiber km, connector pairs, splices and the splitters crossed."""
+    """One record for each ONT: fiber km, connectors, splices and the splitters crossed."""
     found = []
     stack = [(plant["trunk"], Decimal(0), Decimal(0), Decimal(0), ())]
     while stack:
-        segment, km, pairs, splices, splitters = stack.pop()
+        segment, km, connectors, splices, splitters = stack.pop()
         km += segment["fiberKm"]
-        pairs += segment["connectorPairs"]
+        connectors += segment["connectors"]
         splices += segment["splices"]
         node = segment["to"]
         if node["type"] == "ont":
-            found.append({"id": node["id"], "km": km, "pairs": pairs, "splices": splices, "splitters": splitters})
+            found.append({"id": node["id"], "km": km, "connectors": connectors, "splices": splices, "splitters": splitters})
         else:
             for leg in node["legs"]:
-                stack.append((leg, km, pairs, splices, splitters + ((node["id"], node["ratio"]),)))
+                stack.append((leg, km, connectors, splices, splitters + ((node["id"], node["ratio"]),)))
     return {record["id"]: record for record in found}
 
 
 def fixed_loss(card, record):
     """Loss of fixed elements only: open splitters and attenuators are left out."""
-    loss = record["km"] * card["fiberDbPerKm"] + record["pairs"] * card["connectorPairDb"] + record["splices"] * card["spliceDb"]
+    loss = record["km"] * card["fiberDbPerKm"] + record["connectors"] * card["connectorDb"] + record["splices"] * card["spliceDb"]
     for _, ratio in record["splitters"]:
         if ratio is not None:
             loss += card["splitterDb"][str(ratio)]
@@ -113,6 +113,13 @@ def main():
         if got != want:
             problems.append(f"{what}: computed {got}, the key says {want}")
 
+    # The game's one loss window must be the specification's, which the key transcribes.
+    spec_window = key["window"]
+    expect("the classes in the content", sorted(content["classes"]), [spec_window["class"]])
+    if spec_window["class"] in content["classes"]:
+        expect("the window's minimum", content["classes"][spec_window["class"]]["minDb"], spec_window["min"])
+        expect("the window's maximum", content["classes"][spec_window["class"]]["maxDb"], spec_window["max"])
+
     if set(rounds) != set(key["rounds"]):
         problems.append(f"rounds differ: content has {sorted(rounds)}, the key has {sorted(key['rounds'])}")
 
@@ -148,7 +155,7 @@ def main():
     for entry in key["boundary"]:
         window = content["classes"][entry["class"]]
         path = entry["path"]
-        total = (path["fiberKm"] * card["fiberDbPerKm"] + path["connectorPairs"] * card["connectorPairDb"]
+        total = (path["fiberKm"] * card["fiberDbPerKm"] + path["connectors"] * card["connectorDb"]
                  + path["splices"] * card["spliceDb"] + card["splitterDb"][str(entry["splitterRatio"])])
         state, by = judge(total, window)
         expect(f"{entry['id']} total", total, entry["total"])

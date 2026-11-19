@@ -8,6 +8,7 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 - **Rationale**: it is the XGS-PON standard's own table. The same clause states that an ODN whose loss is under the class minimum must add optical attenuators to protect receivers, which is the subject of level 3. Table B.9.3 gives a maximum differential optical path loss of 15 dB, which equals the width of each window, so "every ONT inside the window" already implies it.
 - **How it was read**: the full Recommendation was fetched from the ITU site on 2026-11-19 and the clause read from it. The same table also appears on the ITU's publication page for the Recommendation.
 - **Alternatives considered**: the G-PON B+ and C+ classes (also listed in Table B.6.1, for the optional wavelength set) were left out to keep two windows; E1 and E2 were left out for the same reason.
+- **Changed by the owner, 2026-11-19 (decision D11)**: the game now has one loss window, 8 to 28 dB, closer to what he has seen in the field. It is the designer's planning window, not a class of the standard, and the game says so; the N1 and N2 values above stay in the source list for reference. Two consequences: the window is 20 dB wide, so it no longer implies the standard's 15 dB limit on the difference between two paths (a unit test now confirms that every answer is within 15 dB, and the game says that the limit is not graded); and a path that is too bright by any amount lands inside the window when 20 dB is added, so round 3-1's overshoot option became a 25 dB attenuator. The build agent recorded one open point for the owner: 8 and 28 are also the usual limits of an ONT's receive level in dBm, and the numbers were applied as path loss, as written.
 
 ## R-02 · The fiber planning value
 
@@ -18,7 +19,7 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 
 ## R-03 · Connector, splice and splitter planning values
 
-- **Decision**: connector pair 0.5 dB; fusion splice 0.1 dB; splitters at 3.5 dB per two-way split (1:2 3.5, 1:4 7.0, 1:8 10.5, 1:16 14.0, 1:32 17.5, 1:64 21.0); attenuators at face value. All are presented to the player as the job's planning values.
+- **Decision**: connector 0.5 dB for each mated connection (first written as "connector pair"; the owner pointed out on 2026-11-19 that the phrase reads as two fibers, and a PON is a single fiber: decision D12); fusion splice 0.1 dB; splitters at 3.5 dB per two-way split (1:2 3.5, 1:4 7.0, 1:8 10.5, 1:16 14.0, 1:32 17.5, 1:64 21.0); attenuators at face value. All are presented to the player as the job's planning values.
 - **Rationale**: the FOA guide gives about 0.3 dB as a typical connector loss, with 0.75 dB per mated pair and 0.3 dB per splice as the TIA-568 maxima; 0.5 dB and 0.1 dB sit inside those bounds. One published set of splitter maxima (TEC GR/TX/OPT-001: 4.0, 7.1, 10.5, 13.8, 17.1 and 20.5 dB for 1×2 to 1×64) is within about half a dB of the 3.5-per-stage rule at every ratio.
 - **What could not be read**: ITU-T G.671 defines splitter insertion loss, but only its abstract could be retrieved on 2026-11-19. No number in the game is attributed to it.
 - **Alternatives considered**: the exact values of one manufacturer's or one specification's table (harder to add mentally, and no more authoritative as a planning value); ideal 10·log10(N) splitting loss (understates every real splitter).
@@ -31,7 +32,7 @@ Phase 0 of `/speckit-plan`. The Technical Context had no open "NEEDS CLARIFICATI
 
 ## R-05 · One plant description for the evaluator, the diagram and the table
 
-- **Decision**: a round's plant is a tree: the OLT port, then segments (fiber km, connector pairs, splices) leading to splitters or ONTs. A splitter is installed (fixed ratio) or open (the option sets its ratio). The evaluator walks the tree; the diagram and the path table are drawn from the same tree.
+- **Decision**: a round's plant is a tree: the OLT port, then segments (fiber km, connectors, splices) leading to splitters or ONTs. A splitter is installed (fixed ratio) or open (the option sets its ratio). The evaluator walks the tree; the diagram and the path table are drawn from the same tree.
 - **Rationale**: a separate drawing description could drift from the numbers that are graded. With one tree the picture cannot disagree with the answer.
 - **Alternatives considered**: a flat list of elements for each ONT plus a hand-made drawing (two sources of truth); a general graph (no PON needs it).
 

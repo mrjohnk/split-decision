@@ -9,6 +9,9 @@ tests/fixtures/answer-key.json. It never asks the game's own code what the right
     python3 tools/e2e.py AC2 FULL     run only the named checks
     python3 tools/e2e.py --list       list the checks
     python3 tools/e2e.py --card       also write assets/card.webp and docs/gameplay.png (needs Pillow)
+    python3 tools/e2e.py --axe FILE   also run the axe-core accessibility engine in every view; FILE is
+                                      axe.min.js, for example from `npm pack axe-core`. Without it the
+                                      AXE check is reported as not run
 
 Screenshots and results.json are written to docs/verification/. The exit status is 0 only when
 every check that ran has passed.
@@ -34,8 +37,8 @@ KEY = json.loads((ROOT / "tests" / "fixtures" / "answer-key.json").read_text(enc
 OUT = ROOT / "docs" / "verification"
 PREFIX = "/play/split-decision"  # the game is served from a subpath, as it would be on a project site
 
-# The class limits, from the specification (ITU-T G.9807.1 Annex B, Table B.6.1). Not read from the game.
-LIMITS = {"N1": (14, 29), "N2": (16, 31)}
+# The loss window, from the specification (decision D11) by way of the answer key. Not read from the game.
+LIMITS = {KEY["window"]["class"]: (KEY["window"]["min"], KEY["window"]["max"])}
 ROUND_IDS = list(KEY["rounds"].keys())
 STATE_WORDS = {"ok": "Inside the window", "over": "Too dark", "under": "Too bright"}
 # Each state has its own shape, counted as [circles, paths, lines]: a ring, a chevron, a sunburst.
@@ -46,6 +49,13 @@ CHECKS = []
 
 class Failure(Exception):
     pass
+
+
+class NotRun(Exception):
+    """A check that could not be run here. It is reported as not run, never as a pass."""
+
+
+AXE_FILE = {"path": None}
 
 
 def need(condition, message):
@@ -301,7 +311,7 @@ def ac1(new):
     need(g.page.locator('input[name="design"]').count() == 0 and g.t("submit").count() == 0, "a challenge can be answered from the briefing")
     need(g.t("open-briefing").is_disabled(), "Review briefing should wait until a round is open")
     need("0 of 6 solved" in g.progress(), f"progress reads '{g.progress()}'")
-    for part in ("Worked example", "Words used in this level", "Sources:"):
+    for part in ("Worked example", "Words used in this level", "Sources:", "A PON runs on a single fiber", "8 dB to 28 dB"):
         need(part in g.t("view").inner_text(), f"the briefing lacks '{part}'")
     g.start()
     need(g.round_id() == "r1-1", "Start level 1 did not open round 1-1")
@@ -312,7 +322,7 @@ def ac1(new):
     need(g.t("paths").locator("tbody tr").all_inner_texts() == ["ONT A, farthest home\t14.0 km\t4\t4\tyour choice"], f"the path table reads {g.t('paths').locator('tbody tr').all_inner_texts()}")
     card = g.t("losscard").locator("div").all_inner_texts()
     need(len(card) == 9 and "1:32 splitter" in card[7] and "17.5 dB" in card[7], f"the loss card reads {card}")
-    need("N1 loss window: 14 to 29 dB" in g.t("window").inner_text(), "the class window is missing")
+    need(g.t("window").inner_text() == "Loss window: 8 to 28 dB, limits included.", f"the loss window reads '{g.t('window').inner_text()}'")
     need(g.page.locator("#goal").inner_text().startswith("Choose the largest splitter"), "the goal is missing")
     need(g.t("option-o64").inner_text().split("\n") == ["1:64 splitter", "Serves 64 homes"], f"an option reads {g.t('option-o64').inner_text()!r}")
     no_problems(g)
@@ -328,7 +338,7 @@ def ac2(new):
     g.play("o32")
     check_feedback(g, "r1-1", "o32", label)
     ledger = g.t("ledger-text-A").text_content()
-    for part in ("fiber 7.0", "connector pairs 2.0", "splices 0.4", "splitter 17.5", "= 26.9 dB"):
+    for part in ("fiber 7.0", "connectors 2.0", "splices 0.4", "splitter 17.5", "= 26.9 dB"):
         need(part.lower() in ledger.lower(), f"the ledger lacks '{part}': {ledger}")
     need("1 of 6 solved" in g.progress(), f"progress reads '{g.progress()}'")
     settle(g)
@@ -337,7 +347,7 @@ def ac2(new):
     return ledger.strip()
 
 
-@check("AC3a", "AC3a, FR-010, SC-002", "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 1.4 dB over 29 dB, round stays open")
+@check("AC3a", "AC3a, FR-010, SC-002", "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 2.4 dB over 28 dB, round stays open")
 def ac3a(new):
     g = new()
     g.open()
@@ -515,7 +525,7 @@ def full(new):
         need(g.round_id() == round_id, f"expected {round_id}, got {g.round_id()}")
         expected_round = KEY["rounds"][round_id]
         low, high = LIMITS[expected_round["class"]]
-        need(f"{expected_round['class']} loss window: {low} to {high} dB" in g.t("window").inner_text(), f"{round_id}: the window on screen is '{g.t('window').inner_text()}'")
+        need(f"Loss window: {low} to {high} dB" in g.t("window").inner_text(), f"{round_id}: the window on screen is '{g.t('window').inner_text()}'")
         need(g.page.locator('input[name="design"]').count() == len(expected_round["options"]), f"{round_id}: the number of options differs from the key")
         answer = expected_round["answer"]
         answer_label = g.t(f"option-{answer}").locator(".option-label").inner_text()
@@ -1034,10 +1044,12 @@ def dialogs(new):
     g.t("open-model").click()
     model = g.t("model-dialog")
     text = model.inner_text()
-    for part in ("The rule", "Loss windows", "Loss card", "What the game assumes", "What the game leaves out", "Sources", "14 to 29 dB", "16 to 31 dB", "0.5 dB"):
+    for part in ("The rule", "Loss window", "Loss card", "What the game assumes", "What the game leaves out", "Sources", "8 to 28 dB", "single fiber", "0.5 dB", "not one of the standard's loss classes"):
         need(part in text, f"the model panel lacks '{part}'")
+    need(model.locator(".source-list li").count() == 7, f"the model panel lists {model.locator('.source-list li').count()} sources, the specification has 7")
+    need("The project owner's field practice" in model.locator(".source-list li").nth(6).inner_text(), "the owner's decision on the window is not listed as its source")
     links = model.locator(".source-list a")
-    need(links.count() == 6, f"the model panel lists {links.count()} sources, the specification has 6")
+    need(links.count() == 6, f"{links.count()} sources have a link; the six published ones should")
     for index in range(links.count()):
         link = links.nth(index)
         need(link.get_attribute("href").startswith("https://") and link.get_attribute("target") == "_blank" and "noopener" in link.get_attribute("rel"), "a source link is not a safe outside link")
@@ -1045,7 +1057,39 @@ def dialogs(new):
     g.key("Escape")
     need(model.is_hidden(), "Escape should close the model panel")
     no_problems(g)
-    return f"{links.count()} sources, each with its section and an https link"
+    return "7 sources: 6 published ones with an https link, and the owner's decision on the loss window"
+
+
+@check("AXE", "principle IV", "The axe-core accessibility engine reports no violation in any view")
+def axe(new):
+    if AXE_FILE["path"] is None:
+        raise NotRun("needs --axe path/to/axe.min.js (for example from `npm pack axe-core`)")
+    source = pathlib.Path(AXE_FILE["path"]).read_text(encoding="utf-8")
+    seen = []
+    version = None
+    for name, g in views_for_reading(new):
+        g.page.evaluate(source)
+        result = g.page.evaluate("axe.run(document, { resultTypes: ['violations'] }).then(r => ({ version: r.testEngine.version, passes: r.passes.length, violations: r.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map(n => n.target.join(' ')).slice(0, 4) })) }))")
+        version = result["version"]
+        need(not result["violations"], f"{name}: " + "; ".join(f"{v['id']} ({v['impact']}): {v['help']} at {v['nodes']}" for v in result["violations"]))
+        seen.append(name)
+    return f"axe-core {version}: 0 violations in {len(seen)} views"
+
+
+@check("FOLDER", "README, Play locally", "Opened straight from a folder, the page says how to serve it instead of waiting forever")
+def folder(new):
+    g = new()
+    g.page.goto((ROOT / "index.html").as_uri())
+    g.page.wait_for_timeout(600)
+    view = g.view()
+    text = g.t("view").inner_text()
+    if view == "needs-server":
+        need("python3 -m http.server 8000" in text and "README" in text, f"the message does not say how to serve the folder: {text}")
+    else:
+        # A browser that does load modules from a folder still cannot fetch the content file.
+        need(view == "content-error" and "serve the folder" in text, f"opened from a folder the page shows the view '{view}': {text[:120]}")
+    need(g.page.locator('input[name="design"]').count() == 0, "a challenge was shown from a folder")
+    return f"view '{view}': {text[:110]}…"
 
 
 @check("UNIT", "SC-001", "The unit tests pass in the browser, on the same modules the game runs")
@@ -1115,6 +1159,14 @@ def launch(playwright):
 
 
 def main(argv):
+    argv = list(argv)
+    if "--axe" in argv:
+        at = argv.index("--axe")
+        if at + 1 >= len(argv):
+            print("--axe needs the path of axe.min.js")
+            return 2
+        AXE_FILE["path"] = argv[at + 1]
+        del argv[at:at + 2]
     arguments = [a for a in argv if not a.startswith("--")]
     if "--list" in argv:
         for item in CHECKS:
@@ -1144,6 +1196,8 @@ def main(argv):
             try:
                 detail = item["run"](new)
                 status = "pass"
+            except NotRun as reason:
+                status, detail = "not run", str(reason)
             except Failure as failure:
                 status, detail = "fail", str(failure)
             except Exception as error:  # a crash in a check is a failed check, with its place
@@ -1155,7 +1209,7 @@ def main(argv):
                     except Exception:
                         pass
             results.append({"id": item["id"], "covers": item["covers"], "title": item["title"], "status": status, "detail": detail, "seconds": round(time.time() - began, 1)})
-            print(f"{status.upper():4}  {item['id']:9} {item['title']}\n      {detail}")
+            print(f"{status.upper():7}  {item['id']:9} {item['title']}\n         {detail}")
         card = None
         if "--card" in argv:
             card = write_card(browser, base)
@@ -1163,19 +1217,21 @@ def main(argv):
         browser.close()
     server.shutdown()
     passed = sum(1 for r in results if r["status"] == "pass")
-    failed = len(results) - passed
+    failed = sum(1 for r in results if r["status"] == "fail")
+    not_run = len(results) - passed - failed
     summary = {
         "ran": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "browser": version,
         "served_from": PREFIX + "/",
         "passed": passed,
         "failed": failed,
+        "not_run": not_run,
         "seconds": round(time.time() - started, 1),
         "checks": results,
     }
     if not arguments:
         (OUT / "results.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
-    print(f"\n{passed} passed, {failed} failed, {len(results)} checks, {summary['seconds']} s, {version}")
+    print(f"\n{passed} passed, {failed} failed, {not_run} not run, {len(results)} checks, {summary['seconds']} s, {version}")
     return 0 if failed == 0 else 1
 
 

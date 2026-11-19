@@ -2,31 +2,31 @@
 
 **Pick the splitter that lights every home: not too dark, not too bright.**
 
-Split Decision is a browser game for network engineers, sales engineers and students who know IP networking but have never designed the optical plant of a PON. You play the outside-plant designer for Saguaro Valley's new fiber network. Each work order shows a small PON, and you choose the splitter, or the attenuator, that keeps every ONT inside the XGS-PON loss window. Each work order explains the result decibel by decibel, so you can use it on the next one.
+Split Decision is a browser game for network engineers, sales engineers and students who know IP networking but have never designed the optical plant of a PON. You play the outside-plant designer for Saguaro Valley's new fiber network. Each work order shows a small PON, and you choose the splitter, or the attenuator, that keeps every ONT inside the loss window. Each work order explains the result decibel by decibel, so you can use it on the next one.
 
 A project from **NAF AC6 — Loop Engineering, Spec-Driven Development & the Future of VibeOps**.
 
 | Project | Details |
 | --- | --- |
 | Status | Playable. Verified by automated checks in headless Chrome. Not yet played or timed by a person (see [Verification](#verification)) |
-| Networking topic | XGS-PON optical loss budgeting: path loss, the N1 and N2 loss classes of ITU-T G.9807.1, splitters in one and two stages, attenuators |
+| Networking topic | Optical loss budgeting for a PON: path loss on the single fiber, the loss window, splitters in one and two stages, attenuators |
 | Typical session | 10 to 15 minutes is the target. It has not been timed with a person |
 | Live demo | Not published yet |
 | Built by | [OWNER: your name and GitHub handle], with Claude Code (model `claude-fable-5-2`) as the build agent |
 
-![Work order 2-1, Palo Verde Loop: the plant with a 1:64 splitter chosen, three design options, and the loss trace showing ONT C below the N2 window](docs/gameplay.png)
+![Work order 2-1, Palo Verde Loop: the plant with a 1:64 splitter chosen, three design options, and the loss trace showing ONT C just past the loss window](docs/gameplay.png)
 
 ## The challenge
 
-Work order 1-1, Mesquite Lane: the farthest home is 14.0 km from the OLT port, behind 4 connector pairs and 4 splices. The optics are class N1, so the path may lose between 14 and 29 dB. You choose a 1:16, 1:32 or 1:64 splitter and submit.
+Work order 1-1, Mesquite Lane: the farthest home is 14.0 km from the OLT port, behind 4 connectors and 4 splices. The loss window is 8 to 28 dB, so the path may lose no less than 8 dB and no more than 28. You choose a 1:16, 1:32 or 1:64 splitter and submit.
 
-The game then draws a loss trace, the light falling at each element of the path, and says where the ONT landed. With the 1:64 splitter the path loses 30.4 dB: too dark, 1.4 dB over the maximum. With the 1:16 it works at 23.4 dB, but a larger splitter also fits. The 1:32 is the answer: 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB, and it serves the most homes.
+The game then draws a loss trace, the light falling at each element of the path, and says where the ONT landed. With the 1:64 splitter the path loses 30.4 dB: too dark, 2.4 dB over the maximum. With the 1:16 it works at 23.4 dB, but a larger splitter also fits. The 1:32 is the answer: 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB, and it serves the most homes.
 
 ## What you'll learn
 
 | By the end, you can… | You'll practice by… |
 | --- | --- |
-| Calculate one ONT's optical path loss by adding fiber, connector, splice and splitter losses, and compare it with the class maximum | Choosing the largest splitter a single path can carry (level 1) |
+| Calculate one ONT's optical path loss by adding fiber, connector, splice and splitter losses, and compare it with the maximum of the loss window | Choosing the largest splitter a single path can carry (level 1) |
 | Apply the loss window to every ONT on a PON and compare competing designs, including two-stage splits | Choosing among one-stage and two-stage splitter designs for a PON with several ONTs (level 2) |
 | Recognize a path with less than the minimum loss and correct it with attenuation in the right place | Choosing an attenuator, and where it goes, for PONs with a very short path (level 3) |
 
@@ -73,18 +73,21 @@ The game loads JavaScript modules and a JSON file over HTTP, so it has to be ser
 
 ## What this game models
 
-An ONT's optical path loss is the sum, in dB, of everything between the OLT port and that ONT: fiber, connector pairs, fusion splices, splitters and attenuators. Every ONT must land inside the loss window of the PON's class, limits included: 14 to 29 dB for N1 and 16 to 31 dB for N2. Among the designs that keep every ONT inside the window, the one that serves the most homes is the answer.
+A PON runs on a single fiber, with both directions on the one strand. An ONT's optical path loss is the sum, in dB, of everything on that fiber between the OLT port and the ONT: fiber, connectors, fusion splices, splitters and attenuators. Every ONT must land inside the loss window, limits included: 8 to 28 dB. Among the designs that keep every ONT inside the window, the one that serves the most homes is the answer.
 
-The loss card holds planning values, not measurements: fiber 0.5 dB/km, a connector pair 0.5 dB, a fusion splice 0.1 dB, 3.5 dB for each two-way split (so 1:32 is 17.5 dB), and attenuators at the value printed on them. All arithmetic is done in whole thousandths of a dB, and the content is rejected if any total is not exact to 0.1 dB, so rounding never decides an answer.
+**The window is the owner's.** 8 to 28 dB is the designer's planning window, set by the project owner from what he has seen in the field. It is not one of the loss classes of ITU-T G.9807.1, which are 14 to 29 dB for N1 and 16 to 31 dB for N2. The game says so in **Model and sources**, and lists the standard's classes beside its own window.
 
-**Outside the model:** a real design checks each direction at its own wavelength, and the game uses one fiber value, the higher one, for both. A real budget keeps margin for repairs and ageing, and the game keeps none. Transmitter power, receiver sensitivity, reflectance, bend loss and the differences between a splitter's ports are not modeled. The other XGS-PON loss classes and the maximum fiber distance are not used. The standard's limit on the difference between two paths on one PON is not graded, though a test confirms every answer in the game is within it. The game says so in its briefings and in **Model and sources**.
+The loss card holds planning values, not measurements: fiber 0.5 dB/km, a connector 0.5 dB (one mated connection, where two fiber ends plug together in an adapter), a fusion splice 0.1 dB, 3.5 dB for each two-way split (so 1:32 is 17.5 dB), and attenuators at the value printed on them. All arithmetic is done in whole thousandths of a dB, and the content is rejected if any total is not exact to 0.1 dB, so rounding never decides an answer.
+
+**Outside the model:** a real design checks each direction at its own wavelength, and the game uses one fiber value, the higher one, for both. A real budget keeps margin for repairs and ageing, and the game keeps none. Transmitter power, receiver sensitivity, reflectance, bend loss and the differences between a splitter's ports are not modeled. The standard's loss classes and its maximum fiber distance are not used. The standard's limit on the difference between two paths on one PON is not graded, though a test confirms every answer in the game is within it. The game says so in its briefings and in **Model and sources**.
 
 | Reference | What it supports |
 | --- | --- |
-| [ITU-T G.9807.1 (02/2023)](https://www.itu.int/rec/T-REC-G.9807.1-202302-I), Annex B, clause B.6.1, Table B.6.1 | Loss classes: N1 from 14 to 29 dB, N2 from 16 to 31 dB. Attenuators are required where a path would fall below the class minimum |
+| The project owner's field practice (no link: it is a decision, recorded as D11 in the specification) | The game's loss window, 8 to 28 dB |
+| [ITU-T G.9807.1 (02/2023)](https://www.itu.int/rec/T-REC-G.9807.1-202302-I), Annex B, clause B.6.1, Table B.6.1 | What a loss window is. The standard's own classes, for comparison: N1 from 14 to 29 dB, N2 from 16 to 31 dB. Attenuators are required where a path would fall below the minimum |
 | ITU-T G.9807.1 (02/2023), Annex B, clauses B.9.2.6.1 and B.9.2.8.1; Tables B.9.2 to B.9.4 | The loss range includes splices, connectors, attenuators and other passive devices. Paths on one PON may differ by at most 15 dB. Downstream is 1575 to 1580 nm, upstream 1260 to 1280 nm |
 | [ITU-T G.652 (08/2024)](https://www.itu.int/epublications/publication/itu-t-g-652-2024-08-characteristics-of-a-single-mode-optical-fibre-and-cable), Appendix I, Table I.1; clause 8, Table 2, Note 2 | Typical link attenuation of 0.5 dB/km for 1260 to 1360 nm and 0.35 dB/km for 1565 to 1625 nm |
-| [The FOA Reference Guide: what loss to expect](https://www.thefoa.org/tech/loss-est.htm), connector and splice paragraphs | A typical connector loses about 0.3 dB; TIA-568 allows up to 0.75 dB for a mated pair and 0.3 dB for a splice. The card's 0.5 and 0.1 dB sit inside those figures |
+| [The FOA Reference Guide: what loss to expect](https://www.thefoa.org/tech/loss-est.htm), connector and splice paragraphs | A typical connector loses about 0.3 dB; TIA-568 allows up to 0.75 dB for one mated connection and 0.3 dB for a splice. The card's 0.5 and 0.1 dB sit inside those figures |
 | [The FOA Reference Guide: using attenuators](https://www.thefoa.org/tech/ref/appln/attenuators.html), worked example | A receiver overloads when the cable plant loses less than a minimum; an attenuator adds the missing loss |
 | [TEC GR/TX/OPT-001/01/APR-12](https://tec.gov.in/pdf/GRFA/TEC-GR-FA-OPT-001-01-APR-12.pdf), insertion loss table | One published set of maximum splitter losses (4.0, 7.1, 10.5, 13.8, 17.1 and 20.5 dB for 1×2 to 1×64). The game's 3.5 dB for each two-way split is within about half a dB of each |
 
@@ -99,6 +102,7 @@ The project follows the workshop's Spec Kit workflow: **constitution → specify
 - **Runtime:** a current browser and any static web server. No account, backend, model or API key. No request leaves the game's own folder.
 - **Planning inputs:** `StarterKit/CONSTITUTION.md`, `StarterKit/SPEC.md`, `StarterKit/PLAN.md`.
 - **Working artifacts:** `.specify/memory/constitution.md`; in `specs/001-loss-budget-game/`: `spec.md` (with its clarifications), `checklists/requirements.md`, `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`, `tasks.md`, `analysis.md`. The build agent's own record is `docs/build-log.md`.
+- **What the owner's review changed:** the owner played the first build and sent two changes the same morning. The loss window became 8 to 28 dB, closer to what he has seen in the field than the standard's classes the first build used. And "connector pair" became "connector", because a pair sounds like two fibers and a PON has one. Both went into the specification first; four work orders were re-worked by hand, the unit tests were seen to fail against the old content (52 of 158), and then the content and code were changed.
 - **One useful design decision:** the first specification had the feedback for a design that works but is too small name the correct answer. Planning caught that this contradicts the constitution's rule that a wrong answer gives a next step, not the answer. The specification was changed: the feedback says a larger option also fits and does not name it. A unit test and a browser check now fail if any wrong design's feedback contains the answer.
 
 Two more things worth knowing if you read the code:
@@ -113,25 +117,25 @@ Two more things worth knowing if you read the code:
 To run the checks yourself, from the repository root:
 
 ```sh
-node tests/run-node.mjs       # 158 unit tests; needs Node 20 or later
+node tests/run-node.mjs       # 159 unit tests; needs Node 20 or later
 python3 tools/oracle.py       # recomputes the hand-worked answer key in Python
-python3 tools/e2e.py          # 23 browser checks; needs: pip install playwright, and Chrome or Chromium
+python3 tools/e2e.py          # 25 browser checks; needs: pip install playwright, and Chrome or Chromium
 ```
 
-The unit tests also run in the browser: start the local server and open **http://127.0.0.1:8000/tests/**.
+The unit tests also run in the browser: start the local server and open **http://127.0.0.1:8000/tests/**. One browser check, an audit with the axe-core accessibility engine, runs only when you give it the engine: `npm pack axe-core`, unpack it, and add `--axe path/to/axe.min.js`. Without that it is reported as not run.
 
 | Check | Result | Evidence / notes |
 | --- | --- | --- |
-| Correct, incorrect, and boundary cases | Pass | All 20 options of the six work orders and 4 boundary cases (29.0 and 29.1 dB, 14.0 and 13.9 dB) match the hand-worked key: 158 of 158 unit tests; `tools/oracle.py` agrees on all 169 comparisons; the browser check `FULL` submits all 20 options in the page |
+| Correct, incorrect, and boundary cases | Pass | All 20 options of the six work orders and 4 boundary cases (28.0 and 28.1 dB, 8.0 and 7.9 dB) match the hand-worked key: 159 of 159 unit tests; `tools/oracle.py` agrees on all 172 comparisons; the browser check `FULL` submits all 20 options in the page |
 | Unsupported content is not graded | Pass | Cases U1 to U6 are rejected by the validator (unit tests) and show a content error with no challenge in the page (browser check `CONTENT`) |
-| Briefings and explanations checked against sources | Pass by the build agent; **not reviewed by a person** | Every stated value was traced to references R1 to R6 on 2026-11-19 (see the record). The loss card's planning values are the build agent's choice and wait for the owner's review |
+| Briefings and explanations checked against sources | Pass by the build agent; **reviewed in part by the owner** | Every stated value was traced to its source on 2026-11-19 (see the record). The owner reviewed the first build and changed the loss window and one term. The loss card's planning values (0.5 dB/km, 0.5 dB a connector, 0.1 dB a splice, 3.5 dB a two-way split) are the build agent's choice and have not been confirmed by him |
 | Retry, hint, duplicate Submit, completion, restart | Pass | Browser checks `AC3a`, `AC5`, `AC6`, `AC7`, `AC8`; unit tests of the session |
 | Keyboard-only core playthrough | Pass by automation; **not run by a person** | Browser check `KEYBOARD`: from the first briefing to the summary with key presses only, at 1366 × 768, checking focus after every action |
-| Accessible names, contrast, text size | Pass by automation | `NAMES`; `CONTRAST` (lowest 5.01 to 1); `TEXTSIZE` (running text at least 16 px). No screen reader was used |
+| Accessible names, contrast, text size | Pass by automation | `NAMES`; `CONTRAST` (lowest 5.01 to 1); `TEXTSIZE` (running text at least 16 px); `AXE` (axe-core 4.14.1: no violation in 12 views). No screen reader was used |
 | Narrow layout and reduced motion | Pass by automation | `NARROW` at 320, 390 and 768 px: no sideways page scroll, controls reachable; `MOTION`: no animation under reduced motion and the result present at once |
 | No request outside the game | Pass | `ORIGIN`: every request of a full playthrough stays under the game's own path, fonts included |
-| The checks can fail | Pass | 4 planted bugs caught by the unit tests and 12 of 12 by the browser checks, each reverted |
-| Fresh checkout run instructions | Pass | Commit `f5c2bfa` was cloned into an empty folder on 2026-11-19. All three commands above passed there (158, 169 and 23), and the game and `/tests/` were opened from `python3 -m http.server` as described under Play locally. Commits after it change documents only |
+| The checks can fail | Pass | 4 planted bugs caught by the unit tests and 14 of 14 by the browser checks, each reverted |
+| Fresh checkout run instructions | FRESH_COPY_RESULT | FRESH_COPY_NOTE |
 | A first-time player finishes in 10 to 15 minutes (SC-004) | **Not run** | Needs a person. Waiting for the owner |
 | A teammate can say what each level taught (SC-008) | **Not run** | Needs a person. Waiting for the owner |
 | Firefox, Safari, a real phone, a screen reader | **Not run** | Only headless Chrome was available to the build |
@@ -140,6 +144,7 @@ The unit tests also run in the browser: start the local server and open **http:/
 ## Known limitations and next steps
 
 - **Known limitation:** no person has played the game yet. Everything above marked "by automation" was done by a script in one browser.
+- **Known limitation:** the loss window is a planning value from the owner's field experience, not a class of the standard, and the loss card's values are the build agent's choice inside published ranges. Use the limits of the optics you install.
 - **Known limitation:** the model is deliberately small. See "Outside the model" above. In particular the game uses one fiber value for both directions and keeps no margin, so its answers are right for the game's loss card and are not a design rule.
 - **Known limitation:** six fixed work orders. Once you know the answers there is nothing new to solve.
 - **Known limitation:** the loss trace has three line colors that were checked for color-vision deficiency. A work order with more than three ONTs would draw the rest in the text color, told apart by their labels only.

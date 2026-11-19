@@ -23,28 +23,32 @@ export function cardMilli(lossCard) {
   for (const [ratio, decibels] of Object.entries(lossCard.splitterDb)) splitter[ratio] = toMilli(decibels);
   return {
     fiberPerKm: toMilli(lossCard.fiberDbPerKm),
-    connectorPair: toMilli(lossCard.connectorPairDb),
+    connector: toMilli(lossCard.connectorDb),
     splice: toMilli(lossCard.spliceDb),
     splitter,
   };
 }
 
-/** The loss window of a class, in thousandths of a dB. */
+/**
+ * The loss window of a class, in thousandths of a dB. `named` says whether the class name is worth
+ * showing to the player: with one window in the content there is nothing to tell apart, so the
+ * words say "the window" and "the maximum" without a name.
+ */
 export function windowOf(content, className) {
   const cls = content.classes[className];
-  return { className, minMilli: toMilli(cls.minDb), maxMilli: toMilli(cls.maxDb) };
+  return { className, named: Object.keys(content.classes).length > 1, minMilli: toMilli(cls.minDb), maxMilli: toMilli(cls.maxDb) };
 }
 
 /**
  * Walk the plant from the OLT port and return one path for each ONT, in drawing order.
- * A path sums the fiber, connector pairs and splices on the way and lists the splitters it crosses.
+ * A path sums the fiber, connectors and splices on the way and lists the splitters it crosses.
  */
 export function pathsOf(plant) {
   const paths = [];
   const walk = (segment, sofar) => {
     const here = {
       fiberMilliKm: sofar.fiberMilliKm + toMilli(segment.fiberKm),
-      connectorPairs: sofar.connectorPairs + segment.connectorPairs,
+      connectors: sofar.connectors + segment.connectors,
       splices: sofar.splices + segment.splices,
       splitters: sofar.splitters,
     };
@@ -56,7 +60,7 @@ export function pathsOf(plant) {
     const splitters = [...here.splitters, { id: node.id, label: node.label, ratio: node.ratio }];
     for (const leg of node.legs) walk(leg, { ...here, splitters });
   };
-  walk(plant.trunk, { fiberMilliKm: 0, connectorPairs: 0, splices: 0, splitters: [] });
+  walk(plant.trunk, { fiberMilliKm: 0, connectors: 0, splices: 0, splitters: [] });
   return paths;
 }
 
@@ -65,7 +69,7 @@ function ratioText(ratio) {
 }
 
 /**
- * The ledger of one path for one option: a line for the fiber, the connector pairs and the splices,
+ * The ledger of one path for one option: a line for the fiber, the connectors and the splices,
  * one for each splitter and one for each attenuator on the path.
  */
 function ledgerOf(card, path, option) {
@@ -74,8 +78,8 @@ function ledgerOf(card, path, option) {
   if (path.fiberMilliKm > 0) {
     lines.push({ kind: 'fiber', label: 'Fiber', quantity: path.fiberMilliKm, unitMilli: card.fiberPerKm, lossMilli: fiberLoss });
   }
-  if (path.connectorPairs > 0) {
-    lines.push({ kind: 'connectors', label: 'Connector pairs', quantity: path.connectorPairs, unitMilli: card.connectorPair, lossMilli: path.connectorPairs * card.connectorPair });
+  if (path.connectors > 0) {
+    lines.push({ kind: 'connectors', label: 'Connectors', quantity: path.connectors, unitMilli: card.connector, lossMilli: path.connectors * card.connector });
   }
   if (path.splices > 0) {
     lines.push({ kind: 'splices', label: 'Splices', quantity: path.splices, unitMilli: card.splice, lossMilli: path.splices * card.splice });
@@ -113,7 +117,7 @@ function marginOf(totalMilli, state, window) {
 }
 
 /**
- * The loss of the fixed elements of each ONT's path: fiber, connector pairs, splices and installed
+ * The loss of the fixed elements of each ONT's path: fiber, connectors, splices and installed
  * splitters. Splitters left open for the option, and attenuators, are not counted.
  */
 export function fixedLosses(content, round) {
@@ -121,14 +125,14 @@ export function fixedLosses(content, round) {
   const out = {};
   for (const path of pathsOf(round.plant)) {
     const fiberMilli = (path.fiberMilliKm * card.fiberPerKm) / 1000;
-    const connectorsMilli = path.connectorPairs * card.connectorPair;
+    const connectorsMilli = path.connectors * card.connector;
     const splicesMilli = path.splices * card.splice;
     const installedMilli = path.splitters
       .filter((s) => s.ratio !== null)
       .reduce((sum, s) => sum + card.splitter[String(s.ratio)], 0);
     out[path.ontId] = {
       fiberMilliKm: path.fiberMilliKm,
-      connectorPairs: path.connectorPairs,
+      connectors: path.connectors,
       splices: path.splices,
       fiberMilli,
       connectorsMilli,
@@ -154,8 +158,8 @@ export function tracesOf(content, round, option) {
     if (fiberMilliKm > 0) {
       here.push({ key: `${place}/fiber`, kind: 'fiber', quantity: fiberMilliKm, lossMilli: (fiberMilliKm * card.fiberPerKm) / 1000 });
     }
-    if (segment.connectorPairs > 0) {
-      here.push({ key: `${place}/connectors`, kind: 'connectors', quantity: segment.connectorPairs, lossMilli: segment.connectorPairs * card.connectorPair });
+    if (segment.connectors > 0) {
+      here.push({ key: `${place}/connectors`, kind: 'connectors', quantity: segment.connectors, lossMilli: segment.connectors * card.connector });
     }
     if (segment.splices > 0) {
       here.push({ key: `${place}/splices`, kind: 'splices', quantity: segment.splices, lossMilli: segment.splices * card.splice });

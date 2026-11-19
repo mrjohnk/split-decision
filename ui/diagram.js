@@ -38,9 +38,13 @@ function kmText(km) {
   return `${Number(km).toFixed(1)} km`;
 }
 
-function countsText(segment) {
+/** "2 connectors, 3 splices", or with `short` "2 conn., 3 splices" for a run with less room. */
+function countsText(segment, short = false) {
   const parts = [];
-  if (segment.connectorPairs > 0) parts.push(`${segment.connectorPairs} ${segment.connectorPairs === 1 ? 'pair' : 'pairs'}`);
+  if (segment.connectors > 0) {
+    const word = short ? 'conn.' : (segment.connectors === 1 ? 'connector' : 'connectors');
+    parts.push(`${segment.connectors} ${word}`);
+  }
   if (segment.splices > 0) parts.push(`${segment.splices} ${segment.splices === 1 ? 'splice' : 'splices'}`);
   return parts.join(', ');
 }
@@ -96,8 +100,12 @@ export function drawPlant(host, plant, option, width) {
     if (run > 40) {
       const noFiber = run > 84 ? 'at the splitter' : '0 km';
       marks.append(s('text', { class: 'seg-km', x: mid, y: toY - 8, 'text-anchor': 'middle' }, km > 0 ? kmText(km) : noFiber));
+      // The counts are spelled out where the run has room, shortened where it has less, and left
+      // to the path table where it has none.
       const counts = countsText(item.segment);
-      if (counts && run > 104) marks.append(s('text', { class: 'seg-counts', x: mid, y: toY + 17, 'text-anchor': 'middle' }, counts));
+      const fits = counts.length * 5.9 + 10;
+      const shown = run > fits ? counts : (run > 104 ? countsText(item.segment, true) : '');
+      if (shown) marks.append(s('text', { class: 'seg-counts', x: mid, y: toY + 17, 'text-anchor': 'middle' }, shown));
     }
 
     if (item.kind === 'ont') {
@@ -177,6 +185,39 @@ export function stateGlyph(state, cx, cy, r = 5) {
   return g;
 }
 
+/** Every straight piece of every trace, as [x1, y1, x2, y2]. */
+function traceSegments(trace, left, unit, y) {
+  const segments = [];
+  for (const line of trace.series) {
+    let x = left;
+    for (const step of line.steps) {
+      const w = UNITS[step.kind] * unit;
+      const y0 = y(step.fromMilli);
+      const y1 = y(step.toMilli);
+      if (step.kind === 'fiber') segments.push([x, y0, x + w, y1]);
+      else segments.push([x, y0, x, y1], [x, y1, x + w, y1]);
+      x += w;
+    }
+  }
+  return segments;
+}
+
+/** True when no trace comes within `gap` pixels of the box. Pieces are sampled along their length. */
+function isClear(box, segments, gap = 4) {
+  const x1 = box.x - gap;
+  const y1 = box.y - gap;
+  const x2 = box.x + box.w + gap;
+  const y2 = box.y + box.h + gap;
+  return segments.every(([ax, ay, bx, by]) => {
+    for (let i = 0; i <= 16; i += 1) {
+      const px = ax + ((bx - ax) * i) / 16;
+      const py = ay + ((by - ay) * i) / 16;
+      if (px >= x1 && px <= x2 && py >= y1 && py <= y2) return false;
+    }
+    return true;
+  });
+}
+
 /**
  * Draw the loss trace into `host`. `trace` comes from describeTrace(): the scale, the window, and
  * for each ONT the steps of its path with running totals. With no series, only the scale and the
@@ -216,32 +257,37 @@ export function drawTrace(host, trace, width, { animate = false } = {}) {
   const longest = Math.max(1, ...trace.series.map((line) => line.steps.reduce((sum, step) => sum + UNITS[step.kind], 0)));
   const unit = plotW / longest;
 
-  // The window's name sits inside the band at the left, in the room before the first trace reaches
-  // that height. If the room is too small for the long name the short one is used, or none: the
-  // limits are on the scale either way.
-  let room = plotW - 16;
-  for (const line of trace.series) {
-    let x = left;
-    for (const step of line.steps) {
-      if (y(step.toMilli) >= yMin + 3 && y(step.fromMilli) <= yMin + 21) {
-        room = Math.min(room, x - left - 14);
-        break;
-      }
-      x += UNITS[step.kind] * unit;
-    }
-  }
-  const windowName = [`${trace.className} window, ${trace.windowText}`, `${trace.className} window`].find((name) => name.length * 6.4 <= room);
+  // Where the traces run, so that a label is never drawn on top of one.
+  const segments = traceSegments(trace, left, unit, y);
+  const labelBox = (text, x, baseline, anchor = 'start') => {
+    const w = text.length * 6.4;
+    return { text, x, baseline, anchor, box: { x: anchor === 'end' ? x - w : x, y: baseline - 11, w, h: 14 } };
+  };
+  const firstClear = (candidates) => candidates.find((candidate) => candidate && isClear(candidate.box, segments));
 
-  // The names of the zones sit where a trace cannot run: light starts at the top left and only
-  // falls, so the top right and the bottom left stay clear.
+  // The window's name sits inside the band at the top left: the long name if no trace crosses it,
+  // else the short one, else none. The limits are on the scale either way.
+  const windowLabel = firstClear([
+    labelBox(`${trace.windowName}, ${trace.windowText}`, left + 8, yMin + 16),
+    labelBox(trace.windowName, left + 8, yMin + 16),
+  ]);
+  // "Too bright" sits at the top right, where light that only falls does not usually run. When a
+  // trace does end up there, it moves to the left, just above the window.
+  const brightLabel = firstClear([
+    labelBox('Too bright', left + plotW - 8, top + 15, 'end'),
+    yMin - top >= 28 ? labelBox('Too bright', left + 8, yMin - 7) : null,
+  ]);
+  const darkLabel = firstClear([labelBox('Too dark', left + 8, top + plotH - 8)]);
+  const zoneText = (label, extra = '') => (label
+    ? s('text', { class: `zone-name${extra}`, x: label.x, y: label.baseline, 'text-anchor': label.anchor }, label.text)
+    : null);
+
   const zones = s('g', { class: 'trace-zones' });
   zones.append(
     s('rect', { class: 'window-band', x: left, y: yMin, width: plotW, height: yMax - yMin }),
     s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yMin, y2: yMin }),
     s('line', { class: 'window-edge', x1: left, x2: left + plotW, y1: yMax, y2: yMax }),
-    s('text', { class: 'zone-name', x: left + plotW - 8, y: top + 15, 'text-anchor': 'end' }, 'Too bright'),
-    windowName ? s('text', { class: 'zone-name zone-window', x: left + 8, y: yMin + 16 }, windowName) : null,
-    s('text', { class: 'zone-name', x: left + 8, y: top + plotH - 8 }, 'Too dark'),
+    ...[zoneText(brightLabel), zoneText(windowLabel, ' zone-window'), zoneText(darkLabel)].filter(Boolean),
   );
   svg.append(zones);
 

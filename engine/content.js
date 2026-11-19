@@ -107,7 +107,7 @@ export function validateContent(doc) {
 }
 
 function checkLossCard(card, report) {
-  for (const field of ['fiberDbPerKm', 'connectorPairDb', 'spliceDb']) {
+  for (const field of ['fiberDbPerKm', 'connectorDb', 'spliceDb']) {
     const milli = toMilli(card[field]);
     if (milli === null || milli <= 0) report('bad-number', 'lossCard', `${field} must be a number greater than 0, exact to 0.001 dB.`);
   }
@@ -143,11 +143,12 @@ function checkSources(sources, report) {
   const ids = new Set();
   sources.forEach((source, index) => {
     const where = `sources / ${isObject(source) && isText(source.id) ? source.id : `entry ${index + 1}`}`;
-    if (!isObject(source) || !['id', 'title', 'url', 'section', 'claim'].every((key) => isText(source[key]))) {
-      report('schema', where, 'A source needs an id, a title, a url, a section and the claim it supports.');
+    if (!isObject(source) || !['id', 'title', 'section', 'claim'].every((key) => isText(source[key]))) {
+      report('schema', where, 'A source needs an id, a title, a section and the claim it supports. A published source also has a url.');
       return;
     }
-    if (!source.url.startsWith('https://')) report('schema', where, 'A source url starts with https://.');
+    // A decision of the project is a source with no link. Any link that is given must be https.
+    if (source.url !== undefined && (!isText(source.url) || !source.url.startsWith('https://'))) report('schema', where, 'A source url starts with https://.');
     if (ids.has(source.id)) report('duplicate-id', where, `Two sources share the id "${source.id}".`);
     ids.add(source.id);
   });
@@ -167,10 +168,10 @@ function checkPlant(doc, plant, where, report) {
 
   const walk = (segment, depth) => {
     if (depth > 8) return bad('schema', 'The plant is nested more deeply than a PON can be.');
-    if (!isObject(segment)) return bad('schema', 'Each part of the plant is a segment with fiberKm, connectorPairs, splices and to.');
+    if (!isObject(segment)) return bad('schema', 'Each part of the plant is a segment with fiberKm, connectors, splices and to.');
     const fiber = toMilli(segment.fiberKm);
     if (fiber === null || fiber < 0) bad('bad-number', 'fiberKm must be 0 or more, to the nearest metre.');
-    if (!isCount(segment.connectorPairs)) bad('bad-number', 'connectorPairs must be a whole number, 0 or more.');
+    if (!isCount(segment.connectors)) bad('bad-number', 'connectors must be a whole number, 0 or more.');
     if (!isCount(segment.splices)) bad('bad-number', 'splices must be a whole number, 0 or more.');
     const node = segment.to;
     if (!isObject(node) || !isText(node.id) || !isText(node.label)) return bad('schema', 'Each segment leads to a splitter or an ONT that has an id and a label.');

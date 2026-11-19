@@ -1,5 +1,7 @@
 # Split Decision · Project constitution
 
+> **Amended by the owner's first review, 2026-11-19.** The governing constitution is `.specify/memory/constitution.md`, now at version 1.1.0: the game has one loss window, 8 to 28 dB, in place of the N1 and N2 classes named below, and says "connector" where this file says "connector pair". This file is kept as the planning input it was.
+
 **Purpose:** help network engineers, sales engineers and students who are new to PON practice optical loss budgeting by choosing the splitter or attenuator design for a passive optical network.
 
 **First release:** one core mechanic, three short levels, a browser. The scope is the workshop's 60-minute build scope. The build itself ran after the workshop, outside the room. Change this budget only by updating the agreed scope.

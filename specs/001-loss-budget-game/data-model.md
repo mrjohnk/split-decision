@@ -21,7 +21,7 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 | Field | Type | Rule |
 | --- | --- | --- |
 | `fiberDbPerKm` | number | Greater than 0; exact to 0.001 |
-| `connectorPairDb` | number | Greater than 0; exact to 0.001 |
+| `connectorDb` | number | Greater than 0; exact to 0.001 |
 | `spliceDb` | number | Greater than 0; exact to 0.001 |
 | `splitterDb` | map of ratio → number | Keys are whole numbers of 2 or more; values greater than 0 |
 | `sourceIds` | list of Source ID | Each must exist |
@@ -34,9 +34,11 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 | `maxDb` | number | Greater than `minDb` |
 | `sourceId` | Source ID | Must exist |
 
+Version one has one class, `design` (8 to 28 dB, decision D11). When the content has a single class its name is not shown to the player: the words are "the loss window", "the maximum" and "the minimum". Content with several classes shows each name.
+
 ### Source
 
-`id`, `title`, `url`, `section`, `claim`: all non-empty strings. `url` starts with `https://`.
+`id`, `title`, `section`, `claim`: non-empty strings. `url` is optional: a published source has one, starting with `https://`; a decision of the project (for example R7, the owner's loss window) has none and is shown without a link.
 
 ### Model notes
 
@@ -73,7 +75,7 @@ Phase 1 of `/speckit-plan`. Entities come from the specification's Key Entities.
 
 A tree. `plant.oltLabel` names the OLT port. `plant.trunk` is a Segment.
 
-- **Segment**: `fiberKm` (0 or more), `connectorPairs` and `splices` (whole numbers, 0 or more), `to` (a Node).
+- **Segment**: `fiberKm` (0 or more), `connectors` and `splices` (whole numbers, 0 or more), `to` (a Node).
 - **Node, splitter**: `type: "splitter"`, `id` (unique in the round), `label`, `ratio` (a ratio on the loss card, or `null` when the option chooses it), `legs` (one or more Segments).
 - **Node, ONT**: `type: "ont"`, `id` (unique in the round), `label`, optional `note`.
 
@@ -111,7 +113,7 @@ An unknown token, or a token that names an ONT or class that does not exist, is 
 
 ### Path
 
-For one ONT: the ordered elements from the OLT port to it. Derived by walking the plant. Totals: fiber km, connector pairs, splices, and the splitters met on the way.
+For one ONT: the ordered elements from the OLT port to it. Derived by walking the plant. Totals: fiber km, connectors, splices, and the splitters met on the way.
 
 ### Ledger line
 

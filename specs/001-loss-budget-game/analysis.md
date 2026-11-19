@@ -83,6 +83,30 @@ No CRITICAL, HIGH or MEDIUM finding remains. A1 and F4 stand as recorded, with n
 
 **Metrics (pass 2):** 37 of 37 requirements cited by at least one task (100%); 74 of 74 constrained fields cited; 49 tasks; 0 critical findings. SC-004 and SC-008 are covered only by a recording task, because they need a person.
 
+## Pass 3, after the owner's first review (2026-11-19)
+
+The owner changed two things after playing the first build: one loss window of 8 to 28 dB in place of the two classes (decision D11), and "connector" in place of "connector pair" (decision D12). The constitution's governance asks for analysis to be run again after a material change. This pass was made on the amended specification, plan, tasks and constitution, and on the re-worked content.
+
+| ID | Category | Severity | Location(s) | Summary | What was done |
+|----|----------|----------|-------------|---------|---------------|
+| G1 | Constitution | HIGH | constitution I, Scope and Model Boundaries; spec.md D11, D12 | The constitution named the N1 and N2 classes and "connector pairs". The owner's decisions contradict both | Constitution amended to version 1.1.0. No principle was removed or weakened: the rule is still "inside the window, limits included, most homes wins" |
+| G2 | Inconsistency | HIGH | spec.md FR-002; `data/levels.json`, the worked examples of levels 2 and 3 | After the rounds were re-worked, the level 2 example's 24.0 dB was also round 2-2's ONT B with the 1:2 splitter, and the level 3 example's 5.2 dB before its attenuator was also round 3-1's ONT A as drawn. FR-002 asks for examples whose numbers differ from every challenge | Both examples changed (24.2 and 26.5 dB; 5.5 dB before the attenuator, 15.5 dB after). The unit test for FR-002 caught the first; reading the content caught the second |
+| G3 | Underspecification | MEDIUM | research.md R-01; spec.md Technical Model | The first version relied on each window being 15 dB wide to imply the standard's limit on the difference between two paths. The new window is 20 dB wide, so that no longer follows | A unit test confirms that every answer keeps its paths within 15 dB of each other, and the model panel says that the limit is not graded |
+| G4 | Underspecification | MEDIUM | data-model.md Source; contracts/content.md | The window's source is now the owner's decision, which has no link, and `Source.url` was required | `Source.url` is optional. A source without one is shown without a link |
+| G5 | Ambiguity | MEDIUM | spec.md Clarifications, owner's review | 8 and 28 are also the usual limits of an ONT's receive level in dBm. The game measures path loss in dB, and the numbers were applied as loss limits, as written | Recorded as an open point for the owner. Not resolved by the build agent |
+| G6 | Underspecification | MEDIUM | spec.md, Round 3-1 | A window 20 dB wide means that a path that is too bright by any amount lands inside the window when 20 dB is added, so the first version's "20 dB attenuator overshoots" option would have been a second valid answer | The option is a 25 dB attenuator, and the specification says why |
+| G7 | Terminology | LOW | README.md, index.html: "An XGS-PON loss-budget puzzle" | The title still names XGS-PON while the window is no longer an XGS-PON class | Kept, because the owner did not ask to change it. The model panel states the difference. Flagged for the owner |
+| G8 | Coverage | LOW | tasks.md | The owner's changes had no tasks | Phase 7 added: T050 to T059 |
+| G9 | Inconsistency | LOW | StarterKit/SPEC.md, PLAN.md, CONSTITUTION.md | The planning inputs still describe the first version | Each carries an amendment note at its top. They are kept as the record of what was asked at the time; spec.md and the constitution govern |
+
+**Constitution Alignment Issues:** G1 only, resolved by the amendment.
+
+**Hand-worked cases:** the 20 option cases and 4 boundary cases in the specification, the fixture, the content file and the evaluator agree: 159 unit tests, and 172 oracle comparisons, three of which now compare the content's window with the specification's.
+
+**Metrics (pass 3):** 37 requirements (28 functional, 9 success criteria), all cited by at least one task; 59 tasks; 74 constrained fields (the fields `connectorPairs` and `connectorPairDb` renamed; `Source.url` now optional); 0 critical findings; 1 open point for the owner (G5).
+
 ## Next Actions
 
 Implementation may begin. Two items stay with the owner: timing a first playthrough (SC-004) and saying what each level taught (SC-008).
+
+After pass 3, three items stay with the owner: the two above, and the open point G5 (path loss in dB, or receive level in dBm).

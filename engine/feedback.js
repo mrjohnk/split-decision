@@ -37,6 +37,11 @@ function servedText(option) {
   return `Serves ${option.served} ${option.served === 1 ? 'home' : 'homes'}`;
 }
 
+/** "N1 " when the content has several windows to tell apart, and nothing when it has one. */
+function classWord(window) {
+  return window.named ? `${window.className} ` : '';
+}
+
 function windowText(window) {
   return `${fmtPlain(window.minMilli)} to ${fmtLimit(window.maxMilli)}`;
 }
@@ -48,7 +53,7 @@ function describeLedger(ont, card) {
       return { label: 'Fiber', detail: `${fmtKm(line.quantity)} × ${fmtLoss(card.fiberPerKm)}`, loss: fmtNumber(line.lossMilli), short: `fiber ${fmtNumber(line.lossMilli)}` };
     }
     if (line.kind === 'connectors') {
-      return { label: 'Connector pairs', detail: `${line.quantity} × ${fmtLoss(card.connectorPair)}`, loss: fmtNumber(line.lossMilli), short: `connector pairs ${fmtNumber(line.lossMilli)}` };
+      return { label: 'Connectors', detail: `${line.quantity} × ${fmtLoss(card.connector)}`, loss: fmtNumber(line.lossMilli), short: `connectors ${fmtNumber(line.lossMilli)}` };
     }
     if (line.kind === 'splices') {
       return { label: 'Splices', detail: `${line.quantity} × ${fmtLoss(card.splice)}`, loss: fmtNumber(line.lossMilli), short: `splices ${fmtNumber(line.lossMilli)}` };
@@ -73,11 +78,11 @@ function describeOnt(ont, window, card) {
   const margin = fmtLoss(ont.marginMilli);
   let line;
   if (ont.state === 'over') {
-    line = `${ont.label}: ${total}. That is ${margin} over the ${window.className} maximum of ${fmtLimit(window.maxMilli)}.`;
+    line = `${ont.label}: ${total}. That is ${margin} over the ${classWord(window)}maximum of ${fmtLimit(window.maxMilli)}.`;
   } else if (ont.state === 'under') {
-    line = `${ont.label}: ${total}. That is ${margin} under the ${window.className} minimum of ${fmtLimit(window.minMilli)}.`;
+    line = `${ont.label}: ${total}. That is ${margin} under the ${classWord(window)}minimum of ${fmtLimit(window.minMilli)}.`;
   } else {
-    line = `${ont.label}: ${total}. Inside the ${window.className} window of ${windowText(window)}, with ${margin} to spare before the maximum.`;
+    line = `${ont.label}: ${total}. Inside the ${classWord(window)}window of ${windowText(window)}, with ${margin} to spare before the maximum.`;
   }
   const { rows, ledgerText } = describeLedger(ont, card);
   return {
@@ -107,7 +112,7 @@ export function describeRound(content, round) {
     label: path.label,
     note: path.note,
     km: fmtKm(path.fiberMilliKm),
-    connectorPairs: path.connectorPairs,
+    connectors: path.connectors,
     splices: path.splices,
     splitters: path.splitters.map((s) => (s.ratio === null ? 'your choice' : `${ratioText(s.ratio)} installed`)).join(', then ') || 'none',
   }));
@@ -118,6 +123,7 @@ export function describeRound(content, round) {
     story: fill(round.story, scope),
     goal: fill(round.goal, scope),
     className: round.class,
+    windowLabel: window.named ? `${round.class} loss window` : 'Loss window',
     windowText: windowText(window),
     window: { minMilli: window.minMilli, maxMilli: window.maxMilli, minText: fmtPlain(window.minMilli), maxText: fmtPlain(window.maxMilli) },
     options: round.options.map((option) => ({ id: option.id, label: optionLabel(content, round, option), servedText: servedText(option) })),
@@ -234,14 +240,17 @@ export function describeModel(content) {
   const card = cardMilli(content.lossCard);
   const lossCard = [
     { label: 'Fiber, per km', value: fmtLoss(card.fiberPerKm) },
-    { label: 'Connector pair', value: fmtLoss(card.connectorPair) },
+    { label: 'Connector', value: fmtLoss(card.connector) },
     { label: 'Fusion splice', value: fmtLoss(card.splice) },
     ...Object.keys(card.splitter)
       .map(Number)
       .sort((a, b) => a - b)
       .map((ratio) => ({ label: `${ratioText(ratio)} splitter`, value: fmtLoss(card.splitter[String(ratio)]) })),
   ];
-  const classes = Object.keys(content.classes).map((name) => ({ name, text: windowText(windowOf(content, name)) }));
+  const classes = Object.keys(content.classes).map((name) => {
+    const window = windowOf(content, name);
+    return { name, label: window.named ? `${name} class` : 'Loss window', text: windowText(window) };
+  });
   return {
     rule: content.model.rule.map((text) => fill(text, scope)),
     assumptions: content.model.assumptions.map((text) => fill(text, scope)),
@@ -256,7 +265,7 @@ export function describeModel(content) {
 function describeStep(step, card) {
   const loss = fmtLoss(step.lossMilli);
   if (step.kind === 'fiber') return `Fiber, ${fmtKm(step.quantity)}: ${loss}`;
-  if (step.kind === 'connectors') return `${step.quantity} connector ${step.quantity === 1 ? 'pair' : 'pairs'}: ${loss}`;
+  if (step.kind === 'connectors') return `${step.quantity} ${step.quantity === 1 ? 'connector' : 'connectors'}: ${loss}`;
   if (step.kind === 'splices') return `${step.quantity} ${step.quantity === 1 ? 'splice' : 'splices'}: ${loss}`;
   if (step.kind === 'splitter') return `${ratioText(step.ratio)} splitter, ${step.chosen ? 'chosen' : 'installed'}: ${loss}`;
   return `Attenuator ${step.at === 'olt' ? 'at the OLT port' : 'at this ONT'}: ${loss}`;
@@ -271,6 +280,7 @@ export function describeTrace(content, round, option) {
   const card = cardMilli(content.lossCard);
   const base = {
     className: round.class,
+    windowName: window.named ? `${round.class} window` : 'Loss window',
     minMilli: window.minMilli,
     maxMilli: window.maxMilli,
     minText: fmtLimit(window.minMilli),
@@ -330,7 +340,7 @@ export function describePlant(content, round, option = null) {
     const bits = [];
     const milliKm = toMilli(segment.fiberKm);
     if (milliKm > 0) bits.push(`${fmtKm(milliKm)} of fiber`);
-    if (segment.connectorPairs > 0) bits.push(`${segment.connectorPairs} connector ${segment.connectorPairs === 1 ? 'pair' : 'pairs'}`);
+    if (segment.connectors > 0) bits.push(`${segment.connectors} ${segment.connectors === 1 ? 'connector' : 'connectors'}`);
     if (segment.splices > 0) bits.push(`${segment.splices} ${segment.splices === 1 ? 'splice' : 'splices'}`);
     return bits.length ? listOf(bits) : 'a direct connection';
   };

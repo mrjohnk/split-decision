@@ -14,11 +14,12 @@ function allText(description) {
   return parts.filter(Boolean).join('\n');
 }
 
-export default async function define({ test, assertEqual, assertTrue, assertIncludes, assertNotIncludes, loadJson }) {
+export default async function define({ test, assertEqual, assertDeepEqual, assertTrue, assertIncludes, assertNotIncludes, loadJson }) {
   const content = await loadJson('data/levels.json');
   const key = await loadJson('tests/fixtures/answer-key.json');
   const rounds = content.levels.flatMap((level) => level.rounds);
-  const limits = { N1: { min: '14 dB', max: '29 dB' }, N2: { min: '16 dB', max: '31 dB' } };
+  // The loss window, from the specification (decision D11) by way of the answer key. Not from the game.
+  const limits = { [key.window.class]: { min: `${key.window.min} dB`, max: `${key.window.max} dB` } };
 
   for (const round of rounds) {
     const expectedRound = key.rounds[round.id];
@@ -112,25 +113,25 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
   test('feedback/AC2 the ledger of round 1-1 with a 1:32 splitter', () => {
     const round = rounds.find((r) => r.id === 'r1-1');
     const description = describeResult(content, round, { ...evaluate(content, round, 'o32'), optionId: 'o32' });
-    assertEqual(description.onts[0].ledgerText, 'Fiber 7.0 + connector pairs 2.0 + splices 0.4 + splitter 17.5 = 26.9 dB');
+    assertEqual(description.onts[0].ledgerText, 'Fiber 7.0 + connectors 2.0 + splices 0.4 + splitter 17.5 = 26.9 dB');
     assertIncludes(description.onts[0].line, 'ONT A: 26.9 dB');
     assertIncludes(description.headline, 'inside the window');
     assertIncludes(description.servedText, '32');
   });
 
-  test('feedback/AC3a round 1-1 with a 1:64 splitter is too dark by 1.4 dB', () => {
+  test('feedback/AC3a round 1-1 with a 1:64 splitter is too dark by 2.4 dB', () => {
     const round = rounds.find((r) => r.id === 'r1-1');
     const description = describeResult(content, round, { ...evaluate(content, round, 'o64'), optionId: 'o64' });
     assertEqual(description.headline, 'Too dark at ONT A.');
     assertIncludes(description.onts[0].line, '30.4 dB');
-    assertIncludes(description.onts[0].line, '1.4 dB over the N1 maximum of 29 dB');
+    assertIncludes(description.onts[0].line, '2.4 dB over the maximum of 28 dB');
   });
 
   test('feedback/the specification\'s worked interaction for round 1-2', () => {
     const round = rounds.find((r) => r.id === 'r1-2');
     const description = describeResult(content, round, { ...evaluate(content, round, 'o32'), optionId: 'o32' });
-    assertIncludes(description.onts[0].line, '0.4 dB over the N1 maximum of 29 dB');
-    assertEqual(description.onts[0].ledgerText, 'Fiber 9.5 + connector pairs 2.0 + splices 0.4 + splitter 17.5 = 29.4 dB');
+    assertIncludes(description.onts[0].line, '1.4 dB over the maximum of 28 dB');
+    assertEqual(description.onts[0].ledgerText, 'Fiber 9.5 + connectors 2.0 + splices 0.4 + splitter 17.5 = 29.4 dB');
     assertIncludes(description.note, 'Without them the path looks like 27.0 dB');
     assertIncludes(description.note, 'they add 2.4 dB');
   });
@@ -139,7 +140,7 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
     const round = rounds.find((r) => r.id === 'r2-2');
     const description = describeResult(content, round, { ...evaluate(content, round, 'c4x16'), optionId: 'c4x16' });
     const b = description.onts.find((o) => o.id === 'B');
-    assertEqual(b.ledgerText, 'Fiber 4.5 + connector pairs 2.5 + splices 0.5 + splitter 7.0 + splitter 14.0 = 28.5 dB');
+    assertEqual(b.ledgerText, 'Fiber 3.5 + connectors 2.5 + splices 0.5 + splitter 7.0 + splitter 14.0 = 27.5 dB');
     assertIncludes(description.explain, '7.0 dB + 14.0 dB');
   });
 
@@ -160,14 +161,15 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
     assertEqual(description.headline, GUIDANCE['no-selection']);
   });
 
-  // Worked examples, hand-checked here:
-  //   Level 1: 10.0 km (5.0) + 4 pairs (2.0) + 2 splices (0.2) + 1:16 (14.0) = 21.2; 29 - 21.2 = 7.8
-  //   Level 2: X 8.4 km (4.2) + 4 (2.0) + 3 (0.3) + 17.5 = 24.0; Y 13.0 km (6.5) + 4 (2.0) + 5 (0.5) + 17.5 = 26.5; 31 - 26.5 = 4.5
-  //   Level 3: 0.4 km (0.2) + 3 pairs (1.5) + 1:4 (7.0) = 8.7; + 10 = 18.7
+  // Worked examples, hand-checked here against the 8 to 28 dB window:
+  //   Level 1: 10.0 km (5.0) + 4 connectors (2.0) + 2 splices (0.2) + 1:16 (14.0) = 21.2; 28 - 21.2 = 6.8
+  //   Level 2: X 8.8 km (4.4) + 4 connectors (2.0) + 3 splices (0.3) + 1:32 (17.5) = 24.2
+  //            Y 13.0 km (6.5) + 4 connectors (2.0) + 5 splices (0.5) + 1:32 (17.5) = 26.5; 28 - 26.5 = 1.5
+  //   Level 3: 1.0 km (0.5) + 3 connectors (1.5) + 1:2 (3.5) = 5.5; + 10 = 15.5
   const examples = [
-    { level: 'level-1', includes: ['21.2 dB', '7.8 dB', '29 dB'], ledger: ['Fiber 5.0 + connector pairs 2.0 + splices 0.2 + splitter 14.0 = 21.2 dB'], title: '10.0 km' },
-    { level: 'level-2', includes: ['24.0 dB', '26.5 dB', '4.5 dB', '16 to 31 dB'], ledger: ['= 24.0 dB', '= 26.5 dB'], title: '1:32' },
-    { level: 'level-3', includes: ['8.7 dB', '18.7 dB', '10.0 dB', '14 dB'], ledger: ['Fiber 0.2 + connector pairs 1.5 + splitter 7.0 + attenuator 10.0 = 18.7 dB'], title: '10 dB' },
+    { level: 'level-1', includes: ['21.2 dB', '6.8 dB', '28 dB'], ledger: ['Fiber 5.0 + connectors 2.0 + splices 0.2 + splitter 14.0 = 21.2 dB'], title: '10.0 km' },
+    { level: 'level-2', includes: ['24.2 dB', '26.5 dB', '1.5 dB', '8 to 28 dB'], ledger: ['Fiber 4.4 + connectors 2.0 + splices 0.3 + splitter 17.5 = 24.2 dB', 'Fiber 6.5 + connectors 2.0 + splices 0.5 + splitter 17.5 = 26.5 dB'], title: '1:32' },
+    { level: 'level-3', includes: ['5.5 dB', '15.5 dB', '10.0 dB', '8 dB'], ledger: ['Fiber 0.5 + connectors 1.5 + splitter 3.5 + attenuator 10.0 = 15.5 dB'], title: '10 dB' },
   ];
   for (const example of examples) {
     test(`feedback/${example.level}/the briefing is filled and its worked example is computed`, () => {
@@ -182,7 +184,9 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
       assertIncludes(briefing.example.title, example.title);
       const ledgers = briefing.example.onts.map((o) => o.ledgerText).join('\n');
       for (const part of example.ledger) assertIncludes(ledgers, part);
-      assertTrue(briefing.sources.length >= 1 && briefing.sources.every((s) => s.title && s.section && s.url.startsWith('https://')), 'sources are cited');
+      assertTrue(briefing.sources.length >= 2 && briefing.sources.every((s) => s.title && s.section && (s.url === undefined || s.url.startsWith('https://'))), 'sources are cited');
+      assertTrue(briefing.sources.some((s) => s.url), 'at least one cited source is a published one');
+      assertEqual(briefing.sources[0].id, 'R7', 'the window\'s own source, the owner\'s decision, is cited first');
     });
   }
 
@@ -196,10 +200,11 @@ export default async function define({ test, assertEqual, assertTrue, assertIncl
   test('feedback/the model panel is filled and lists every source', () => {
     const model = describeModel(content);
     for (const text of [...model.rule, ...model.assumptions, ...model.leftOut]) assertNotIncludes(text, '{');
-    assertIncludes(model.rule.join(' '), '14 dB to 29 dB');
+    assertIncludes(model.rule.join(' '), '8 dB to 28 dB');
+    assertDeepEqual(model.classes, [{ name: 'design', label: 'Loss window', text: '8 to 28 dB' }], 'one window, shown without a class name');
     assertIncludes(model.assumptions.join(' '), '0.5 dB per km');
     assertEqual(model.sources.length, content.sources.length);
-    assertEqual(model.lossCard.length, 9, 'fiber, connector pair, splice and six splitters');
+    assertEqual(model.lossCard.length, 9, 'fiber, connector, splice and six splitters');
     assertIncludes(model.lossCard.map((row) => `${row.label} ${row.value}`).join('; '), '1:32 splitter 17.5 dB');
   });
 

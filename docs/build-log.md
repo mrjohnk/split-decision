@@ -42,6 +42,10 @@ A running record kept by the build agent while the game was made. Times are UTC 
 | 2026-11-19 15:34 | Owner | Said he would review the game in the evening, and intends to submit before the deadline of 2026-11-20. |
 | 2026-11-19 15:32–15:41 | Packaging | The plan, research notes, UI contract and task list brought in line with the game as built. Requirement traceability of the browser checks corrected against the specification's numbering, and three assertions added (FR-003, FR-005, FR-026). One unit test added for FR-002. README, `ARCADE.md` and the verification record written. Unit tests 158, oracle 169 comparisons, browser checks 23, all passing at 15:41. |
 | 2026-11-19 15:42 | Fresh copy | Commit f5c2bfa cloned into an empty folder: 158 unit tests, 169 oracle comparisons and 23 browser checks all passed there, and the README's run command served the game. This is the recorded build finish: 15:42:50. |
+| 2026-11-19 15:42–15:47 | Hardening | Opened straight from a folder the page waited forever on "Loading": a plain script now says how to serve it, with a browser check. An attempt to install Firefox and WebKit for cross-browser checks was refused by the workspace's network rules, so only Chrome was tested. The axe-core accessibility engine (4.14.1, from the npm registry) was added to the browser checks as an optional audit; its first run found one fault, a skipped heading level at a revealed hint. |
+| 2026-11-19 15:45 | Owner, first review | He asked for a loss window from 8 dB to 28 dB, closer to what he has seen in the field. |
+| 2026-11-19 15:47 | Owner, first review | "Connector pair" sounds like two fibers; a PON has one fiber to each ONT. |
+| 2026-11-19 15:47–16:04 | Owner's changes, phase 7 | Applied in the build's usual order. Specification first: the two answers in Clarifications, decisions D11 and D12, reference R7, and every case re-worked by hand for the 8 to 28 dB window, with new plants for rounds 2-1, 2-2, 3-1 and 3-2 (a throwaway decimal script agreed with all of them). Then the answer-key fixture: 52 of 158 unit tests failed against the old content, as they should. Then the constitution (1.1.0), the data fields (`connectors`, `connectorDb`), the content file, the engine (class name shown only when there are several windows; a source may be a decision with no link), and the expected values in the tests. One real fault surfaced: two worked examples repeated a challenge's number (FR-002). Analysis pass 3 recorded nine findings, none critical, and one open point for the owner (path loss in dB, or receive level in dBm). At 16:04: 159 unit tests, 172 oracle comparisons and 25 browser checks, all passing; 14 of 14 planted bugs caught. |
 
 ## Step records
 
@@ -68,4 +72,34 @@ Conflicts flagged (not silently resolved):
   3. C1 requires that rounding never decide an answer. This forces a content rule (every total
      exact to 0.1 dB) that the plan and the validator must carry.
 Follow-up TODOs: none deferred. Ratification date is the adoption date, 2026-11-19.
+```
+
+### Constitution amendment 1.1.0: Sync Impact Report
+
+```text
+Sync Impact Report
+Version change: 1.0.0 → 1.1.0
+Bump rationale: MINOR. The owner changed the model on 2026-11-19 after playing the first build.
+No principle was removed or redefined; the statement of the rule inside Principle I and the
+section "Scope and Model Boundaries" were updated.
+Modified sections:
+  Principle I, second paragraph: "the XGS-PON optical path loss window ... the loss window of the
+    PON's class" → "the optical path loss window of a PON ... the game's loss window";
+    "connector pairs" → "connectors".
+  Scope and Model Boundaries, Model: two classes of ITU-T G.9807.1 (N1 14 to 29 dB, N2 16 to
+    31 dB) → one loss window, 8 to 28 dB, the designer's planning window set by the owner; the
+    standard's classes are cited beside it. Adds: a PON is a single fiber.
+  Assumptions: "connector pair 0.5 dB" → "connector 0.5 dB (one mated connection)".
+  Exclusions: "the B+, C+, E1 and E2 classes" → "the standard's loss classes, its limit on the
+    difference between two paths".
+Added sections: none. Removed sections: none.
+Templates and artifacts checked: spec.md (decisions D11, D12; Technical Model; hand-worked cases),
+  plan.md (changes 11 to 14), tasks.md (phase 7), data-model.md, contracts, research.md,
+  quickstart.md, README.md, ARCADE.md. Analysis run again (pass 3).
+Conflicts flagged (not silently resolved):
+  1. The game's title still says "XGS-PON" while the window is no longer an XGS-PON class. Kept,
+     because the owner did not ask to change it; the model panel states the difference.
+  2. 8 and 28 are also the usual limits of an ONT's receive level in dBm. Applied as path loss in
+     dB, as written. Open point for the owner.
+Follow-up TODOs: the owner's answer to conflict 2.
 ```

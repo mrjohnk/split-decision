@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-19
 
-**Status**: Clarified (5 questions, 2026-11-19)
+**Status**: Clarified (5 questions, 2026-11-19). Amended after the owner's first review (2 changes, 2026-11-19)
 
 **Input**: User description: "Read `StarterKit/SPEC.md`. Specify this game's first playable version, preserving the learning outcomes, non-goals, and acceptance criteria."
 
@@ -23,6 +23,14 @@ recommended option and recorded it here. Every answer is open to change by the o
 - Q: What happens to the previous feedback when the player selects a different option before submitting again? → A: It stays on screen, labeled with the option it describes, until the next submission or screen change.
 - Q: How does the session summary describe help, given that hints carry no penalty? → A: Three separate figures for each round (attempts, hints used, worked solution viewed) and two totals: rounds solved without the worked solution, and rounds solved with no help at all. No score, grade or mastery label.
 
+### Session 2026-11-19, the owner's first review
+
+The owner played the first playable build and sent two changes. They are requirements changes, so they were made here first, then in the hand-worked cases, then in the content and the code.
+
+- Q: Which loss window should the game use? → A (owner): use 8 dB and 28 dB as the limits, which is closer to what he has seen in the field. Applied as decision D11: one loss window, 8 to 28 dB, for all six rounds. It replaces the two classes of the first version (N1, 14 to 29 dB, and N2, 16 to 31 dB). The game presents it as the designer's planning window, taken from the owner's field experience, and does not call it a class of the standard; the standard's classes stay in the reference list so that nobody takes the game's window for a quotation of ITU-T G.9807.1. Rounds 2-1, 2-2, 3-1 and 3-2 and the worked examples of levels 2 and 3 were re-worked by hand so that each round still has exactly one answer.
+- Open point for the owner, recorded by the build agent: 8 and 28 are also the usual limits of an ONT's receive level, −8 to −28 dBm. The game measures path loss in dB, and the numbers were applied as loss limits, as written. If receive level was meant, the game would need a launch power on the loss card and would show dBm at each ONT.
+- Q: Does "connector pair" read as two fibers? → A (owner): it can. A PON has one fiber to each ONT, the connection at the ONT included. Applied as decision D12: the game says "connector", meaning one mated connection on the single fiber (where two fiber ends plug together in an adapter), and the first briefing states that a PON runs on one fiber, with both directions on the same strand.
+
 ## User Scenarios & Testing *(mandatory)*
 
 The player is an outside-plant designer in the fictional Saguaro Valley fiber build. Each round is a work order: a small passive optical network (PON) drawn from the OLT port to its nearest and farthest ONTs. The player picks one design option. The game shows whether every ONT ends up with the right amount of light, and why.
@@ -38,8 +46,8 @@ As a learner, I want to apply the loss-budget rule to a work order I can see, su
 **Acceptance Scenarios**:
 
 1. **AC1** — **Given** a fresh session, **When** the game starts, **Then** the Level 1 briefing is shown and no challenge can be answered until the player chooses to start the level.
-2. **AC2** — **Given** round 1-1 (Mesquite Lane: N1 window 14 to 29 dB; ONT A with 14.0 km of fiber, 4 connector pairs and 4 splices; options 1:16, 1:32, 1:64), **When** the player submits 1:32, **Then** the round is marked solved, ONT A shows 26.9 dB inside the window, and the explanation shows the ledger 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB.
-3. **AC3a** — **Given** round 1-1, **When** the player submits 1:64, **Then** feedback says ONT A is too dark, 30.4 dB being 1.4 dB over the 29 dB maximum, completion stays unchanged, and the player can retry.
+2. **AC2** — **Given** round 1-1 (Mesquite Lane: loss window 8 to 28 dB; ONT A with 14.0 km of fiber, 4 connectors and 4 splices; options 1:16, 1:32, 1:64), **When** the player submits 1:32, **Then** the round is marked solved, ONT A shows 26.9 dB inside the window, and the explanation shows the ledger 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB.
+3. **AC3a** — **Given** round 1-1, **When** the player submits 1:64, **Then** feedback says ONT A is too dark, 30.4 dB being 2.4 dB over the 28 dB maximum, completion stays unchanged, and the player can retry.
 4. **AC3b** — **Given** round 1-1, **When** the player submits 1:16, **Then** feedback says the design works at 23.4 dB and serves 16 homes, and that a larger option also fits, without naming it; completion stays unchanged, and the player can retry.
 5. **AC4** — **Given** any open round with no option selected, **When** the player submits, **Then** input guidance appears and attempts and completion remain unchanged.
 
@@ -98,13 +106,13 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 
 - **FR-001**: The game MUST open a fresh session on the Level 1 briefing, and MUST NOT accept an answer before the player starts the level. *(AC1)*
 - **FR-002**: Each level MUST open with a briefing that names the level's concept, defines its new terms and shows a worked example whose numbers differ from every challenge.
-- **FR-003**: Each round MUST show the PON diagram, a table of each ONT's path (fiber km, connector pairs, splices, installed splitters), the loss card, the class window, the goal, and every option with the number of homes it serves.
+- **FR-003**: Each round MUST show the PON diagram, a table of each ONT's path (fiber km, connectors, splices, installed splitters), the loss card, the loss window, the goal, and every option with the number of homes it serves.
 - **FR-004**: The player MUST be able to reopen the current level's briefing during a round without changing attempts, assistance or completion.
 - **FR-005**: The player MUST select exactly one option and submit it explicitly. Selecting an option MUST NOT grade it.
 
 **The rule**
 
-- **FR-006**: The game MUST compute each ONT's optical path loss as the sum of the losses of every element on its path: fiber km × the card's fiber value, connector pairs × the card's connector value, splices × the card's splice value, each splitter at the card's value for its ratio, and each attenuator at face value. Totals MUST be exact to 0.1 dB.
+- **FR-006**: The game MUST compute each ONT's optical path loss as the sum of the losses of every element on its path: fiber km × the card's fiber value, connectors × the card's connector value, splices × the card's splice value, each splitter at the card's value for its ratio, and each attenuator at face value. Totals MUST be exact to 0.1 dB.
 - **FR-007**: The game MUST class each ONT as inside the window (minimum ≤ loss ≤ maximum), too dark (loss above the maximum) or too bright (loss below the minimum).
 - **FR-008**: An option MUST be treated as valid only when every ONT in the round is inside the window. The answer to a round MUST be the valid option that serves the most homes.
 
@@ -139,11 +147,11 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 
 ### Key Entities
 
-- **Loss card**: the planning loss of each kind of element: fiber per km, connector pair, fusion splice, and each splitter ratio.
-- **Loss class**: a named window with a minimum and a maximum optical path loss (N1, N2).
-- **Plant**: the PON of a round: the OLT port, fiber segments with their connector pairs and splices, splitters (installed, or left open for the option to choose) and ONTs.
+- **Loss card**: the planning loss of each kind of element: fiber per km, connector, fusion splice, and each splitter ratio.
+- **Loss window**: the minimum and the maximum optical path loss a design may have. Version one has one window, 8 to 28 dB (decision D11). The content format still holds windows as named classes, so content with several windows names each one to the player.
+- **Plant**: the PON of a round: the OLT port, fiber segments with their connectors and splices, splitters (installed, or left open for the option to choose) and ONTs.
 - **Option**: one design the player can choose: the ratios of the open splitters, the attenuators and where they sit, and the number of homes served.
-- **Round**: a work order: a class, a plant, a goal, its options, its hints and its explanations.
+- **Round**: a work order: its loss window, a plant, a goal, its options, its hints and its explanations.
 - **Level**: a briefing and two rounds that share one concept and one learning outcome.
 - **Source**: a reference with a title, a link, a section and the claim it supports.
 - **Evaluation**: for one option, each ONT's ledger, total and state, whether the option is valid, and its outcome against the round's answer.
@@ -168,7 +176,7 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 - Players use a current desktop or laptop browser; a phone-width window is supported for layout, without touch-specific gestures. A typical laptop window is taken as 1366 × 768 CSS pixels.
 - The game is in English and uses kilometres and decibels to one decimal place.
 - The ONTs shown in a round are the nearest and the farthest on that PON, and every other home lies between them.
-- "Homes served" counts customer ports. In round 3-2 one of the 33 is a business.
+- "Homes served" counts customer ports. In round 3-1 the two customers are shops, and in round 3-2 one of the 33 is a business.
 - The loss card is given to the player as the job's planning values. It is not derived from a measurement.
 - Developer tooling (a terminal test run, an independent answer-key check, a browser automation run) is not needed to play.
 
@@ -176,31 +184,32 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 
 | ID | After playing, the learner can… | The game asks them to… | Evidence of success |
 | --- | --- | --- | --- |
-| LO1 | Calculate one ONT's optical path loss by adding fiber, connector, splice and splitter losses, and compare it with the class maximum | Choose the largest splitter a single path can carry | The largest in-window split is submitted in rounds 1-1 and 1-2 |
+| LO1 | Calculate one ONT's optical path loss by adding fiber, connector, splice and splitter losses, and compare it with the maximum of the loss window | Choose the largest splitter a single path can carry | The largest in-window split is submitted in rounds 1-1 and 1-2 |
 | LO2 | Apply the loss window to every ONT on a PON and compare competing designs, including two-stage splits | Choose among single and two-stage splitter designs for a PON with several ONTs | The design that keeps the farthest ONT in the window and serves the most homes is submitted in rounds 2-1 and 2-2 |
 | LO3 | Recognize a path with less than the minimum loss and correct it with attenuation in the right place | Choose the attenuator, and where it goes, for PONs with a very short path | The only design that brings every ONT inside the window is submitted in rounds 3-1 and 3-2 |
 
 ## Technical Model
 
-1. An ONT's optical path loss, in dB, is the sum of every element between the OLT port and that ONT: fiber km × 0.5, connector pairs × 0.5, fusion splices × 0.1, each splitter on the path, and each attenuator on the path.
-2. An ONT is inside the window when its loss is at least the class minimum and at most the class maximum, limits included. N1 is 14 to 29 dB. N2 is 16 to 31 dB. Above the maximum the ONT is "too dark". Below the minimum it is "too bright".
+1. An ONT's optical path loss, in dB, is the sum of every element between the OLT port and that ONT: fiber km × 0.5, connectors × 0.5, fusion splices × 0.1, each splitter on the path, and each attenuator on the path.
+2. An ONT is inside the window when its loss is at least the window's minimum and at most its maximum, limits included. The window is 8 to 28 dB in every round (decision D11; reference R7). Above the maximum the ONT is "too dark". Below the minimum it is "too bright".
 3. An option is valid when every ONT shown is inside the window.
 4. The answer is the valid option that serves the most homes.
 
-**Loss card**: fiber 0.5 dB/km; connector pair 0.5 dB; fusion splice 0.1 dB; splitters 1:2 3.5 dB, 1:4 7.0 dB, 1:8 10.5 dB, 1:16 14.0 dB, 1:32 17.5 dB, 1:64 21.0 dB; attenuators at face value.
+**Loss card**: fiber 0.5 dB/km; connector 0.5 dB; fusion splice 0.1 dB; splitters 1:2 3.5 dB, 1:4 7.0 dB, 1:8 10.5 dB, 1:16 14.0 dB, 1:32 17.5 dB, 1:64 21.0 dB; attenuators at face value.
 
-**Outside the model**: a real design checks the upstream wavelength (1260 to 1280 nm) and the downstream wavelength (1575 to 1580 nm) separately, because fiber loses more per km upstream; the game uses one fiber value for both. A real budget also reserves margin for repairs and ageing. Transmitter power, receiver sensitivity, reflectance, dispersion, bend loss, splitter port-to-port variation, the other loss classes (B+, C+, E1, E2), the maximum fiber distance, ranging and activation are not modeled.
+**Outside the model**: a real design checks the upstream wavelength (1260 to 1280 nm) and the downstream wavelength (1575 to 1580 nm) separately, because fiber loses more per km upstream; the game uses one fiber value for both. A real budget also reserves margin for repairs and ageing. Transmitter power, receiver sensitivity, reflectance, dispersion, bend loss, splitter port-to-port variation, the standard's loss classes (reference R1), the maximum fiber distance, ranging and activation are not modeled.
 
 ### References
 
 | ID | Reference | Section | Claim it supports |
 | --- | --- | --- | --- |
-| R1 | ITU-T G.9807.1 (02/2023), XGS-PON. https://www.itu.int/rec/T-REC-G.9807.1-202302-I | Annex B, clause B.6.1, Table B.6.1 | Loss classes: N1 minimum 14 dB and maximum 29 dB; N2 minimum 16 dB and maximum 31 dB. Where an architecture gives less than the class minimum loss, the ODN must add optical attenuators to protect receivers. |
+| R1 | ITU-T G.9807.1 (02/2023), XGS-PON. https://www.itu.int/rec/T-REC-G.9807.1-202302-I | Annex B, clause B.6.1, Table B.6.1 | A PON's optics work inside a loss window with a minimum and a maximum. The standard's classes: N1 minimum 14 dB and maximum 29 dB; N2 minimum 16 dB and maximum 31 dB. The game does not use these classes (decision D11); they are cited so the difference is in the open. Where an architecture gives less than the minimum loss, the ODN must add optical attenuators to protect receivers. |
 | R2 | ITU-T G.9807.1 (02/2023) | Annex B, clauses B.9.2.6.1 and B.9.2.8.1, Tables B.9.2, B.9.3 and B.9.4 | The attenuation range applies between the OLT and ONU reference points and includes splices, connectors, optical attenuators and other passive devices. Maximum differential optical path loss is 15 dB. Downstream 1575 to 1580 nm, upstream 1260 to 1280 nm. |
 | R3 | ITU-T G.652 (08/2024), single-mode fibre and cable. https://www.itu.int/epublications/publication/itu-t-g-652-2024-08-characteristics-of-a-single-mode-optical-fibre-and-cable | Appendix I, Table I.1; clause 8, Table 2, Note 2 | Typical link attenuation is 0.5 dB/km for 1260 to 1360 nm and 0.35 dB/km for 1565 to 1625 nm. G.652.D cable maximum is 0.40 dB/km from 1310 to 1625 nm, plus 0.07 dB/km to extend to 1260 nm. |
 | R4 | The FOA Reference Guide, "Guidelines On What Loss To Expect When Testing Fiber Optic Cables". https://www.thefoa.org/tech/loss-est.htm | Connector and splice paragraphs | Typical connector loss is about 0.3 dB; TIA-568 allows up to 0.75 dB per mated pair and 0.3 dB per splice. |
 | R5 | The FOA Reference Guide, "Using Attenuators With Fiber Optic Data Links". https://www.thefoa.org/tech/ref/appln/attenuators.html | Worked example | A receiver overloads when cable plant loss is below a minimum; an attenuator adds the missing loss. |
 | R6 | TEC GR/TX/OPT-001/01/APR-12, generic requirements for optical splitters. https://tec.gov.in/pdf/GRFA/TEC-GR-FA-OPT-001-01-APR-12.pdf | Insertion loss table | One published set of maximum splitter insertion losses: 4.0, 7.1, 10.5, 13.8, 17.1 and 20.5 dB for 1×2 to 1×64. |
+| R7 | The project owner's field practice. No link: it is a decision, recorded here | Owner's review of 2026-11-19; decision D11 | The game's loss window, 8 to 28 dB, as closer to what the owner has seen in deployed networks than the standard's classes. |
 
 ## Version-one Content
 
@@ -208,7 +217,7 @@ Three levels, two rounds per level, six rounds in all. One new example per round
 
 | Level | Rounds | New concept | Misconception to expose |
 | --- | --- | --- | --- |
-| 1 · Add it up (LO1) | 1-1 Mesquite Lane, 1-2 Ocotillo Ranch Road | Path loss is the sum of every element; compare it with the class maximum | "Only the fiber and the splitter matter" |
+| 1 · Add it up (LO1) | 1-1 Mesquite Lane, 1-2 Ocotillo Ranch Road | Path loss is the sum of every element; compare it with the window's maximum | "Only the fiber and the splitter matter" |
 | 2 · The farthest home sets the limit (LO2) | 2-1 Palo Verde Loop, 2-2 Cholla Crossing | The window applies to every ONT; stage losses add | "Budget for a typical home", "two small splitters lose less than one big one" |
 | 3 · Too much light (LO3) | 3-1 Ironwood Court, 3-2 Agave Works | The window has a minimum; attenuation fixes it only in the right place | "Less loss is always safer", "an attenuator anywhere will do" |
 
@@ -216,84 +225,86 @@ Progression is sequential. Retry has no penalty. Completion requires a correct s
 
 ## Hand-worked Cases
 
-These expected results were written before any code existed. All values are in dB. "Before the choice" is the loss from fixed elements only. Case IDs are `round/option`.
+These expected results are written before the content and the code they test. Rounds 1-1 and 1-2 keep the plants of the first version. Rounds 2-1 to 3-2 were re-worked on 2026-11-19 for the owner's loss window (decision D11), again before the content file was changed, and the arithmetic was cross-checked with a throwaway script that is not part of the repository. All values are in dB. The loss window is 8 to 28 in every round. "Before the choice" is the loss from fixed elements only. Case IDs are `round/option`.
 
-### Round 1-1 · Mesquite Lane (N1, 14 to 29)
+### Round 1-1 · Mesquite Lane
 
-Plant: OLT port → 13.0 km, 2 connector pairs, 3 splices → splitter (chosen) → 1.0 km, 2 connector pairs, 1 splice → ONT A, the farthest home.
-ONT A: fiber 14.0 km (7.0), 4 connector pairs (2.0), 4 splices (0.4). Before the choice: 9.4.
+Plant: OLT port → 13.0 km, 2 connectors, 3 splices → splitter (chosen) → 1.0 km, 2 connectors, 1 splice → ONT A, the farthest home.
+ONT A: fiber 14.0 km (7.0), 4 connectors (2.0), 4 splices (0.4). Before the choice: 9.4.
 
 | Case | Option | Homes | ONT A | Outcome |
 | --- | --- | --- | --- | --- |
 | r1-1/o16 | 1:16 splitter (14.0) | 16 | 23.4 inside | valid-not-best |
 | r1-1/o32 | 1:32 splitter (17.5) | 32 | 26.9 inside | **best-valid (answer)** |
-| r1-1/o64 | 1:64 splitter (21.0) | 64 | 30.4, over by 1.4 | over-max |
+| r1-1/o64 | 1:64 splitter (21.0) | 64 | 30.4, over by 2.4 | over-max |
 
-### Round 1-2 · Ocotillo Ranch Road (N1, 14 to 29)
+### Round 1-2 · Ocotillo Ranch Road
 
-Plant: OLT port → 18.0 km, 2 connector pairs, 3 splices → splitter (chosen) → 1.0 km, 2 connector pairs, 1 splice → ONT A, the farthest home.
-ONT A: fiber 19.0 km (9.5), 4 connector pairs (2.0), 4 splices (0.4). Before the choice: 11.9.
+Plant: OLT port → 18.0 km, 2 connectors, 3 splices → splitter (chosen) → 1.0 km, 2 connectors, 1 splice → ONT A, the farthest home.
+ONT A: fiber 19.0 km (9.5), 4 connectors (2.0), 4 splices (0.4). Before the choice: 11.9.
 
 | Case | Option | Homes | ONT A | Outcome |
 | --- | --- | --- | --- | --- |
 | r1-2/o16 | 1:16 splitter (14.0) | 16 | 25.9 inside | **best-valid (answer)** |
-| r1-2/o32 | 1:32 splitter (17.5) | 32 | 29.4, over by 0.4 | over-max. Without connectors and splices it would look like 27.0 |
-| r1-2/o64 | 1:64 splitter (21.0) | 64 | 32.9, over by 3.9 | over-max |
+| r1-2/o32 | 1:32 splitter (17.5) | 32 | 29.4, over by 1.4 | over-max. Without connectors and splices it would look like 27.0, which is inside |
+| r1-2/o64 | 1:64 splitter (21.0) | 64 | 32.9, over by 4.9 | over-max |
 
-### Round 2-1 · Palo Verde Loop (N2, 16 to 31)
+### Round 2-1 · Palo Verde Loop
 
-Plant: OLT port → 10.0 km, 2 connector pairs, 2 splices → splitter (chosen) → three drops. ONT A, nearest: 0.2 km, 2 pairs, 1 splice. ONT B: 2.0 km, 2 pairs, 2 splices. ONT C, farthest: 6.0 km, 2 pairs, 4 splices.
-ONT A: 10.2 km (5.1), 4 pairs (2.0), 3 splices (0.3): 7.4. ONT B: 12.0 km (6.0), 4 pairs (2.0), 4 splices (0.4): 8.4. ONT C: 16.0 km (8.0), 4 pairs (2.0), 6 splices (0.6): 10.6.
+Plant: OLT port → 4.0 km, 2 connectors, 2 splices → splitter (chosen) → three drops. ONT A, nearest: 0.2 km, 2 connectors, 1 splice. ONT B: 2.0 km, 2 connectors, 2 splices. ONT C, farthest: 6.0 km, 2 connectors, 4 splices.
+ONT A: 4.2 km (2.1), 4 connectors (2.0), 3 splices (0.3): 4.4. ONT B: 6.0 km (3.0), 4 connectors (2.0), 4 splices (0.4): 5.4. ONT C: 10.0 km (5.0), 4 connectors (2.0), 6 splices (0.6): 7.6.
 
 | Case | Option | Homes | ONT A | ONT B | ONT C | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
-| r2-1/o16 | 1:16 splitter (14.0) | 16 | 21.4 | 22.4 | 24.6 | valid-not-best |
-| r2-1/o32 | 1:32 splitter (17.5) | 32 | 24.9 | 25.9 | 28.1 | **best-valid (answer)** |
-| r2-1/o64 | 1:64 splitter (21.0) | 64 | 28.4 | 29.4 | 31.6, over by 0.6 | over-max at ONT C |
+| r2-1/o16 | 1:16 splitter (14.0) | 16 | 18.4 | 19.4 | 21.6 | valid-not-best |
+| r2-1/o32 | 1:32 splitter (17.5) | 32 | 21.9 | 22.9 | 25.1 | **best-valid (answer)** |
+| r2-1/o64 | 1:64 splitter (21.0) | 64 | 25.4 | 26.4 | 28.6, over by 0.6 | over-max at ONT C |
 
-### Round 2-2 · Cholla Crossing (N2, 16 to 31)
+### Round 2-2 · Cholla Crossing
 
-Plant: OLT port → 6.0 km, 2 connector pairs, 2 splices → first-stage splitter (chosen) → 2.0 km, 1 pair, 1 splice → second-stage 1:16 splitter (installed) → two drops. ONT A, nearest: 0.2 km, 2 pairs, 1 splice. ONT B, farthest: 1.0 km, 2 pairs, 2 splices.
-ONT A: 8.2 km (4.1), 5 pairs (2.5), 4 splices (0.4): 7.0 before any splitter. ONT B: 9.0 km (4.5), 5 pairs (2.5), 5 splices (0.5): 7.5 before any splitter.
+Plant: OLT port → 4.0 km, 2 connectors, 2 splices → first-stage splitter (chosen) → 2.0 km, 1 connector, 1 splice → second-stage 1:16 splitter (installed) → two drops. ONT A, nearest: 0.2 km, 2 connectors, 1 splice. ONT B, farthest: 1.0 km, 2 connectors, 2 splices.
+ONT A: 6.2 km (3.1), 5 connectors (2.5), 4 splices (0.4): 6.0 before any splitter. ONT B: 7.0 km (3.5), 5 connectors (2.5), 5 splices (0.5): 6.5 before any splitter.
 
 | Case | Option | Homes | Splitters | ONT A | ONT B | Outcome |
 | --- | --- | --- | --- | --- | --- | --- |
-| r2-2/c8x16 | 1:8 then 1:16 | 128 | 10.5 + 14.0 = 24.5 | 31.5, over by 0.5 | 32.0, over by 1.0 | over-max |
-| r2-2/c2x16 | 1:2 then 1:16 | 32 | 3.5 + 14.0 = 17.5 | 24.5 | 25.0 | valid-not-best |
-| r2-2/c4x16 | 1:4 then 1:16 | 64 | 7.0 + 14.0 = 21.0 | 28.0 | 28.5 | **best-valid (answer)** |
+| r2-2/c8x16 | 1:8 then 1:16 | 128 | 10.5 + 14.0 = 24.5 | 30.5, over by 2.5 | 31.0, over by 3.0 | over-max |
+| r2-2/c2x16 | 1:2 then 1:16 | 32 | 3.5 + 14.0 = 17.5 | 23.5 | 24.0 | valid-not-best |
+| r2-2/c4x16 | 1:4 then 1:16 | 64 | 7.0 + 14.0 = 21.0 | 27.0 | 27.5 | **best-valid (answer)** |
 
-### Round 3-1 · Ironwood Court (N1, 14 to 29)
+### Round 3-1 · Ironwood Court
 
-Plant: remote OLT port → 0.2 km, 2 connector pairs, 1 splice → installed 1:8 splitter (10.5) → ONT A: 0.0 km, 1 pair, 0 splices; ONT B: 0.2 km, 1 pair, 0 splices. An 8-unit building; every option serves 8 homes.
-ONT A: 0.2 km (0.1), 3 pairs (1.5), 1 splice (0.1), splitter 10.5: 12.2. ONT B: 0.4 km (0.2), 3 pairs (1.5), 1 splice (0.1), splitter 10.5: 12.3.
-
-| Case | Option | ONT A | ONT B | Outcome |
-| --- | --- | --- | --- | --- |
-| r3-1/none | Build it as drawn | 12.2, under by 1.8 | 12.3, under by 1.7 | under-min |
-| r3-1/a1 | 1 dB attenuator at the OLT port | 13.2, under by 0.8 | 13.3, under by 0.7 | under-min |
-| r3-1/a5 | 5 dB attenuator at the OLT port | 17.2 | 17.3 | **best-valid (answer)** |
-| r3-1/a20 | 20 dB attenuator at the OLT port | 32.2, over by 3.2 | 32.3, over by 3.3 | over-max |
-
-### Round 3-2 · Agave Works (N1, 14 to 29)
-
-Plant: OLT port → 4.0 km, 2 connector pairs, 2 splices → installed 1:2 splitter (3.5). Leg one → 0.2 km, 1 pair, 0 splices → ONT A, a business. Leg two → 3.0 km, 1 pair, 1 splice → installed 1:32 splitter (17.5) → 1.0 km, 1 pair, 1 splice → ONT B, the farthest of 32 homes. Every option serves 33 customers.
-ONT A: 4.2 km (2.1), 3 pairs (1.5), 2 splices (0.2), splitter 3.5: 7.3. ONT B: 8.0 km (4.0), 4 pairs (2.0), 4 splices (0.4), splitters 3.5 + 17.5 = 21.0: 27.4.
+Plant: remote OLT port → 0.2 km, 2 connectors, 1 splice → installed 1:2 splitter (3.5) → ONT A: 0.0 km, 1 connector, 0 splices; ONT B: 0.2 km, 1 connector, 0 splices. Two shops beside the cabinet; every option serves the same 2 customers.
+ONT A: 0.2 km (0.1), 3 connectors (1.5), 1 splice (0.1), splitter 3.5: 5.2. ONT B: 0.4 km (0.2), 3 connectors (1.5), 1 splice (0.1), splitter 3.5: 5.3.
 
 | Case | Option | ONT A | ONT B | Outcome |
 | --- | --- | --- | --- | --- |
-| r3-2/olt10 | 10 dB attenuator at the OLT port | 17.3 | 37.4, over by 8.4 | over-max at ONT B |
-| r3-2/ontA10 | 10 dB attenuator at ONT A | 17.3 | 27.4 | **best-valid (answer)** |
-| r3-2/ontB10 | 10 dB attenuator at ONT B | 7.3, under by 6.7 | 37.4, over by 8.4 | over-and-under |
-| r3-2/none | Build it as drawn | 7.3, under by 6.7 | 27.4 | under-min at ONT A |
+| r3-1/none | Build it as drawn | 5.2, under by 2.8 | 5.3, under by 2.7 | under-min |
+| r3-1/a1 | 1 dB attenuator at the OLT port | 6.2, under by 1.8 | 6.3, under by 1.7 | under-min |
+| r3-1/a5 | 5 dB attenuator at the OLT port | 10.2 | 10.3 | **best-valid (answer)** |
+| r3-1/a25 | 25 dB attenuator at the OLT port | 30.2, over by 2.2 | 30.3, over by 2.3 | over-max |
+
+A 20 dB attenuator would not do for the last option: with a window 20 dB wide, a path that is too bright by any amount lands inside the window when 20 dB is added, and the round would have two valid options.
+
+### Round 3-2 · Agave Works
+
+Plant: OLT port → 2.0 km, 2 connectors, 2 splices → installed 1:2 splitter (3.5). Leg one → 0.2 km, 1 connector, 0 splices → ONT A, a business. Leg two → 3.0 km, 1 connector, 1 splice → installed 1:32 splitter (17.5) → 1.0 km, 1 connector, 1 splice → ONT B, the farthest of 32 homes. Every option serves 33 customers.
+ONT A: 2.2 km (1.1), 3 connectors (1.5), 2 splices (0.2), splitter 3.5: 6.3. ONT B: 6.0 km (3.0), 4 connectors (2.0), 4 splices (0.4), splitters 3.5 + 17.5 = 21.0: 26.4.
+
+| Case | Option | ONT A | ONT B | Outcome |
+| --- | --- | --- | --- | --- |
+| r3-2/olt10 | 10 dB attenuator at the OLT port | 16.3 | 36.4, over by 8.4 | over-max at ONT B |
+| r3-2/ontA10 | 10 dB attenuator at ONT A | 16.3 | 26.4 | **best-valid (answer)** |
+| r3-2/ontB10 | 10 dB attenuator at ONT B | 6.3, under by 1.7 | 36.4, over by 8.4 | over-and-under |
+| r3-2/none | Build it as drawn | 6.3, under by 1.7 | 26.4 | under-min at ONT A |
 
 ### Boundary and unsupported-content cases
 
 | Case | Input state | Player action | Expected result | Why / source |
 | --- | --- | --- | --- | --- |
-| B1 · At the maximum | N1; one ONT: 18.0 km (9.0), 4 pairs (2.0), 5 splices (0.5); option 1:32 (17.5). Total 29.0 | Submit 1:32 | Inside the window; valid | Limits are included. R1 |
-| B2 · Just over | As B1 with 6 splices (0.6). Total 29.1 | Submit 1:32 | Too dark, over by 0.1 | R1 |
-| B3 · At the minimum | N1; one ONT: 2.0 km (1.0), 4 pairs (2.0), 5 splices (0.5); installed 1:8 (10.5). Total 14.0 | Submit "build as drawn" | Inside the window; valid | Limits are included. R1 |
-| B4 · Just under | As B3 with 4 splices (0.4). Total 13.9 | Submit "build as drawn" | Too bright, under by 0.1 | R1 |
+| B1 · At the maximum | One ONT: 16.0 km (8.0), 4 connectors (2.0), 5 splices (0.5); option 1:32 (17.5). Total 28.0 | Submit 1:32 | Inside the window; valid | Limits are included. D11 |
+| B2 · Just over | As B1 with 6 splices (0.6). Total 28.1 | Submit 1:32 | Too dark, over by 0.1 | D11 |
+| B3 · At the minimum | One ONT: 4.0 km (2.0), 4 connectors (2.0), 5 splices (0.5); installed 1:2 (3.5). Total 8.0 | Submit "build as drawn" | Inside the window; valid | Limits are included. D11 |
+| B4 · Just under | As B3 with 4 splices (0.4). Total 7.9 | Submit "build as drawn" | Too bright, under by 0.1 | D11 |
 | U1 · No valid option | Every option leaves an ONT outside the window | Open round | Visible content error; no grading or progress | Authoring error, not learner failure |
 | U2 · Tie for most homes | Two valid options serve the same largest number of homes | Open round | Visible content error; no grading or progress | The answer would be ambiguous |
 | U3 · Unknown component | A splitter ratio or class that is not on the loss card | Open round | Visible content error; no grading or progress | The loss cannot be computed |
@@ -312,8 +323,8 @@ The owner asked the build agent to make the design calls from the workshop's def
 | ID | Decision | Reason |
 | --- | --- | --- |
 | D1 | The game is called Split Decision and is set in the fictional Saguaro Valley | A name that describes the action; a fictional place may illustrate the rule without changing it |
-| D2 | Loss card: fiber 0.5 dB/km, connector pair 0.5 dB, splice 0.1 dB, 3.5 dB per two-way split | Easy mental arithmetic; each value is traceable to R3, R4 and R6 |
-| D3 | Classes N1 and N2 only | Two windows are enough to show that the window depends on the class |
+| D2 | Loss card: fiber 0.5 dB/km, connector 0.5 dB, splice 0.1 dB, 3.5 dB per two-way split | Easy mental arithmetic; each value is traceable to R3, R4 and R6 |
+| D3 | Superseded by D11. It was: classes N1 and N2 only | It was: two windows are enough to show that the window depends on the class |
 | D4 | One fiber value for both directions | Halves the arithmetic; the simplification is stated to the player, and a test proves it changes no shipped verdict |
 | D5 | No repair or ageing margin | Every number on screen comes from a visible element; the omission is stated |
 | D6 | Among valid options the most homes wins; a valid but smaller design is graded incorrect with its own explanation | Gives each round exactly one answer and matches the real question "how far can I split this route?" |
@@ -321,3 +332,5 @@ The owner asked the build agent to make the design calls from the workshop's def
 | D8 | Session target 10 to 15 minutes instead of the template's 5 to 10 | Each round asks for arithmetic |
 | D9 | Three levels of two rounds, as in the template | Workshop scope |
 | D10 | Feedback for a valid but smaller design says that a larger option also fits, and does not name it | A wrong answer should give a next step, not the answer; the answer is shown only by the worked solution or by solving the round |
+| D11 | **Owner's decision, 2026-11-19.** One loss window for the whole game: 8 to 28 dB. It replaces the N1 and N2 classes of the first version. The game presents it as the designer's planning window and lists the standard's classes for reference | The owner: closer to what he has seen in the field |
+| D12 | **Owner's decision, 2026-11-19.** The game says "connector", one mated connection on the single fiber, not "connector pair"; the first briefing says a PON runs on one fiber | The owner: "connector pair" can be read as two fibers, and a PON is a single fiber to the ONT |

@@ -8,11 +8,11 @@ The game MUST NOT reward a technically incorrect answer. Grading MUST be reprodu
 documented rule and the challenge inputs. Unsupported or ambiguous content is an authoring error:
 the game MUST show that the challenge is unavailable and MUST NOT grade it.
 
-The rule taught is the XGS-PON optical path loss window. An ONT's optical path loss is the sum, in
-dB, of every element between the OLT port and that ONT: fiber, connector pairs, fusion splices,
-splitters and fixed attenuators. A design is valid when every ONT's loss is inside the loss window
-of the PON's class, limits included. Among the valid designs offered in a round, the one that
-serves the most homes is the answer.
+The rule taught is the optical path loss window of a PON. An ONT's optical path loss is the sum, in
+dB, of every element between the OLT port and that ONT: fiber, connectors, fusion splices,
+splitters and fixed attenuators. A design is valid when every ONT's loss is inside the game's loss
+window, limits included. Among the valid designs offered in a round, the one that serves the most
+homes is the answer.
 
 Simplifications MUST appear in the briefing and in the README wherever they affect what the player
 can conclude. Fictional places and animations MAY illustrate a rule; they MUST NOT change it.
@@ -113,17 +113,21 @@ optical loss budgeting by choosing the splitter or attenuator design for a passi
 **First release:** one core mechanic, three short levels, a browser. The scope is the workshop's
 60-minute build scope; the build itself ran after the workshop, outside the room.
 
-**Model:** two loss classes from ITU-T G.9807.1 (02/2023), Annex B, clause B.6.1, Table B.6.1: N1
-(14 to 29 dB) and N2 (16 to 31 dB).
+**Model:** one loss window, 8 to 28 dB, for every work order. It is the designer's planning window,
+set by the owner on 2026-11-19 from his field experience (specification, decision D11). It is not
+a class of ITU-T G.9807.1 (02/2023): the standard's N1 (14 to 29 dB) and N2 (16 to 31 dB) classes
+are cited beside it so that the difference is in the open. A PON is a single fiber, and every
+element is counted once on it.
 
 **Assumptions:** component losses are the planning values printed on the game's loss card: fiber
-0.5 dB per km, connector pair 0.5 dB, fusion splice 0.1 dB, splitter 3.5 dB per two-way split,
+0.5 dB per km, connector 0.5 dB (one mated connection), fusion splice 0.1 dB, splitter 3.5 dB per two-way split,
 attenuators at face value. They are stated inputs for each work order, not measurements.
 
 **Exclusions:** one fiber planning value is used for both directions, although a real design
 checks the upstream and downstream wavelengths separately. No repair or ageing margin is reserved.
-Transmitter power, receiver sensitivity, reflectance, dispersion, bend loss, the B+, C+, E1 and E2
-classes and the maximum fiber distance are not modeled.
+Transmitter power, receiver sensitivity, reflectance, dispersion, bend loss, the standard's loss
+classes, its limit on the difference between two paths, and the maximum fiber distance are not
+modeled.
 
 ## Evidence and Workflow
 
@@ -151,4 +155,4 @@ Versioning follows semantic versioning: MAJOR for removing or redefining a princ
 new principle or materially expanded guidance, PATCH for clarifications. Compliance is reviewed at
 the plan's Constitution Check, at analysis, and before the README's verification table is filled.
 
-**Version**: 1.0.0 | **Ratified**: 2026-11-19 | **Last Amended**: 2026-11-19
+**Version**: 1.1.0 | **Ratified**: 2026-11-19 | **Last Amended**: 2026-11-19

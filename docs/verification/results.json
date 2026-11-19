@@ -1,10 +1,11 @@
 {
-  "ran": "2026-11-19T15:41:08Z",
+  "ran": "2026-11-19T16:09:32Z",
   "browser": "chromium 153.0.8010.12",
   "served_from": "/play/split-decision/",
-  "passed": 23,
+  "passed": 25,
   "failed": 0,
-  "seconds": 41.4,
+  "not_run": 0,
+  "seconds": 47.3,
   "checks": [
     {
       "id": "AC1",
@@ -19,16 +20,16 @@
       "covers": "AC2, FR-006, FR-009",
       "title": "Round 1-1 with a 1:32 splitter: solved, 26.9 dB, ledger 7.0 + 2.0 + 0.4 + 17.5",
       "status": "pass",
-      "detail": "ONT A: Fiber 7.0 + connector pairs 2.0 + splices 0.4 + splitter 17.5 = 26.9 dB",
+      "detail": "ONT A: Fiber 7.0 + connectors 2.0 + splices 0.4 + splitter 17.5 = 26.9 dB",
       "seconds": 1.6
     },
     {
       "id": "AC3a",
       "covers": "AC3a, FR-010, SC-002",
-      "title": "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 1.4 dB over 29 dB, round stays open",
+      "title": "Round 1-1 with a 1:64 splitter: too dark, 30.4 dB, 2.4 dB over 28 dB, round stays open",
       "status": "pass",
-      "detail": "Too dark ONT A: 30.4 dB. That is 1.4 dB over the N1 maximum of 29 dB. The retry solved the round on attempt 2.",
-      "seconds": 1.7
+      "detail": "Too dark ONT A: 30.4 dB. That is 2.4 dB over the maximum of 28 dB. The retry solved the round on attempt 2.",
+      "seconds": 1.8
     },
     {
       "id": "AC3b",
@@ -36,7 +37,7 @@
       "title": "Round 1-1 with a 1:16 splitter: works at 23.4 dB, a larger one also fits, the answer is not named",
       "status": "pass",
       "detail": "This design works, and a larger one also fits.",
-      "seconds": 0.4
+      "seconds": 0.5
     },
     {
       "id": "AC4",
@@ -68,7 +69,7 @@
       "title": "Next opens the following round, then the next briefing with the level summary, then the session summary",
       "status": "pass",
       "detail": "Next work order > Next level > Next work order > Next level > Next work order > See summary",
-      "seconds": 1.4
+      "seconds": 1.3
     },
     {
       "id": "AC8",
@@ -76,7 +77,7 @@
       "title": "Restart asks first; Keep playing changes nothing; Restart the game clears the session",
       "status": "pass",
       "detail": "cancel and Escape keep the session; confirm clears it",
-      "seconds": 0.9
+      "seconds": 1.0
     },
     {
       "id": "FULL",
@@ -84,7 +85,7 @@
       "title": "All 20 options of the six rounds, submitted in the page, match the hand-worked key",
       "status": "pass",
       "detail": "20 submissions compared with the key: totals, states, outcomes, limits and differences",
-      "seconds": 5.9
+      "seconds": 6.0
     },
     {
       "id": "RELOAD",
@@ -99,8 +100,8 @@
       "covers": "AC9, SC-003, FR-023",
       "title": "The whole game is played from the first briefing to the summary with the keyboard only, at 1366 x 768",
       "status": "pass",
-      "detail": "start, select, submit, hint, solution, next, restart, confirm and cancel, all by keyboard (114 key presses, no pointer)",
-      "seconds": 1.3
+      "detail": "start, select, submit, hint, solution, next, restart, confirm and cancel, all by keyboard (99 key presses, no pointer)",
+      "seconds": 1.2
     },
     {
       "id": "NAMES",
@@ -115,8 +116,8 @@
       "covers": "AC10, FR-024",
       "title": "Feedback is text, stays until the next submission or view, names its design and is announced",
       "status": "pass",
-      "detail": "Your design: 1:64 splitter. Too dark at ONT A. ONT A: 30.4 dB. That is 1.4 dB over the N1 maximum of 29 dB. The splitter is the biggest single loss on the path. Add its loss to the 9.4 dB that is already there before comparing with the maximum. Next step: look for a design that puts less loss on that path.",
-      "seconds": 0.7
+      "detail": "Your design: 1:64 splitter. Too dark at ONT A. ONT A: 30.4 dB. That is 2.4 dB over the maximum of 28 dB. The splitter is the biggest single loss on the path. Add its loss to the 9.4 dB that is already there before comparing with the maximum. Next step: look for a design that puts less loss on that path.",
+      "seconds": 0.8
     },
     {
       "id": "MOTION",
@@ -124,15 +125,15 @@
       "title": "The result is readable at once; the trace draws itself only when motion is allowed, and then stops",
       "status": "pass",
       "detail": "reduced motion: 0 animations, result present at once; otherwise the trace draws once in under 1.5 s",
-      "seconds": 2.4
+      "seconds": 2.7
     },
     {
       "id": "CONTRAST",
       "covers": "principle IV, contracts/ui.md",
       "title": "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it",
       "status": "pass",
-      "detail": "1726 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1",
-      "seconds": 2.0
+      "detail": "1717 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1",
+      "seconds": 2.1
     },
     {
       "id": "TEXTSIZE",
@@ -140,7 +141,7 @@
       "title": "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12",
       "status": "pass",
       "detail": "smallest running text 16px; smallest drawing label 12px",
-      "seconds": 1.9
+      "seconds": 2.2
     },
     {
       "id": "NARROW",
@@ -148,7 +149,7 @@
       "title": "At 320 CSS pixels wide the page never scrolls sideways and Submit, Hint and Next can be reached",
       "status": "pass",
       "detail": "36 view and width combinations at 320, 390 and 768 pixels",
-      "seconds": 8.3
+      "seconds": 8.6
     },
     {
       "id": "ORIGIN",
@@ -156,7 +157,7 @@
       "title": "A full playthrough makes no request outside the game's own origin, and the fonts come from the game",
       "status": "pass",
       "detail": "19 requests, all under /play/split-decision/ (css, html, js, json, svg, woff2); fonts: barlow-condensed-latin-500-normal.woff2, barlow-condensed-latin-600-normal.woff2, barlow-latin-400-normal.woff2, barlow-latin-500-normal.woff2, barlow-latin-600-normal.woff2",
-      "seconds": 1.7
+      "seconds": 1.6
     },
     {
       "id": "CONTENT",
@@ -171,16 +172,32 @@
       "covers": "FR-004, FR-021, FR-022",
       "title": "The briefing can be reviewed during a round; the model panel lists the rule, the limits of the model and every source",
       "status": "pass",
-      "detail": "6 sources, each with its section and an https link",
-      "seconds": 0.9
+      "detail": "7 sources: 6 published ones with an https link, and the owner's decision on the loss window",
+      "seconds": 1.0
+    },
+    {
+      "id": "AXE",
+      "covers": "principle IV",
+      "title": "The axe-core accessibility engine reports no violation in any view",
+      "status": "pass",
+      "detail": "axe-core 4.14.1: 0 violations in 12 views",
+      "seconds": 3.9
+    },
+    {
+      "id": "FOLDER",
+      "covers": "README, Play locally",
+      "title": "Opened straight from a folder, the page says how to serve it instead of waiting forever",
+      "status": "pass",
+      "detail": "view 'needs-server': This page was opened straight from a folder, and a browser will not load the game that way. Serve the folder i\u2026",
+      "seconds": 0.8
     },
     {
       "id": "UNIT",
       "covers": "SC-001",
       "title": "The unit tests pass in the browser, on the same modules the game runs",
       "status": "pass",
-      "detail": "158 passed, 0 failed, 158 total",
-      "seconds": 0.3
+      "detail": "159 passed, 0 failed, 159 total",
+      "seconds": 0.4
     },
     {
       "id": "SHOTS",
@@ -188,7 +205,7 @@
       "title": "Screenshots of the briefing and of level 3 for the record",
       "status": "pass",
       "detail": "written to docs/verification/",
-      "seconds": 1.0
+      "seconds": 1.1
     }
   ]
 }

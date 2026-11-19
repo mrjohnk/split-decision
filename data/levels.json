@@ -4,7 +4,7 @@
   "tagline": "Pick the splitter that lights every home: not too dark, not too bright.",
   "lossCard": {
     "fiberDbPerKm": 0.5,
-    "connectorPairDb": 0.5,
+    "connectorDb": 0.5,
     "spliceDb": 0.1,
     "splitterDb": {
       "2": 3.5,
@@ -21,15 +21,10 @@
     ]
   },
   "classes": {
-    "N1": {
-      "minDb": 14,
-      "maxDb": 29,
-      "sourceId": "R1"
-    },
-    "N2": {
-      "minDb": 16,
-      "maxDb": 31,
-      "sourceId": "R1"
+    "design": {
+      "minDb": 8,
+      "maxDb": 28,
+      "sourceId": "R7"
     }
   },
   "sources": [
@@ -38,7 +33,7 @@
       "title": "ITU-T G.9807.1 (02/2023), 10-Gigabit-capable symmetric passive optical network (XGS-PON)",
       "url": "https://www.itu.int/rec/T-REC-G.9807.1-202302-I",
       "section": "Annex B, clause B.6.1, Table B.6.1",
-      "claim": "Loss classes: N1 has a minimum of 14 dB and a maximum of 29 dB; N2 a minimum of 16 dB and a maximum of 31 dB. Where an architecture gives less than the class minimum, the network must add optical attenuators to protect receivers."
+      "claim": "A PON's optics work inside a loss window. The standard's classes are N1, from 14 dB to 29 dB, and N2, from 16 dB to 31 dB; the game uses the designer's window instead (R7). Where a path would lose less than the minimum, the network must add optical attenuators to protect receivers."
     },
     {
       "id": "R2",
@@ -59,7 +54,7 @@
       "title": "The FOA Reference Guide: Guidelines On What Loss To Expect When Testing Fiber Optic Cables",
       "url": "https://www.thefoa.org/tech/loss-est.htm",
       "section": "Connector and splice paragraphs",
-      "claim": "A typical connector loses about 0.3 dB. TIA-568 allows up to 0.75 dB for a mated pair and 0.3 dB for a splice."
+      "claim": "A typical connector loses about 0.3 dB. TIA-568 allows up to 0.75 dB for one mated connection and 0.3 dB for a splice."
     },
     {
       "id": "R5",
@@ -74,24 +69,32 @@
       "url": "https://tec.gov.in/pdf/GRFA/TEC-GR-FA-OPT-001-01-APR-12.pdf",
       "section": "Insertion loss table",
       "claim": "One published set of maximum splitter insertion losses: 4.0, 7.1, 10.5, 13.8, 17.1 and 20.5 dB for 1×2 to 1×64. The game's rule of 3.5 dB for each two-way split is within about half a dB of each."
+    },
+    {
+      "id": "R7",
+      "title": "The project owner's field practice",
+      "section": "Owner's review of 19 November 2026; decision D11 in the specification",
+      "claim": "The loss window used in this game, chosen by the project owner as closer to what he has seen in deployed networks. It is a planning window, not one of the standard's loss classes."
     }
   ],
   "model": {
     "rule": [
-      "An ONT's optical path loss is the sum, in dB, of everything between the OLT port and that ONT: fiber, connector pairs, fusion splices, splitters and attenuators.",
-      "Every ONT must land inside the loss window of the PON's class, limits included. N1 runs from {min:N1} to {max:N1}. N2 runs from {min:N2} to {max:N2}.",
+      "An ONT's optical path loss is the sum, in dB, of everything between the OLT port and that ONT: fiber, connectors, fusion splices, splitters and attenuators.",
+      "Every ONT must land inside the loss window, limits included: {min:design} to {max:design}.",
       "Over the maximum, too little light arrives and the ONT is too dark. Under the minimum, too much light arrives and the ONT is too bright.",
       "Among the designs that keep every ONT inside the window, the one that serves the most homes is the answer."
     ],
     "assumptions": [
-      "The loss card holds the job's planning values, not measurements: fiber {fiber} per km, a connector pair {connector}, a fusion splice {splice}, each two-way split {splitter:2}, attenuators at the value printed on them.",
+      "A PON is a single fiber. Both directions share one strand from the OLT port to the ONT, so each connector and each splice is counted once.",
+      "The loss card holds the job's planning values, not measurements: fiber {fiber} per km, a connector {connector}, a fusion splice {splice}, each two-way split {splitter:2}, attenuators at the value printed on them.",
+      "The loss window, {min:design} to {max:design}, is the designer's planning window, taken from the project owner's field experience. It is not one of the standard's loss classes, which are given in the source list.",
       "The ONTs drawn are the nearest and the farthest on the PON. Every other home lies between them."
     ],
     "leftOut": [
       "A real design checks each direction at its own wavelength. Fiber loses more per km upstream (1260 to 1280 nm) than downstream (1575 to 1580 nm). The game uses one value, the higher one, for both.",
       "A real budget keeps margin for repairs and ageing. The game keeps none, so every number on screen comes from an element you can see.",
       "Transmitter power, receiver sensitivity, reflectance, bend loss and the differences between a splitter's ports are not modeled.",
-      "XGS-PON has other loss classes (B+, C+, E1, E2) and a maximum fiber distance. The game uses N1 and N2 only.",
+      "The standard's loss classes, each with its own window, and its maximum fiber distance are not used. The game has one window for every work order.",
       "The standard also limits how far apart the losses of two paths on one PON may be. The game does not test that limit on its own; every answer in the game is within it."
     ]
   },
@@ -99,15 +102,16 @@
     {
       "id": "level-1",
       "title": "Add it up",
-      "outcome": "Work out one ONT's optical path loss and compare it with the class maximum.",
+      "outcome": "Work out one ONT's optical path loss and compare it with the maximum of the loss window.",
       "practiced": "Adding every loss on a path, small ones included, and testing the total against the maximum.",
       "briefing": {
         "intro": [
           "Welcome to Saguaro Valley. You design the outside plant of its new fiber network: the glass, the splitters and the connections between the provider's OLT and each customer's ONT.",
+          "A PON runs on a single fiber. Light travels both ways on the same strand, from the OLT port through the splitters to the ONT, so every connector and splice you count here is on that one fiber.",
           "Light leaves the OLT port and loses strength at everything it passes. Each loss is counted in decibels (dB), and decibels simply add up. The total from the OLT port to one ONT is that ONT's optical path loss.",
-          "Every PON has a loss window. For the N1 class it runs from {min:N1} to {max:N1}. In this level you need only the top of it: when a path loses more than {max:N1}, too little light arrives and the ONT is too dark.",
+          "Every PON has a loss window, set by its optics. On this network the designers work to a window of {min:design} to {max:design}. In this level you need only the top of it: when a path loses more than {max:design}, too little light arrives and the ONT is too dark.",
           "A splitter shares one fiber among many homes, and that sharing is the largest loss on the path. More homes on one OLT port means a cheaper network, so the question is always the same: what is the largest splitter the farthest home can carry?",
-          "The loss card holds this job's planning values. The game uses one fiber value for both directions and keeps no spare margin; a real design checks each direction and keeps some. Model and sources, at the top of the page, lists everything that is left out."
+          "The loss card and the loss window are this job's planning values. The game uses one fiber value for both directions and keeps no spare margin; a real design uses the limits of the optics it installs, checks each direction and keeps some. Model and sources, at the top of the page, lists everything that is left out."
         ],
         "terms": [
           {
@@ -120,15 +124,15 @@
           },
           {
             "term": "Splitter",
-            "meaning": "A passive device that divides one fiber's light among several. A 1:32 splitter serves 32 homes and costs {splitter:32} on the loss card."
+            "meaning": "A passive device that divides the light on the fiber among several outputs. A 1:32 splitter serves 32 homes and costs {splitter:32} on the loss card."
           },
           {
-            "term": "Connector pair",
-            "meaning": "Two connectors mated in an adapter, as at a patch panel: {connector} for the pair."
+            "term": "Connector",
+            "meaning": "A place where two fiber ends plug together in an adapter, as at a patch panel or at the ONT. It is one connection on the single fiber: {connector} each."
           },
           {
             "term": "Splice",
-            "meaning": "Two fibers fused end to end: {splice} each."
+            "meaning": "Two lengths of the fiber fused end to end: {splice} each."
           },
           {
             "term": "dB",
@@ -136,17 +140,17 @@
           },
           {
             "term": "Loss window",
-            "meaning": "The least and the most loss a PON's optics can work with. N1: {min:N1} to {max:N1}."
+            "meaning": "The least and the most loss the PON's optics can work with. Here: {min:design} to {max:design}."
           }
         ],
         "example": {
           "title": "Worked example: one home, {km:X} out, on a {ratio:x1} splitter",
-          "class": "N1",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
               "fiberKm": 9.0,
-              "connectorPairs": 2,
+              "connectors": 2,
               "splices": 1,
               "to": {
                 "type": "splitter",
@@ -156,7 +160,7 @@
                 "legs": [
                   {
                     "fiberKm": 1.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 1,
                     "to": {
                       "type": "ont",
@@ -169,9 +173,10 @@
             }
           },
           "attenuators": [],
-          "result": "Total {total:X}. The {class} maximum is {max}, so ONT X is inside the window with {margin:X} to spare."
+          "result": "Total {total:X}. The maximum is {max}, so ONT X is inside the window with {margin:X} to spare."
         },
         "sourceIds": [
+          "R7",
           "R1",
           "R3",
           "R4"
@@ -183,13 +188,13 @@
           "title": "Mesquite Lane",
           "place": "Work order 1-1",
           "story": "A new street at the edge of town. ONT A is the farthest home this splitter will serve, so it is the one to budget for.",
-          "goal": "Choose the largest splitter that keeps ONT A inside the {class} window.",
-          "class": "N1",
+          "goal": "Choose the largest splitter that keeps ONT A inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
               "fiberKm": 13.0,
-              "connectorPairs": 2,
+              "connectors": 2,
               "splices": 3,
               "to": {
                 "type": "splitter",
@@ -199,7 +204,7 @@
                 "legs": [
                   {
                     "fiberKm": 1.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 1,
                     "to": {
                       "type": "ont",
@@ -246,8 +251,8 @@
             }
           ],
           "hints": [
-            "List everything between the OLT port and ONT A, then add the losses: fiber at {fiber} per km, connector pairs at {connector} each, splices at {splice} each, plus the splitter. Compare the total with {max}.",
-            "Before the splitter, ONT A's path already loses {fixed:A}: fiber {fiber:A} + connector pairs {connectors:A} + splices {splices:A}. Add each splitter's loss from the loss card and see which totals stay at or under {max}."
+            "List everything between the OLT port and ONT A, then add the losses: fiber at {fiber} per km, connectors at {connector} each, splices at {splice} each, plus the splitter. Compare the total with {max}.",
+            "Before the splitter, ONT A's path already loses {fixed:A}: fiber {fiber:A} + connectors {connectors:A} + splices {splices:A}. Add each splitter's loss from the loss card and see which totals stay at or under {max}."
           ],
           "explain": "The path loses {fixed:A} before the splitter. With the {answer} it totals {total:A}, inside the window, and no larger option fits."
         },
@@ -256,13 +261,13 @@
           "title": "Ocotillo Ranch Road",
           "place": "Work order 1-2",
           "story": "A long rural road. ONT A is the last ranch on it, a long way from the OLT.",
-          "goal": "Choose the largest splitter that keeps ONT A inside the {class} window.",
-          "class": "N1",
+          "goal": "Choose the largest splitter that keeps ONT A inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
               "fiberKm": 18.0,
-              "connectorPairs": 2,
+              "connectors": 2,
               "splices": 3,
               "to": {
                 "type": "splitter",
@@ -272,7 +277,7 @@
                 "legs": [
                   {
                     "fiberKm": 1.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 1,
                     "to": {
                       "type": "ont",
@@ -319,8 +324,8 @@
             }
           ],
           "hints": [
-            "Distance costs light too. Add the fiber, the connector pairs, the splices and the splitter for ONT A, and compare the total with {max}. The small items count.",
-            "Before the splitter, ONT A's path already loses {fixed:A}: fiber {fiber:A} + connector pairs {connectors:A} + splices {splices:A}. That leaves less room for a splitter than a short route would."
+            "Distance costs light too. Add the fiber, the connectors, the splices and the splitter for ONT A, and compare the total with {max}. The small items count.",
+            "Before the splitter, ONT A's path already loses {fixed:A}: fiber {fiber:A} + connectors {connectors:A} + splices {splices:A}. That leaves less room for a splitter than a short route would."
           ],
           "explain": "This long route spends {fiber:A} on fiber alone. With the {answer} the total is {total:A}, inside the window. Every larger option goes over {max}."
         }
@@ -335,7 +340,7 @@
         "intro": [
           "One splitter serves many homes, and each home has its own path: the same OLT port, the same splitter, a different drop. Every one of those paths has to land inside the window.",
           "You do not have to work out all of them. The ONT with the most fiber, connectors and splices has the highest loss. If that ONT is at or under the maximum, so is every ONT with less loss.",
-          "These PONs use N2 optics. The N2 window runs from {min:N2} to {max:N2}, a little higher than N1 at both ends.",
+          "The window is the same as before, {min:design} to {max:design}, and it applies to each ONT on its own.",
           "Splitters can also be put in series: a small one at a cabinet feeding larger ones nearer the homes. The homes multiply, so a 1:4 followed by a 1:16 serves 64. The losses add: {splitter:4} + {splitter:16}. Splitting in two stages does not save light. You pay for both."
         ],
         "terms": [
@@ -350,20 +355,16 @@
           {
             "term": "Cascade",
             "meaning": "Splitters in series. Multiply the ratios to count the homes; add the losses."
-          },
-          {
-            "term": "N2",
-            "meaning": "A loss class with stronger optics than N1. Window: {min:N2} to {max:N2}."
           }
         ],
         "example": {
           "title": "Worked example: two homes behind a {ratio:x1} splitter",
-          "class": "N2",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
               "fiberKm": 8.0,
-              "connectorPairs": 2,
+              "connectors": 2,
               "splices": 2,
               "to": {
                 "type": "splitter",
@@ -372,8 +373,8 @@
                 "ratio": 32,
                 "legs": [
                   {
-                    "fiberKm": 0.4,
-                    "connectorPairs": 2,
+                    "fiberKm": 0.8,
+                    "connectors": 2,
                     "splices": 1,
                     "to": {
                       "type": "ont",
@@ -384,7 +385,7 @@
                   },
                   {
                     "fiberKm": 5.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 3,
                     "to": {
                       "type": "ont",
@@ -398,10 +399,10 @@
             }
           },
           "attenuators": [],
-          "result": "ONT X totals {total:X} and ONT Y, the farther one, {total:Y}. Both are inside the {class} window of {window}. ONT Y has {margin:Y} left before the maximum, and that is all the room there is for a bigger split."
+          "result": "ONT X totals {total:X} and ONT Y, the farther one, {total:Y}. Both are inside the window of {window}. ONT Y has {margin:Y} left before the maximum, and that is all the room there is for a bigger split."
         },
         "sourceIds": [
-          "R1",
+          "R7",
           "R2"
         ]
       },
@@ -411,13 +412,13 @@
           "title": "Palo Verde Loop",
           "place": "Work order 2-1",
           "story": "A loop road with homes spread along it. ONT A is beside the splitter, ONT B is partway round, and ONT C is the farm at the far end.",
-          "goal": "Choose the largest splitter that keeps every ONT inside the {class} window.",
-          "class": "N2",
+          "goal": "Choose the largest splitter that keeps every ONT inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
-              "fiberKm": 10.0,
-              "connectorPairs": 2,
+              "fiberKm": 4.0,
+              "connectors": 2,
               "splices": 2,
               "to": {
                 "type": "splitter",
@@ -427,7 +428,7 @@
                 "legs": [
                   {
                     "fiberKm": 0.2,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 1,
                     "to": {
                       "type": "ont",
@@ -438,7 +439,7 @@
                   },
                   {
                     "fiberKm": 2.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 2,
                     "to": {
                       "type": "ont",
@@ -449,7 +450,7 @@
                   },
                   {
                     "fiberKm": 6.0,
-                    "connectorPairs": 2,
+                    "connectors": 2,
                     "splices": 4,
                     "to": {
                       "type": "ont",
@@ -506,13 +507,13 @@
           "title": "Cholla Crossing",
           "place": "Work order 2-2",
           "story": "A newer subdivision, split in two stages: one splitter at the cabinet, then a {ratio:s2} at each pedestal. ONT A is the home nearest its pedestal and ONT B the farthest.",
-          "goal": "Choose the first-stage splitter that serves the most homes with every ONT inside the {class} window.",
-          "class": "N2",
+          "goal": "Choose the first-stage splitter that serves the most homes with every ONT inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
-              "fiberKm": 6.0,
-              "connectorPairs": 2,
+              "fiberKm": 4.0,
+              "connectors": 2,
               "splices": 2,
               "to": {
                 "type": "splitter",
@@ -522,7 +523,7 @@
                 "legs": [
                   {
                     "fiberKm": 2.0,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 1,
                     "to": {
                       "type": "splitter",
@@ -532,7 +533,7 @@
                       "legs": [
                         {
                           "fiberKm": 0.2,
-                          "connectorPairs": 2,
+                          "connectors": 2,
                           "splices": 1,
                           "to": {
                             "type": "ont",
@@ -543,7 +544,7 @@
                         },
                         {
                           "fiberKm": 1.0,
-                          "connectorPairs": 2,
+                          "connectors": 2,
                           "splices": 2,
                           "to": {
                             "type": "ont",
@@ -608,8 +609,8 @@
       "briefing": {
         "intro": [
           "So far the danger was too little light. The window also has a floor. An ONT's receiver is built to pick up a faint signal from far away, and a signal that arrives too strong overloads it.",
-          "For N1 the floor is {min:N1}. A path that loses less than that is too bright. It happens on short routes with small splitters: an OLT in a cabinet beside the building it serves, or a business connected ahead of the main splitter.",
-          "The cure is an attenuator: a small fixed device that adds a known loss. The standard requires one wherever a path would fall below the class minimum.",
+          "On this network the floor is {min:design}. A path that loses less than that is too bright. It takes a very short route and a very small split: two shops beside the OLT cabinet, or a business connected ahead of the main splitter.",
+          "The cure is an attenuator: a small fixed device that adds a known loss. The standard requires one wherever a path would fall below the minimum.",
           "Where it goes matters. At the OLT port it dims every ONT on the PON. At one ONT it dims only that ONT."
         ],
         "terms": [
@@ -619,31 +620,31 @@
           },
           {
             "term": "Too bright",
-            "meaning": "Loss under the class minimum: too much light reaches the receiver."
+            "meaning": "Loss under the window's minimum: too much light reaches the receiver."
           },
           {
             "term": "Too dark",
-            "meaning": "Loss over the class maximum: too little light reaches the receiver."
+            "meaning": "Loss over the window's maximum: too little light reaches the receiver."
           }
         ],
         "example": {
           "title": "Worked example: an office beside the OLT, with a {att:olt} attenuator",
-          "class": "N1",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
-              "fiberKm": 0.4,
-              "connectorPairs": 2,
+              "fiberKm": 1.0,
+              "connectors": 2,
               "splices": 0,
               "to": {
                 "type": "splitter",
                 "id": "x1",
                 "label": "Splitter",
-                "ratio": 4,
+                "ratio": 2,
                 "legs": [
                   {
                     "fiberKm": 0.0,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 0,
                     "to": {
                       "type": "ont",
@@ -664,6 +665,7 @@
           "result": "Without the attenuator this path would lose only {fixed:X}, under the {min} minimum. The attenuator adds {chosen:X} and brings it to {total:X}, inside the window."
         },
         "sourceIds": [
+          "R7",
           "R1",
           "R5"
         ]
@@ -673,41 +675,41 @@
           "id": "r3-1",
           "title": "Ironwood Court",
           "place": "Work order 3-1",
-          "story": "An 8-unit building with a remote OLT cabinet on its corner. The {ratio:s1} splitter is already installed, so every option serves the same 8 homes. ONT A is on the ground floor and ONT B on the top floor.",
-          "goal": "Choose the design that puts every ONT inside the {class} window.",
-          "class": "N1",
+          "story": "Two shops share a remote OLT cabinet on their corner. A {ratio:s1} splitter is already installed, so every option serves the same 2 customers. ONT A is the shop beside the cabinet and ONT B the one two doors down.",
+          "goal": "Choose the design that puts every ONT inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "Remote OLT port",
             "trunk": {
               "fiberKm": 0.2,
-              "connectorPairs": 2,
+              "connectors": 2,
               "splices": 1,
               "to": {
                 "type": "splitter",
                 "id": "s1",
-                "label": "Building splitter",
-                "ratio": 8,
+                "label": "Cabinet splitter",
+                "ratio": 2,
                 "legs": [
                   {
                     "fiberKm": 0.0,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 0,
                     "to": {
                       "type": "ont",
                       "id": "A",
                       "label": "ONT A",
-                      "note": "ground floor"
+                      "note": "beside the cabinet"
                     }
                   },
                   {
                     "fiberKm": 0.2,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 0,
                     "to": {
                       "type": "ont",
                       "id": "B",
                       "label": "ONT B",
-                      "note": "top floor"
+                      "note": "two doors down"
                     }
                   }
                 ]
@@ -718,16 +720,17 @@
             {
               "id": "none",
               "label": "Build it as drawn",
-              "served": 8,
+              "served": 2,
               "splitters": {},
               "attenuators": [],
               "note": "Short routes feel safe because nothing is lost on the way. That is the problem: less loss is not always safer.",
-              "expect": "under-min"
+              "expect": "under-min",
+              "servedLabel": "Serves 2 customers"
             },
             {
               "id": "a1",
               "label": "Add a {att:olt} attenuator at the OLT port",
-              "served": 8,
+              "served": 2,
               "splitters": {},
               "attenuators": [
                 {
@@ -736,33 +739,36 @@
                 }
               ],
               "note": "The right idea, and not enough of it. A path has to reach the minimum, not just move toward it.",
-              "expect": "under-min"
+              "expect": "under-min",
+              "servedLabel": "Serves 2 customers"
             },
             {
               "id": "a5",
               "label": "Add a {att:olt} attenuator at the OLT port",
-              "served": 8,
+              "served": 2,
               "splitters": {},
               "attenuators": [
                 {
                   "at": "olt",
                   "db": 5
                 }
-              ]
+              ],
+              "servedLabel": "Serves 2 customers"
             },
             {
-              "id": "a20",
+              "id": "a25",
               "label": "Add a {att:olt} attenuator at the OLT port",
-              "served": 8,
+              "served": 2,
               "splitters": {},
               "attenuators": [
                 {
                   "at": "olt",
-                  "db": 20
+                  "db": 25
                 }
               ],
               "note": "An attenuator can overshoot. Too much added loss turns a path that was too bright into one that is too dark.",
-              "expect": "over-max"
+              "expect": "over-max",
+              "servedLabel": "Serves 2 customers"
             }
           ],
           "hints": [
@@ -776,13 +782,13 @@
           "title": "Agave Works",
           "place": "Work order 3-2",
           "story": "Agave Works, a workshop beside the splitter cabinet, takes one leg of a {ratio:s1} splitter directly. The other leg feeds a {ratio:s2} for the neighborhood. ONT A is the workshop, and ONT B is the farthest of the 32 homes.",
-          "goal": "Choose the design that puts every ONT inside the {class} window.",
-          "class": "N1",
+          "goal": "Choose the design that puts every ONT inside the window.",
+          "class": "design",
           "plant": {
             "oltLabel": "OLT port",
             "trunk": {
-              "fiberKm": 4.0,
-              "connectorPairs": 2,
+              "fiberKm": 2.0,
+              "connectors": 2,
               "splices": 2,
               "to": {
                 "type": "splitter",
@@ -792,7 +798,7 @@
                 "legs": [
                   {
                     "fiberKm": 0.2,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 0,
                     "to": {
                       "type": "ont",
@@ -803,7 +809,7 @@
                   },
                   {
                     "fiberKm": 3.0,
-                    "connectorPairs": 1,
+                    "connectors": 1,
                     "splices": 1,
                     "to": {
                       "type": "splitter",
@@ -813,7 +819,7 @@
                       "legs": [
                         {
                           "fiberKm": 1.0,
-                          "connectorPairs": 1,
+                          "connectors": 1,
                           "splices": 1,
                           "to": {
                             "type": "ont",

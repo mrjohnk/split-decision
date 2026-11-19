@@ -1,5 +1,10 @@
 # Split Decision · First playable specification
 
+> **Amended by the owner's first review, 2026-11-19.** Two things in this planning input were changed after the owner played the first build, and the working specification, `specs/001-loss-budget-game/spec.md`, now governs them (its Clarifications, and decisions D11 and D12):
+>
+> 1. The game has **one loss window, 8 to 28 dB**, in place of the N1 (14 to 29 dB) and N2 (16 to 31 dB) classes used below. Rounds 2-1, 2-2, 3-1 and 3-2 were re-worked for it, so the hand-worked cases below are the first version's, kept as the record of what was asked at the time.
+> 2. The game says **"connector"**, one mated connection on the single fiber, where this file says "connector pair".
+
 ## The pitch
 
 **You are the outside-plant designer on a fiber build: choose the split, or the attenuator, so that every ONT on the PON gets neither too little light nor too much.**

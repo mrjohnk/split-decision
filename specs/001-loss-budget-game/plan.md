@@ -28,7 +28,7 @@ Split Decision is a static browser game that teaches XGS-PON optical loss budget
 
 **Constraints**: no request to another origin (FR-028); every total exact to 0.1 dB (FR-006); every core action operable by keyboard (FR-023); usable at 320 CSS pixels wide (FR-027); no information carried by motion or by color alone (FR-025, FR-026)
 
-**Scale/Scope**: 3 levels, 6 rounds, 20 options; five views (loading, content error, briefing, round, summary) and three dialogs (briefing review, model and sources, restart confirmation)
+**Scale/Scope**: 3 levels, 6 rounds, 20 options, one loss window; five views (loading, content error, briefing, round, summary) and three dialogs (briefing review, model and sources, restart confirmation)
 
 ## Constitution Check
 
@@ -146,6 +146,19 @@ Recorded on 2026-11-19, when the page was built. Each one was applied to the art
 | 8 | Nothing about where the result appears | After a submission the page moves just far enough to show the trace and the lines under it; the move is instant | On a laptop the result was below the window | contracts/ui.md |
 | 9 | The briefing ends with Start | Start stays at the bottom of the window while the briefing scrolls | A returning player should not have to scroll a page to start | contracts/ui.md |
 | 10 | The correct result's headline describes the state | It begins with "Correct." | The headline should say it | contracts/ui.md |
+
+## Changes made by the owner's first review
+
+Recorded on 2026-11-19. The owner played the first playable build and sent two changes. Each was made in the specification first (clarifications, decisions D11 and D12, the hand-worked cases), then in the answer-key fixture, then in the content and the code; the constitution was amended to version 1.1.0 and analysis was run again.
+
+| # | The first version | Now | Why | Where it is recorded |
+| --- | --- | --- | --- | --- |
+| 11 | Two loss classes of ITU-T G.9807.1: N1 (14 to 29 dB) in levels 1 and 3, N2 (16 to 31 dB) in level 2 | One loss window, 8 to 28 dB, in every round. It is shown as "Loss window", the designer's planning window, and the standard's classes are listed in the sources for reference | The owner: closer to what he has seen in the field | spec decision D11 and reference R7; constitution 1.1.0; research R-01; data-model.md |
+| 12 | "Connector pair" | "Connector": one mated connection on the single fiber. The first briefing and the model panel say that a PON runs on one fiber | The owner: "connector pair" reads as two fibers | spec decision D12; data fields `connectors`, `connectorDb` |
+| 13 | Rounds 2-1, 2-2, 3-1, 3-2 and the worked examples of levels 2 and 3 as first written | Re-worked by hand for the new window: shorter feeders in 2-1, 2-2 and 3-2; round 3-1 is two shops on a 1:2 splitter, and its overshoot option is a 25 dB attenuator | With the new limits the old plants gave a different answer, a tie, or no too-bright case | spec, Hand-worked Cases; `tests/fixtures/answer-key.json` |
+| 14 | Every source has a link | A source may be a recorded decision with no link (R7) | The window's source is the owner's decision, and the game should cite it as that | data-model.md, Source; contracts/content.md |
+
+Engine changes for 11 to 14 were small, because content is data: the class name is shown only when the content has more than one window; a source's link is optional; the fields were renamed. No rule of the evaluator changed.
 
 ## Implementation order
 

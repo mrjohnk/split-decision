@@ -21,9 +21,19 @@ function stateBadge(state, word) {
   return h('span', { class: `state state-${state}` }, icon, word);
 }
 
-/** A table that may be wider than a narrow window scrolls inside its own labeled region. */
+/**
+ * A table that may be wider than a narrow window scrolls inside its own labeled region.
+ * updateScrollRegions() makes the region a keyboard stop only while it really scrolls.
+ */
 function scrollRegion(label, table) {
-  return h('div', { class: 'scroll', role: 'region', 'aria-label': label, tabindex: '0' }, table);
+  return h('div', { class: 'scroll', role: 'region', 'aria-label': label }, table);
+}
+
+export function updateScrollRegions(root = document) {
+  for (const region of root.querySelectorAll('.scroll')) {
+    if (region.scrollWidth > region.clientWidth + 1) region.setAttribute('tabindex', '0');
+    else region.removeAttribute('tabindex');
+  }
 }
 
 function ledgerTable(ont, captionPrefix = '') {
@@ -47,17 +57,25 @@ export function redrawAll(root = document) {
     const width = Math.floor(host.clientWidth);
     if (width > 0 && typeof host.drawAt === 'function') host.drawAt(host, width);
   }
+  updateScrollRegions(root);
+}
+
+/** A source's title: a link when the source has one. A decision of the project has none. */
+function sourceTitle(source) {
+  return source.url
+    ? h('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.title)
+    : h('span', { class: 'source-title' }, source.title);
 }
 
 function sourcesLine(sources) {
   return h('p', { class: 'sources' }, 'Sources: ', sources.map((source, index) => [
     index > 0 ? '; ' : '',
-    h('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.title),
+    sourceTitle(source),
     `, ${source.section}`,
   ]), '.');
 }
 
-/** The legend of the trace: one row for each ONT, which is also that ONT's light meter. */
+/** The legend of the trace: one row for each ONT, with its total and state once a design is lit. */
 function meterRows(trace, pathRows) {
   const lit = new Map(trace.series.map((line, index) => [line.ontId, { line, index }]));
   const shared = trace.hasShared
@@ -195,12 +213,12 @@ function helpPanel(content, round, record) {
   if (record.hints === 0 && !record.solutionViewed) return null;
   const hints = describeHints(content, round);
   const items = [];
-  if (record.hints >= 1) items.push(h('div', { class: 'help-item', 'data-testid': 'hint-1' }, h('h4', {}, 'Hint 1: the method'), h('p', {}, hints[0])));
-  if (record.hints >= 2) items.push(h('div', { class: 'help-item', 'data-testid': 'hint-2' }, h('h4', {}, 'Hint 2: a worked step'), h('p', {}, hints[1])));
+  if (record.hints >= 1) items.push(h('div', { class: 'help-item', 'data-testid': 'hint-1' }, h('h3', {}, 'Hint 1: the method'), h('p', {}, hints[0])));
+  if (record.hints >= 2) items.push(h('div', { class: 'help-item', 'data-testid': 'hint-2' }, h('h3', {}, 'Hint 2: a worked step'), h('p', {}, hints[1])));
   if (record.solutionViewed) {
     const solution = describeSolution(content, round);
     items.push(h('div', { class: 'help-item', 'data-testid': 'solution-text' },
-      h('h4', {}, 'Worked solution'),
+      h('h3', {}, 'Worked solution'),
       h('p', {}, `The answer is: ${solution.answerLabel}. ${solution.servedText}.`),
       h('ul', {}, solution.onts.map((ont) => h('li', {}, `${ont.label}: ${ont.ledgerText}`))),
       h('p', {}, solution.explain),
@@ -250,20 +268,20 @@ function renderRound(app) {
     h('p', { class: 'place' }, `${view.place}, level ${state.levelIndex + 1}: ${level.title}`),
     h('h1', { id: 'view-title', tabindex: '-1', class: 'view-title' }, view.title),
     h('p', { class: 'story' }, view.story),
-    h('p', { class: 'window-line', 'data-testid': 'window' }, h('strong', {}, `${view.className} loss window: ${view.windowText}`), ', limits included.'),
+    h('p', { class: 'window-line', 'data-testid': 'window' }, h('strong', {}, `${view.windowLabel}: ${view.windowText}`), ', limits included.'),
     h('figure', { class: 'plant' },
       drawing('plant-host', (host, width) => drawPlant(host, round.plant, selectedOptionOf(app), width)),
       h('figcaption', { class: 'visually-hidden', 'data-testid': 'plant-text' }, describePlant(content, round, selectedOption)),
     ),
     h('h2', { class: 'table-title' }, 'Each ONT\'s path from the OLT port'),
     scrollRegion('Each ONT\'s path from the OLT port', h('table', { class: 'paths', 'data-testid': 'paths' },
-      h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'ONT'), h('th', { scope: 'col', class: 'num' }, 'Fiber'), h('th', { scope: 'col', class: 'num' }, 'Connector pairs'), h('th', { scope: 'col', class: 'num' }, 'Splices'), h('th', { scope: 'col' }, 'Splitters'))),
+      h('thead', {}, h('tr', {}, h('th', { scope: 'col' }, 'ONT'), h('th', { scope: 'col', class: 'num' }, 'Fiber'), h('th', { scope: 'col', class: 'num' }, 'Connectors'), h('th', { scope: 'col', class: 'num' }, 'Splices'), h('th', { scope: 'col' }, 'Splitters'))),
       h('tbody', {}, view.pathRows.map((row) => h('tr', {},
         h('th', { scope: 'row' }, row.label, row.note ? h('span', { class: 'row-note' }, `, ${row.note}`) : null),
-        h('td', { class: 'num' }, row.km), h('td', { class: 'num' }, String(row.connectorPairs)), h('td', { class: 'num' }, String(row.splices)), h('td', {}, row.splitters)))),
+        h('td', { class: 'num' }, row.km), h('td', { class: 'num' }, String(row.connectors)), h('td', { class: 'num' }, String(row.splices)), h('td', {}, row.splitters)))),
     )),
-    h('h2', { class: 'table-title', id: 'losscard-title' }, 'Loss card'),
-    h('dl', { class: 'losscard', 'data-testid': 'losscard', 'aria-labelledby': 'losscard-title' },
+    h('h2', { class: 'table-title' }, 'Loss card'),
+    h('dl', { class: 'losscard', 'data-testid': 'losscard' },
       model.lossCard.map((row) => h('div', {}, h('dt', {}, row.label), h('dd', {}, row.value)))),
     h('p', { class: 'card-note' }, 'Attenuators add the value printed on them. These are the job\'s planning values; see Model and sources.'),
   );
@@ -367,15 +385,15 @@ export function fillModelDialog(dialog, app) {
     h('div', { class: 'dialog-body model' },
       h('h2', { id: 'model-dialog-title', tabindex: '-1' }, 'Model and sources'),
       h('h3', {}, 'The rule'), list(model.rule),
-      h('h3', {}, 'Loss windows'),
-      h('table', { class: 'model-table' }, h('tbody', {}, model.classes.map((c) => h('tr', {}, h('th', { scope: 'row' }, `${c.name} class`), h('td', { class: 'num' }, c.text))))),
+      h('h3', {}, model.classes.length > 1 ? 'Loss windows' : 'Loss window'),
+      h('table', { class: 'model-table' }, h('tbody', {}, model.classes.map((c) => h('tr', {}, h('th', { scope: 'row' }, c.label), h('td', { class: 'num' }, c.text))))),
       h('h3', {}, 'Loss card'),
       h('table', { class: 'model-table' }, h('tbody', {}, model.lossCard.map((row) => h('tr', {}, h('th', { scope: 'row' }, row.label), h('td', { class: 'num' }, row.value))))),
       h('h3', {}, 'What the game assumes'), list(model.assumptions),
       h('h3', {}, 'What the game leaves out'), list(model.leftOut),
       h('h3', {}, 'Sources'),
       h('ol', { class: 'source-list' }, model.sources.map((source) => h('li', {},
-        h('a', { href: source.url, target: '_blank', rel: 'noopener noreferrer' }, source.title), `. ${source.section}. `, h('span', { class: 'claim' }, source.claim)))),
+        sourceTitle(source), `. ${source.section}. `, h('span', { class: 'claim' }, source.claim)))),
     ),
     h('div', { class: 'actions' }, h('button', { type: 'button', class: 'primary', 'data-close': '', 'data-testid': 'close-model' }, 'Close')),
   );

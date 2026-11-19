@@ -25,11 +25,11 @@ function boundaryRound(entry) {
       oltLabel: 'OLT port',
       trunk: {
         fiberKm: entry.path.fiberKm,
-        connectorPairs: entry.path.connectorPairs,
+        connectors: entry.path.connectors,
         splices: entry.path.splices,
         to: {
           type: 'splitter', id: 's1', label: 'Splitter', ratio: entry.splitterRatio,
-          legs: [{ fiberKm: 0, connectorPairs: 0, splices: 0, to: { type: 'ont', id: 'A', label: 'ONT A' } }],
+          legs: [{ fiberKm: 0, connectors: 0, splices: 0, to: { type: 'ont', id: 'A', label: 'ONT A' } }],
         },
       },
     },
@@ -48,6 +48,17 @@ export default async function define({ test, assertEqual, assertTrue, assertDeep
     assertEqual(toMilli(0.0005), null, 'half a thousandth is not exact');
     assertEqual(toMilli(Number.NaN), null);
     assertEqual(toMilli('3.5'), null, 'a string is not a number');
+  });
+
+  test('rules/the game has one loss window, the specification\'s: 8 to 28 dB (decision D11)', () => {
+    assertDeepEqual(Object.keys(content.classes), [key.window.class]);
+    assertEqual(content.classes[key.window.class].minDb, 8);
+    assertEqual(content.classes[key.window.class].maxDb, 28);
+    assertEqual(key.window.min, 8);
+    assertEqual(key.window.max, 28);
+    for (const level of content.levels) {
+      for (const round of level.rounds) assertEqual(round.class, key.window.class, `${round.id} uses the one window`);
+    }
   });
 
   test('rules/the answer key covers 20 option cases and 4 boundary cases', () => {

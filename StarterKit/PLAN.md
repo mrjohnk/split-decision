@@ -1,5 +1,7 @@
 # Split Decision · Implementation plan
 
+> **Amended by the owner's first review, 2026-11-19.** The feature plan, `specs/001-loss-budget-game/plan.md`, lists what changed after this planning input was written: one loss window of 8 to 28 dB in place of the N1 and N2 classes, the data fields `connectors` and `connectorDb` in place of `connectorPairs` and `connectorPairDb`, and the loss trace in place of the light meters. This file is kept as the planning input it was.
+
 ## Build target
 
 Implement the clarified specification for Split Decision. First deliver one complete round with correct grading, explanatory feedback, retry, and advance. Then add content and polish through the same implementation.
