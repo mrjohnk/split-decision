@@ -47,6 +47,15 @@ A running record kept by the build agent while the game was made. Times are UTC 
 | 2026-11-19 15:47 | Owner, first review | "Connector pair" sounds like two fibers; a PON has one fiber to each ONT. |
 | 2026-11-19 15:47–16:04 | Owner's changes, phase 7 | Applied in the build's usual order. Specification first: the two answers in Clarifications, decisions D11 and D12, reference R7, and every case re-worked by hand for the 8 to 28 dB window, with new plants for rounds 2-1, 2-2, 3-1 and 3-2 (a throwaway decimal script agreed with all of them). Then the answer-key fixture: 52 of 158 unit tests failed against the old content, as they should. Then the constitution (1.1.0), the data fields (`connectors`, `connectorDb`), the content file, the engine (class name shown only when there are several windows; a source may be a decision with no link), and the expected values in the tests. One real fault surfaced: two worked examples repeated a challenge's number (FR-002). Analysis pass 3 recorded nine findings, none critical, and one open point for the owner (path loss in dB, or receive level in dBm). At 16:04: 159 unit tests, 172 oracle comparisons and 25 browser checks, all passing; 14 of 14 planted bugs caught. |
 | 2026-11-19 16:10 | Fresh copy, again | Commit 493a690 cloned into an empty folder: 159 unit tests, 172 oracle comparisons and the browser checks passed there (24 as a reader runs them, plus the axe-core audit when given the engine), and the README's run command served the game. Recorded build finish: 16:10:50. The first build's finish was 15:42:50. |
+| 2026-11-19 16:11–16:18 | Hand-off | The game after the first review was republished for the owner and packaged as a zip. The zip was unpacked and all three check layers were run on that copy once more. The build agent then waited for his review. |
+| 2026-11-19 20:44 | Owner, second review | He said that the two figures are the ONT's receive levels, and left the choice of a sensible launch power to the build agent. |
+| 2026-11-19 20:44–20:59 | Research | The standard's launch power and ONU receiver figures read in ITU-T G.9807.1 Table B.9.3 (reference R8). The engine, the tests and the page were read again before any change. |
+| 2026-11-19 20:59 | Owner, second review | a five with a hyphen in front. Read as +5 dBm; the reading was sent back to the owner at once and recorded as an open point. |
+| 2026-11-19 20:59–21:10 | Owner's changes, phase 8: specification | Decisions D13 to D16, FR-029, reference R8; every round, worked example and boundary case re-worked by hand with a receive level and cross-checked with a throwaway script; constitution 1.2.0; contracts, data model, research, plan (changes 15 to 22), tasks and analysis (pass 4). Commit 801d42d. |
+| 2026-11-19 21:10–21:14 | Phase 8: expected results | Answer key rewritten from the specification; expected words written into the tests. Against the unchanged game the feedback tests could not load and 50 of the other 116 tests failed. |
+| 2026-11-19 21:14–21:27 | Phase 8: game | Evaluator, tokens, feedback, validator, content and page changed. 172 unit tests passed on the first run; the oracle agreed on 227 comparisons; the browser checks went from 23 of 25 (one check assumed the old answer of round 1-2) to 25 of 25. Every view was looked at, at 1366, 390 and 320 pixels, and four layout faults were fixed. Commit 6d4fca9. |
+| 2026-11-19 21:27–21:33 | Phase 8: hardening and packaging | Room before the nearer limit for an ONT inside the window (173 unit tests). 26 planted bugs, all caught. README, `ARCADE.md`, quickstart and the notes on the planning inputs rewritten; card image and README screenshot captured again. Commit d417bd8. |
+| 2026-11-19 21:33 | Fresh copy, third time | Commit d417bd8 cloned into an empty folder: 173 unit tests, 227 oracle comparisons and the browser checks passed there (24 as a reader runs them, plus the axe-core audit when given the engine), and the README's run command served the game. Recorded build finish: 21:33:45. |
 
 ## Step records
 
@@ -103,4 +112,37 @@ Conflicts flagged (not silently resolved):
   2. 8 and 28 are also the usual limits of an ONT's receive level in dBm. Applied as path loss in
      dB, as written. Open point for the owner.
 Follow-up TODOs: the owner's answer to conflict 2.
+```
+
+### Constitution amendment 1.2.0: Sync Impact Report
+
+```text
+Sync Impact Report
+Version change: 1.1.0 → 1.2.0
+Bump rationale: MINOR. In his second review on 2026-11-19 the owner said that the window's limits
+are the ONT's receive levels and gave the launch power. No principle was removed or redefined; the
+statement of the rule inside Principle I and the section "Scope and Model Boundaries" were updated.
+Modified sections:
+  Principle I, second paragraph: "the optical path loss window of a PON ... every ONT's loss is
+    inside the game's loss window" → "the loss budget of a PON, read at the ONT ... receive level
+    = launch power less path loss ... every ONT's receive level is inside the receive window".
+  Principle I, fourth paragraph: "every loss shown" → "every loss and every level shown".
+  Principle II, learning sequence: "the minimum-loss limit" → "the bright limit".
+  Scope and Model Boundaries, Model: one loss window, 8 to 28 dB → one launch power, +5 dBm, and
+    one receive window, −28 to −8 dBm, both the owner's; the standard's loss classes, launch
+    ranges and receiver figures are cited beside them.
+  Exclusions: transmitter power and receiver sensitivity are no longer excluded. Added: only the
+    downstream level is checked, with the upstream fiber value; one launch power, no path penalty.
+Added sections: none. Removed sections: none.
+Templates and artifacts checked: spec.md (decisions D13 to D16; FR-029; Technical Model; references
+  R7 and R8; hand-worked cases), plan.md (changes 15 to 22), tasks.md (phase 8), data-model.md,
+  contracts, research.md (R-02, R-11), quickstart.md, README.md, ARCADE.md. Analysis run again
+  (pass 4).
+Conflicts flagged (not silently resolved):
+  1. The owner wrote a five with a hyphen in front. Read as +5 dBm, which is inside the standard's launch ranges;
+     −5 dBm is below them. Open point for the owner.
+  2. The loss card's fiber value is the upstream one, and the level now checked is downstream. Kept,
+     because the owner did not change the loss card; two answers rest on it. Open point for the
+     owner.
+Follow-up TODOs: the owner's answers to conflicts 1 and 2.
 ```

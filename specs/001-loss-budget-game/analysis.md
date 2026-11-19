@@ -123,6 +123,8 @@ The owner closed the open point of pass 3 (G5): 8 and 28 are ONT receive levels,
 
 **Constitution Alignment Issues:** H1 only, resolved by the amendment.
 
+**Hand-worked cases:** the 20 option cases, 3 worked examples and 4 boundary cases in the specification, the fixture, the content file and the evaluator agree: 173 unit tests, and 227 oracle comparisons, which now compare every receive level as well as every loss.
+
 **Metrics (pass 4):** 38 requirements (29 functional, 9 success criteria), all cited by at least one task; 71 tasks; 0 critical findings; 2 open points for the owner (H2 and H5).
 
 ## Next Actions

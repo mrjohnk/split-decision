@@ -1,11 +1,11 @@
 {
-  "ran": "2026-11-19T21:32:28Z",
+  "ran": "2026-11-19T21:35:05Z",
   "browser": "chromium 153.0.8010.12",
   "served_from": "/play/split-decision/",
-  "passed": 24,
+  "passed": 25,
   "failed": 0,
-  "not_run": 1,
-  "seconds": 43.9,
+  "not_run": 0,
+  "seconds": 49.0,
   "checks": [
     {
       "id": "AC1",
@@ -13,7 +13,7 @@
       "title": "A fresh session opens on the Level 1 briefing and nothing can be answered before Start",
       "status": "pass",
       "detail": "Level 1 briefing first; after Start the round shows the plant, the path table, the loss card, the launch power, the receive window, the goal and three options with the homes they serve",
-      "seconds": 0.5
+      "seconds": 0.6
     },
     {
       "id": "AC2",
@@ -21,7 +21,7 @@
       "title": "Round 1-1 with a 1:32 splitter: solved, 30.7 dB of loss, \u221225.7 dBm, ledger 9.0 + 3.5 + 0.7 + 17.5",
       "status": "pass",
       "detail": "ONT A: Fiber 9.0 + connectors 3.5 + splices 0.7 + splitter 17.5 = 30.7 dB. +5 dBm \u2212 30.7 dB = \u221225.7 dBm",
-      "seconds": 1.6
+      "seconds": 1.8
     },
     {
       "id": "AC3a",
@@ -29,7 +29,7 @@
       "title": "Round 1-1 with a 1:64 splitter: too dark, \u221229.2 dBm, 1.2 dB below the dark limit, round stays open",
       "status": "pass",
       "detail": "Too dark ONT A loses 34.2 dB and receives \u221229.2 dBm. That is 1.2 dB below the dark limit of \u221228 dBm. The retry solved the round on attempt 2.",
-      "seconds": 1.7
+      "seconds": 1.9
     },
     {
       "id": "AC3b",
@@ -37,7 +37,7 @@
       "title": "Round 1-1 with a 1:16 splitter: works at \u221222.2 dBm, a larger one also fits, the answer is not named",
       "status": "pass",
       "detail": "This design works, and a larger one also fits.",
-      "seconds": 0.5
+      "seconds": 0.6
     },
     {
       "id": "AC4",
@@ -53,7 +53,7 @@
       "title": "Hint 1, hint 2 and the worked solution appear in order, count as help and do not complete the round",
       "status": "pass",
       "detail": "Level complete: Add it up  Work orders solved 2 of 2 Attempts 2 Hints used 2 Worked solutions viewed 1",
-      "seconds": 0.8
+      "seconds": 0.9
     },
     {
       "id": "AC6",
@@ -61,7 +61,7 @@
       "title": "Each real submission is one attempt; the answer completes the round once; a repeat changes nothing",
       "status": "pass",
       "detail": "Attempts: 3. Hints used: 0. Worked solution: not viewed.",
-      "seconds": 0.7
+      "seconds": 0.8
     },
     {
       "id": "AC7",
@@ -69,7 +69,7 @@
       "title": "Next opens the following round, then the next briefing with the level summary, then the session summary",
       "status": "pass",
       "detail": "Next work order > Next level > Next work order > Next level > Next work order > See summary",
-      "seconds": 1.3
+      "seconds": 1.5
     },
     {
       "id": "AC8",
@@ -77,7 +77,7 @@
       "title": "Restart asks first; Keep playing changes nothing; Restart the game clears the session",
       "status": "pass",
       "detail": "cancel and Escape keep the session; confirm clears it",
-      "seconds": 1.0
+      "seconds": 0.9
     },
     {
       "id": "FULL",
@@ -85,7 +85,7 @@
       "title": "All 20 options of the six rounds, submitted in the page, match the hand-worked key",
       "status": "pass",
       "detail": "20 submissions compared with the key: totals, states, outcomes, limits and differences",
-      "seconds": 6.4
+      "seconds": 6.6
     },
     {
       "id": "RELOAD",
@@ -101,7 +101,7 @@
       "title": "The whole game is played from the first briefing to the summary with the keyboard only, at 1366 x 768",
       "status": "pass",
       "detail": "start, select, submit, hint, solution, next, restart, confirm and cancel, all by keyboard (102 key presses, no pointer)",
-      "seconds": 1.2
+      "seconds": 1.4
     },
     {
       "id": "NAMES",
@@ -109,7 +109,7 @@
       "title": "Every control has the accessible name the contract gives it",
       "status": "pass",
       "detail": "buttons, radios, group, dialog, landmarks and scroll regions are named",
-      "seconds": 1.4
+      "seconds": 1.6
     },
     {
       "id": "AC10",
@@ -125,7 +125,7 @@
       "title": "The result is readable at once; the trace draws itself only when motion is allowed, and then stops",
       "status": "pass",
       "detail": "reduced motion: 0 animations, result present at once; otherwise the trace draws once in under 1.5 s",
-      "seconds": 2.5
+      "seconds": 2.6
     },
     {
       "id": "CONTRAST",
@@ -133,7 +133,7 @@
       "title": "Every piece of text has a contrast of at least 4.5 to 1 with what is behind it",
       "status": "pass",
       "detail": "1863 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1",
-      "seconds": 2.0
+      "seconds": 2.2
     },
     {
       "id": "TEXTSIZE",
@@ -141,7 +141,7 @@
       "title": "Running text is at least 16 CSS pixels; labels inside the drawings are at least 12",
       "status": "pass",
       "detail": "smallest running text 16px; smallest drawing label 12px",
-      "seconds": 2.1
+      "seconds": 2.3
     },
     {
       "id": "NARROW",
@@ -149,7 +149,7 @@
       "title": "At 320 CSS pixels wide the page never scrolls sideways and Submit, Hint and Next can be reached",
       "status": "pass",
       "detail": "36 view and width combinations at 320, 390 and 768 pixels",
-      "seconds": 8.7
+      "seconds": 8.9
     },
     {
       "id": "ORIGIN",
@@ -157,7 +157,7 @@
       "title": "A full playthrough makes no request outside the game's own origin, and the fonts come from the game",
       "status": "pass",
       "detail": "19 requests, all under /play/split-decision/ (css, html, js, json, svg, woff2); fonts: barlow-condensed-latin-500-normal.woff2, barlow-condensed-latin-600-normal.woff2, barlow-latin-400-normal.woff2, barlow-latin-500-normal.woff2, barlow-latin-600-normal.woff2",
-      "seconds": 1.6
+      "seconds": 1.7
     },
     {
       "id": "CONTENT",
@@ -165,7 +165,7 @@
       "title": "Content that cannot be graded (U1 to U6), or cannot be read, shows a content error and no challenge",
       "status": "pass",
       "detail": "U1 no-valid-option; U2 tie-for-best; U3 unknown-ratio; U4 inexact-total; U5 note-mismatch; U6 unknown-source; a missing file reports load-failed and Try loading again recovers",
-      "seconds": 2.3
+      "seconds": 2.5
     },
     {
       "id": "DIALOGS",
@@ -173,15 +173,15 @@
       "title": "The briefing can be reviewed during a round; the model panel lists the rule, the limits of the model and every source",
       "status": "pass",
       "detail": "8 sources: 7 published ones with an https link, and the owner's decisions on the receive window and the launch power",
-      "seconds": 0.9
+      "seconds": 1.0
     },
     {
       "id": "AXE",
       "covers": "principle IV",
       "title": "The axe-core accessibility engine reports no violation in any view",
-      "status": "not run",
-      "detail": "needs --axe path/to/axe.min.js (for example from `npm pack axe-core`)",
-      "seconds": 0.0
+      "status": "pass",
+      "detail": "axe-core 4.14.1: 0 violations in 12 views",
+      "seconds": 4.3
     },
     {
       "id": "FOLDER",
@@ -197,7 +197,7 @@
       "title": "The unit tests pass in the browser, on the same modules the game runs",
       "status": "pass",
       "detail": "173 passed, 0 failed, 173 total",
-      "seconds": 0.4
+      "seconds": 0.3
     },
     {
       "id": "SHOTS",
@@ -205,7 +205,7 @@
       "title": "Screenshots of the briefing and of level 3 for the record",
       "status": "pass",
       "detail": "written to docs/verification/",
-      "seconds": 1.2
+      "seconds": 1.1
     }
   ]
 }

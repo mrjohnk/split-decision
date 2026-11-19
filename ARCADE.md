@@ -32,8 +32,8 @@ creator:                     # (HUMAN) every field here is the owner's to fill
 
 build:
   started: "2026-11-19T14:07:13Z"    # git init and specify init
-  finished: "2026-11-19T16:10:50Z"            # the last check, the fresh-copy run after the owner's first review; anything after it is not included
-  wall_time: "2h03m37s"           # from started to finished, both read from the session clock; the owner was away for part of it and the agent kept working
+  finished: "2026-11-19T21:33:45Z"            # the last check, the fresh-copy run after the owner's second review; anything after it is not included
+  wall_time: "7h26m32s"           # from started to finished, both read from the session clock. It includes about 4h26m, from 16:18 to 20:44, in which the build agent was idle and waiting for the owner's review: about 3 hours of work
   spec_driven:
     framework: "GitHub Spec Kit"
     framework_version: "specify CLI 1.4.3.dev0"
@@ -72,7 +72,7 @@ runtime:
 
 verification:
   tests: "node tests/run-node.mjs && python3 tools/oracle.py && python3 tools/e2e.py"
-  tests_passing: 184           # 159 unit tests (Node, and the same in the browser) + 25 browser checks (Playwright; one of them, the axe-core audit, needs --axe); the Python oracle's 172 comparisons with the hand-worked key are not counted here
+  tests_passing: 198           # 173 unit tests (Node, and the same in the browser) + 25 browser checks (Playwright; one of them, the axe-core audit, needs --axe); the Python oracle's 227 comparisons with the hand-worked key are not counted here
   facts_sourced_from: ["The project owner's field practice (the game's receive window, -28 to -8 dBm, and its launch power, +5 dBm; decisions D13 and D14 in the specification)", "ITU-T G.9807.1 (02/2023) Annex B, clause B.9.2.6.2, Table B.9.3 (the standard's OLT launch power and ONU receiver figures, shown for comparison)", "ITU-T G.9807.1 (02/2023) Annex B, clause B.6.1, Table B.6.1 (the standard's N1 and N2 loss classes, shown for comparison; attenuators below the class minimum)", "ITU-T G.9807.1 (02/2023) Annex B, clauses B.9.2.6.1 and B.9.2.8.1 (what the loss range includes; wavelengths)", "ITU-T G.652 (08/2024) Appendix I, Table I.1 (fiber attenuation)", "The FOA Reference Guide (connector and splice loss; attenuators)", "TEC GR/TX/OPT-001/01/APR-12 (splitter insertion loss)"]
   known_limits: ["No person has played or timed the game; every check was run by a script in headless Chrome", "One open point: the owner wrote a five with a hyphen in front and the build agent read it as +5 dBm", "Only the level an ONT receives is checked, with the upstream fiber value; the upstream direction is not checked, and no repair or ageing margin is kept", "One launch power stands for the range of a real transmitter, with no path penalty", "Splitters lose 3.5 dB for each two-way split, with no difference between ports", "The receive window and the launch power are the owner's field values, not figures quoted from ITU-T G.9807.1", "The standard's limit on the difference between two paths is not graded", "Reflectance and bend loss are not modeled", "Six fixed work orders", "The loss card's planning values were chosen by the build agent inside published ranges and have not been confirmed by the owner"]
 ---
