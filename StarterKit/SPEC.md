@@ -64,7 +64,7 @@ As a learner, I want to apply the rule to visible evidence and understand the re
 
 - **AC1:** Given a fresh session, when I start, then I see the first briefing before answering a challenge.
 - **AC2:** Given round 1-1 (Mesquite Lane: N1 window 14 to 29 dB; ONT A with 14.0 km of fiber, 4 connector pairs and 4 splices; options 1:16, 1:32, 1:64), when I submit 1:32, then the round is marked solved, ONT A shows 26.9 dB inside the window, and the explanation shows the ledger 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB.
-- **AC3:** Given that challenge, when I submit 1:64, then feedback says ONT A is too dark, 30.4 dB being 1.4 dB over the 29 dB maximum, completion stays unchanged, and I can retry. When I submit 1:16, then feedback says the design works at 23.4 dB but 1:32 also fits and serves more homes, completion stays unchanged, and I can retry.
+- **AC3:** Given that challenge, when I submit 1:64, then feedback says ONT A is too dark, 30.4 dB being 1.4 dB over the 29 dB maximum, completion stays unchanged, and I can retry. When I submit 1:16, then feedback says the design works at 23.4 dB and serves 16 homes, and that a larger option also fits, without naming it; completion stays unchanged, and I can retry.
 - **AC4:** Given no selection, when I submit, then input guidance appears and attempts and completion remain unchanged.
 
 ### US2 · Learn from help and finish the game — P1
@@ -205,6 +205,7 @@ The owner asked the build agent to make the design calls from the workshop's def
 | D7 | The game says ONT; the standard says ONU | ONT is the common word in North American practice; the briefing gives both |
 | D8 | Session target 10 to 15 minutes instead of the template's 5 to 10 | Each round asks for arithmetic |
 | D9 | Three levels of two rounds, as in the template | Workshop scope |
+| D10 | Feedback for a valid but smaller design says that a larger option also fits, and does not name it | A wrong answer should give a next step, not the answer |
 
 ## Release evidence
 

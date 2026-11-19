@@ -40,7 +40,7 @@ As a learner, I want to apply the loss-budget rule to a work order I can see, su
 1. **AC1** — **Given** a fresh session, **When** the game starts, **Then** the Level 1 briefing is shown and no challenge can be answered until the player chooses to start the level.
 2. **AC2** — **Given** round 1-1 (Mesquite Lane: N1 window 14 to 29 dB; ONT A with 14.0 km of fiber, 4 connector pairs and 4 splices; options 1:16, 1:32, 1:64), **When** the player submits 1:32, **Then** the round is marked solved, ONT A shows 26.9 dB inside the window, and the explanation shows the ledger 7.0 + 2.0 + 0.4 + 17.5 = 26.9 dB.
 3. **AC3a** — **Given** round 1-1, **When** the player submits 1:64, **Then** feedback says ONT A is too dark, 30.4 dB being 1.4 dB over the 29 dB maximum, completion stays unchanged, and the player can retry.
-4. **AC3b** — **Given** round 1-1, **When** the player submits 1:16, **Then** feedback says the design works at 23.4 dB but 1:32 also fits and serves more homes, completion stays unchanged, and the player can retry.
+4. **AC3b** — **Given** round 1-1, **When** the player submits 1:16, **Then** feedback says the design works at 23.4 dB and serves 16 homes, and that a larger option also fits, without naming it; completion stays unchanged, and the player can retry.
 5. **AC4** — **Given** any open round with no option selected, **When** the player submits, **Then** input guidance appears and attempts and completion remain unchanged.
 
 ---
@@ -111,8 +111,8 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 **Feedback and progress**
 
 - **FR-009**: On the correct submission the game MUST mark the round solved once, show every ONT's total against the window, show the worked ledger, explain why the design works, and enable Next. *(AC2)*
-- **FR-010**: On an incorrect submission the game MUST name each ONT that is outside the window, its loss, the limit it missed and the difference; show the worked ledger; give the mistake that usually leads to that choice; and leave the round open with completion unchanged. *(AC3a)*
-- **FR-011**: A valid design that is not the answer MUST get its own explanation, naming the larger valid design and the homes each serves. *(AC3b)*
+- **FR-010**: On an incorrect submission the game MUST name each ONT that is outside the window, its loss, the limit it missed and the difference; show the worked ledger; give the mistake that usually leads to that choice; suggest a next step; and leave the round open with completion unchanged. *(AC3a)*
+- **FR-011**: A valid design that is not the answer MUST get its own explanation: every ONT is inside the window, the design serves the stated number of homes, and at least one larger option also fits. The explanation MUST NOT name the answer. *(AC3b)*
 - **FR-012**: Submitting with no option selected MUST show input guidance and MUST NOT change attempts or completion. *(AC4)*
 - **FR-013**: Each valid submission in an unsolved round MUST count as one attempt, including a valid design that is not the answer. After a round is solved, further submissions MUST have no effect. *(AC6)*
 - **FR-014**: Help MUST be offered in order: hint 1 (the method), hint 2 (a worked step), then the worked solution (the answer's full ledger). Each MUST be recorded as assistance for that round and MUST NOT complete the round: after viewing the worked solution the player MUST still submit the answer, and the round is then recorded as solved with the worked solution. Once a round is solved, its hints and worked solution MUST be unavailable. *(AC5)*
@@ -124,7 +124,7 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 **Content integrity**
 
 - **FR-019**: The game MUST validate all content before play. When any content cannot be graded (cases U1 to U6), the game MUST show a content error that names the level and round, and MUST NOT present or grade any challenge.
-- **FR-020**: An authored explanation attached to an option MUST be rejected at validation when the outcome it was written for differs from the outcome the rule gives for that option.
+- **FR-020**: Every option that is not the round's answer MUST carry an authored explanation of the mistake that usually leads to it. Validation MUST reject an option that lacks one, and MUST reject an authored explanation when the outcome it was written for differs from the outcome the rule gives for that option.
 - **FR-021**: Each briefing MUST cite its sources by title and section, and the list of sources MUST be available to the player.
 - **FR-022**: The simplifications of the model MUST be stated to the player in plain language, in the briefings and in a panel available at any time.
 
@@ -165,7 +165,7 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 
 ## Assumptions
 
-- Players use a current desktop or laptop browser; a phone-width window is supported for layout, without touch-specific gestures.
+- Players use a current desktop or laptop browser; a phone-width window is supported for layout, without touch-specific gestures. A typical laptop window is taken as 1366 × 768 CSS pixels.
 - The game is in English and uses kilometres and decibels to one decimal place.
 - The ONTs shown in a round are the nearest and the farthest on that PON, and every other home lies between them.
 - "Homes served" counts customer ports. In round 3-2 one of the 33 is a business.
@@ -320,3 +320,4 @@ The owner asked the build agent to make the design calls from the workshop's def
 | D7 | The game says ONT; the standard says ONU | ONT is the common word in North American practice; the briefing gives both |
 | D8 | Session target 10 to 15 minutes instead of the template's 5 to 10 | Each round asks for arithmetic |
 | D9 | Three levels of two rounds, as in the template | Workshop scope |
+| D10 | Feedback for a valid but smaller design says that a larger option also fits, and does not name it | A wrong answer should give a next step, not the answer; the answer is shown only by the worked solution or by solving the round |
