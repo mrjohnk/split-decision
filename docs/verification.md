@@ -4,7 +4,7 @@ Results of every check, as they were run. Times are UTC. A check that was not ru
 
 Everything here was run by the build agent on 2026-11-19 in its cloud workspace: Linux, Node v22.23.5, Python 3.13.18, Playwright 1.63.0 driving headless Chrome for Testing 153.0.8010.12.
 
-The owner reviewed the game twice on the day it was built. In the morning he looked at the first playable build and sent two changes: limits of 8 and 28 for the window, and "connector" in place of "connector pair". In the afternoon he settled the unit of those limits: they are the ONT's receive levels, −28 and −8 dBm, with a launch power he gave as a five with a hyphen in front, read as +5 dBm. Both reviews are in, and at 21:51 he answered the two points they had left open: the launch power is plus five, and the loss card keeps its values. Every result below is for the game after the second review, unless a heading or a line carries an earlier time. No one has yet played the game through, been timed, or done a keyboard-only run by hand.
+The owner reviewed the game twice on the day it was built. In the morning he looked at the first playable build and sent two changes: limits of 8 and 28 for the window, and "connector" in place of "connector pair". In the afternoon he settled the unit of those limits: they are the ONT's receive levels, −28 and −8 dBm, with a launch power he gave as a five with a hyphen in front, read as +5 dBm. Both reviews are in, and at 21:51 he answered the two points they had left open: the launch power is plus five, and the loss card keeps its values. At 22:23 the Arcade card image was replaced by a drawing, and at 22:30 a playthrough by taps in an emulated phone was added to the browser checks. Neither changed a file of the game. Every result below is for the game after the second review, unless a heading or a line carries an earlier time. No one has yet played the game through, been timed, or done a keyboard-only run by hand.
 
 ## Summary
 
@@ -38,10 +38,18 @@ The owner reviewed the game twice on the day it was built. In the morning he loo
 | SC-008 | A teammate can say what each level taught and what a wrong choice showed them | **Not run** | Needs a person. Waiting for the owner |
 | SC-009 | No request leaves the game's own origin | Pass | `ORIGIN`: every request of a full playthrough is under the game's path, fonts included |
 
+### Added after the reviews
+
+| Requirement | In short | Result | Evidence |
+| --- | --- | --- | --- |
+| FR-030 | The Arcade card is 16:9 and under 1 MB, and every level on it comes from the engine | Pass | browser check `CARD`; 14 planted bugs, all caught |
+| FR-027, by touch | At phone size the game can be played with taps alone | Pass, by automation in an emulated phone. **Not tried on a real phone** | browser check `TOUCH`; 3 planted bugs, all caught |
+
 ### What was not checked
 
 - **No person has played the game through.** SC-004 and SC-008 need one, and so does a real keyboard-only playthrough. The owner has reviewed the game twice and changed its window, one term and the unit of the window; he has not reported a full playthrough.
-- **One browser.** Only headless Chrome for Testing 153 was available. Installing Firefox and WebKit for Playwright was tried and refused by the workspace's network rules. Firefox, Safari, a real phone and a touch screen were not tried.
+- **One browser.** Only headless Chrome for Testing 153 was available. Installing Firefox and WebKit for Playwright was tried and refused by the workspace's network rules. Firefox, Safari and a real phone were not tried. Touch was tried only in Chrome's emulation of a phone (check `TOUCH`).
+- **Whether the stored card image is the page's current drawing.** `CARD` checks the numbers and words of the card page and the shape and size of the stored image. It does not compare the two pictures, because type is drawn a little differently from one machine to the next. The image was captured from the page by `tools/e2e.py --card` at 22:23, after the page's last change.
 - **No screen reader.** Accessible names, roles and the live region's text were checked through the browser's accessibility tree and with axe-core, not by listening.
 - **Windows high-contrast mode.** The style sheet has rules for it; they were not exercised.
 - **The loss card's values were not compared with a measurement.** The four planning values (0.5 dB/km, 0.5 dB a connector, 0.1 dB a splice, 3.5 dB a two-way split) are the build agent's choice inside published ranges. The fiber value is the upstream figure, used for a downstream level, and two answers rest on it (see "After the owner's second review"). Asked on 2026-11-19 whether it should change, the owner answered keep the card as it is. The connector, splice and splitter values were not put to him one by one.
@@ -90,9 +98,21 @@ The owner said that 8 and 28 are the ONT's receive levels, and gave the launch p
 
 One finding of this pass was put to the owner and is not a fault. The loss card's fiber value, 0.5 dB/km, is the upstream figure. The level an ONT receives is downstream light, which loses 0.35 dB/km (reference R3). The test `rules/the upstream fiber value changes no "inside" and no "too bright" verdict` recomputes all 37 ONT results with 0.35. Every ONT the game calls inside or too bright stays so. Two that it calls too dark would be inside the window: the farthest ONT behind the 1:64 splitter in rounds 1-1 and 2-1 (−26.5 and −25.9 dBm). The answers of those two rounds therefore rest on the loss card's fiber value. The game says in Model and sources that it reads dark on long routes. The owner was asked whether to change the card and answered keep the card as it is at 21:51.
 
-## The page: browser checks (2026-11-19 21:35)
+### After the owner's answers, the card and the touch check (2026-11-19 21:51 to 22:33)
 
-`python3 tools/e2e.py --axe <axe.min.js>` serves the repository under a subpath (`/play/split-decision/`), as a project site would, and drives headless Chrome. Expected values come from `tests/fixtures/answer-key.json` and from the specification, never from the game's own code. Results are also in `docs/verification/results.json`. This is the run after the owner's second review; the same 25 checks passed at 16:09 on the build before it.
+The owner's answers changed no file of the game: the launch power was already +5 dBm and the loss card was kept. The new card image and the touch check did not change one either. The three layers were run again on the commit that holds all of it, `bb01178`.
+
+| Check | Command | Result |
+| --- | --- | --- |
+| Unit tests | `node tests/run-node.mjs` | 173 passed, 0 failed, 173 total |
+| Independent answer-key check | `python3 tools/oracle.py` | All 227 checks agree with the hand-worked key |
+| Browser checks | `python3 tools/e2e.py --axe <axe.min.js>` | 27 passed, 0 failed, 0 not run |
+
+The 21 files the game is played from were compared by SHA-256 with the review copy published for the owner at 21:37: all 21 are identical. The review copy was therefore not published again.
+
+## The page: browser checks (2026-11-19 22:32)
+
+`python3 tools/e2e.py --axe <axe.min.js>` serves the repository under a subpath (`/play/split-decision/`), as a project site would, and drives headless Chrome. Expected values come from `tests/fixtures/answer-key.json` and from the specification, never from the game's own code. Results are also in `docs/verification/results.json`. This is the run after the Arcade card and the touch check were added. The 25 checks of the game itself also passed at 21:35, after the owner's second review, and at 16:09 on the build before it.
 
 | Check | Covers | Result | What it found |
 | --- | --- | --- | --- |
@@ -114,6 +134,7 @@ One finding of this pass was put to the owner and is not a fault. The loss card'
 | `CONTRAST` Every piece of text has a contrast of at least 4.5 to 1 with what is behind it | principle IV, contracts/ui.md | Pass | 1863 pieces of text in 12 views, 14 color pairs; the lowest contrast is 5.01 to 1 |
 | `TEXTSIZE` Running text is at least 16 CSS pixels; labels inside the drawings are at least 12 | contracts/ui.md | Pass | smallest running text 16px; smallest drawing label 12px |
 | `NARROW` At 320 CSS pixels wide the page never scrolls sideways and Submit, Hint and Next can be reached | SC-007, FR-027 | Pass | 36 view and width combinations at 320, 390 and 768 pixels |
+| `TOUCH` In an emulated phone, upright and on its side, the whole game is played with taps: no sideways scrolling, and every button and option is at least 40 CSS pixels in its smaller dimension | FR-027, README | Pass | taps only; upright (412 x 839): 16 views, 112 buttons and options measured; on its side (863 x 360): 16 views, 112 buttons and options measured. An emulated phone, not a real one |
 | `ORIGIN` A full playthrough makes no request outside the game's own origin, and the fonts come from the game | SC-009, FR-028 | Pass | 19 requests, all under /play/split-decision/ (css, html, js, json, svg, woff2); fonts: barlow-condensed-latin-500-normal.woff2, barlow-condensed-latin-600-normal.woff2, barlow-latin-400-normal.woff2, barlow-latin-500-normal.woff2, barlow-latin-600-normal.woff2 |
 | `CONTENT` Content that cannot be graded (U1 to U6), or cannot be read, shows a content error and no challenge | SC-005, FR-019, FR-020 | Pass | U1 no-valid-option; U2 tie-for-best; U3 unknown-ratio; U4 inexact-total; U5 note-mismatch; U6 unknown-source; a missing file reports load-failed and Try loading again recovers |
 | `DIALOGS` The briefing can be reviewed during a round; the model panel lists the rule, the limits of the model and every source | FR-004, FR-021, FR-022 | Pass | 8 sources: 7 published ones with an https link, and the owner's decisions on the receive window and the launch power |
@@ -121,8 +142,9 @@ One finding of this pass was put to the owner and is not a fault. The loss card'
 | `FOLDER` Opened straight from a folder, the page says how to serve it instead of waiting forever | README, Play locally | Pass | view 'needs-server': This page was opened straight from a folder, and a browser will not load the game that way. Serve the folder i… |
 | `UNIT` The unit tests pass in the browser, on the same modules the game runs | SC-001 | Pass | 173 passed, 0 failed, 173 total |
 | `SHOTS` Screenshots of the briefing and of level 3 for the record | FR-002 | Pass | written to docs/verification/ |
+| `CARD` The Arcade card is drawn by the engine: its three levels match the hand-worked case, its words are the game's, and the stored image is 16:9 and under 1 MB | FR-030 | Pass | three designs end at −23.0 dBm, −26.5 dBm, −30.0 dBm, as hand-worked; 11 pieces of text, none crossed or cut off; assets/card.webp is 1600 x 900, 37 KB |
 
-**25 passed, 0 failed, 0 not run, 25 checks**, in 49.0 s, with Chrome for Testing 153.0.8010.12 (headless).
+**27 passed, 0 failed, 0 not run, 27 checks**, in 50.2 s, with Chrome for Testing 153.0.8010.12 (headless).
 
 Without `--axe` the `AXE` check is reported as not run and the others are unaffected.
 
@@ -208,6 +230,39 @@ Run on the final build. Eleven are in the rule, the words or the content and are
 | The model panel leaves out the launch power | `DIALOGS` |
 | Content with no valid option is not reported | `CONTENT` |
 
+### In the Arcade card: 14 of 14 caught (22:20)
+
+Each bug was planted alone in the card page, the stored image or `ARCADE.md`; `python3 tools/e2e.py CARD` was run; the file was restored from the bytes read before the bug, and the check passed again at the end.
+
+| Planted bug | What `CARD` reported |
+| --- | --- |
+| One splice fewer on the card's route | The 1:16 design ends at −22.9 dBm; hand-worked: −23.0 |
+| The 1:64 design replaced by a 1:8 | The card has no end for the 1:64 design |
+| A level typed by hand in place of the computed one | The label reads −26.0 dBm where the engine's level is −26.5 |
+| A ring for the design that is too dark | A ring means inside the window, and a chevron too dark |
+| A tagline typed into the page | The card's tagline is not the content file's |
+| A different line under the title | The card's line is not the masthead's |
+| The window typed by hand | The card's window is not the specification's |
+| The tagline allowed to run across the light | The tagline is crossed by the light |
+| The title moved off the card | The title is within 24 px of the edge |
+| A font asked from another site | The card page asked for an address outside the game's folder |
+| The image at 1600 × 1000 | Not 16:9 |
+| The image at 4.3 MB | The Arcade asks for less than 1 MB |
+| A file that is not an image | The browser could not read it as an image |
+| `ARCADE.md` naming a card that is not there | The file is not in the repository |
+
+One more run was made on purpose, with no bug: `card_image` in `ARCADE.md` was pointed at `docs/gameplay.png`, the screenshot, and `CARD` passed (1280 × 720, 265 KB). The owner can make the screenshot the card again with that one line.
+
+### For a touch screen: 3 of 3 caught (22:31)
+
+Each bug was planted alone in `style.css`, `python3 tools/e2e.py TOUCH` was run, and the file was restored.
+
+| Planted bug | What `TOUCH` reported |
+| --- | --- |
+| Buttons 24 px high in place of 44 | Too small for a thumb: four buttons, 29 and 37 px high |
+| Submit hidden on a screen that cannot hover | The tap on Submit timed out |
+| The page forced to 900 px wide for a coarse pointer | The page is 489 px wider than the window |
+
 ## Faults the checks found in the game
 
 | Found by | Fault | Fix |
@@ -227,6 +282,8 @@ Run on the final build. Eleven are in the rule, the words or the content and are
 | Reading the 320-pixel screenshots | Labels in the plant drawing collided on short runs and beside an attenuator; a zone name sat on a trace | Labels are placed in the free part of a run; a zone name is drawn only where no trace runs |
 | Reviewing the text | A label written as a title appeared in mid-sentence ("from the Remote OLT port") | Labels used inside a sentence are lowercased |
 | Trying the page from a folder | Opened as a file, the page waited forever on "Loading the work orders", because a browser will not load modules that way | A plain script now says how to serve the folder; check `FOLDER` |
+| Looking at the first drafts of the card | The window's label ran under the splitter. One of the card's class names was also a class of the game's style sheet, so the window's name was drawn at 12.5 px | The label is on two lines, and every class of the card page has its own prefix. `CARD` fails if a word is crossed by the light or the splitter, touches another word, or comes within 24 px of the edge |
+| Playing by taps in an emulated phone held on its side | After Submit, in a window 360 pixels high, the trace fills the screen and the verdict's words are just below it | Not changed. The state shape is at the end of the trace, and a short scroll shows the words. Stated in the README |
 
 Three faults were in the checks themselves and were fixed there: a case-sensitive comparison of a lowercased ledger, focus on the browser's own controls read as an error, and a wait for the wrong status on the test page.
 
@@ -275,17 +332,32 @@ The seven scenarios of `specs/001-loss-budget-game/quickstart.md`, each as run b
 
 ## Fresh copy (task T048)
 
-Run on 2026-11-19 from 21:32:48 to 21:33:36, on commit `d417bd8`, cloned with `git clone` into a new, empty folder (97 tracked files). Commits after `d417bd8` change documents only. The same check was run on the first build at 15:42 (commit `f5c2bfa`: 158, 169 and 23, all passing) and after the owner's first review at 16:10 (commit `493a690`: 159, 172 and 25).
+Run on 2026-11-19 from 22:32:58 to 22:33:52, on commit `bb01178`, cloned with `git clone` into a new, empty folder (98 tracked files). Commits after `bb01178` change documents only. The same check was run on the first build at 15:42 (commit `f5c2bfa`: 158, 169 and 23, all passing), after the owner's first review at 16:10 (commit `493a690`: 159, 172 and 25), after his second at 21:33 (commit `d417bd8`: 173, 227 and 25) and on the commit that added the card at 22:24 (commit `2e74eb5`: 173, 227 and 26).
 
 | Step | Command, in the fresh copy | Result |
 | --- | --- | --- |
 | Unit tests | `node tests/run-node.mjs` | 173 passed, 0 failed, 173 total |
 | Independent answer-key check | `python3 tools/oracle.py` | All 227 checks agree with the hand-worked key |
-| Browser checks, as a reader would run them | `python3 tools/e2e.py` | 24 passed, 0 failed, 1 not run (the axe-core audit, which needs the engine), 43.1 s |
+| Browser checks, as a reader would run them | `python3 tools/e2e.py` | 26 passed, 0 failed, 1 not run (the axe-core audit, which needs the engine), 46.2 s |
 | The axe-core audit | `python3 tools/e2e.py --axe <axe.min.js> AXE` | Pass: axe-core 4.14.1, 0 violations in 12 views |
 | The README's own instructions | `python3 -m http.server <free port> --bind 127.0.0.1`, then the address opened in headless Chrome | The Level 1 briefing "Add it up" appeared; round 1-1 with the 1:32 splitter gave "Correct. ONT A is inside the window." at 30.7 dB of loss and −25.7 dBm; `/tests/` reported 173 passed, 0 failed; no failed request and no script error |
+| The card page | The same kind of server, `/tools/card.html`, at 1600 × 900, 1280 × 800 and 390 × 844 (22:35) | The card was drawn at each size, scaled to the window, with −23.0, −26.5 and −30.0 dBm at its three ends; no failed request and no script error |
 
 After the run the fresh copy differed from the commit only in `docs/verification/results.json`, which records the time of the run.
+
+## The Arcade card (requirement FR-030, decision D18)
+
+The owner asked how the card compared with the others in the Arcade. On 2026-11-19 the Arcade listed 17 games. A card image was found in the public repositories of 11 entrants and of two of the workshop's three examples, and the 13 were laid out at card size, 400 pixels wide, with this game's card among them. It was a screenshot of a whole work order, and no word on it could be read at that size. The sheet was sent to the owner and is not kept here, because the other images are not this project's. Four cards could not be obtained (Throughput, Network Ops: Night Shift, PacketJedi and the workshop's RIBRush): their repositories carry none, and the Arcade's own copies could not be downloaded from the build's workspace.
+
+| Item | Result |
+| --- | --- |
+| How the card is made | `tools/card.html` draws it as SVG with the game's engine, content file, style sheet and typefaces. `python3 tools/e2e.py CARD --card` captures the page at 1600 × 900 in headless Chrome and writes `assets/card.webp` with Pillow, as lossless WebP. No image generator was used |
+| The stored image | 1600 × 900 pixels, 38,070 bytes, SHA-256 beginning `22af094dc2eb941b`. Captured twice, at 22:20 and 22:23, with the same size both times |
+| Its numbers | The work order is the card's own and is hand-worked in the specification: 28.0, 31.5 and 35.0 dB of loss, so −23.0, −26.5 and −30.0 dBm. `CARD` compares the page with those values. The page computed the same |
+| Its words | The title and the tagline are read from the content file, the launch power and the window from the engine, and the line under the title is compared with the masthead's |
+| Looked at | By the build agent, at full size and at card size beside the other 13 cards, after each of four drafts and after the final capture |
+| The README's screenshot | `docs/gameplay.png` is still taken from the running game by the same command, and came out byte for byte as before |
+| Not checked | That the stored image is the page's current drawing (see "What was not checked"). How the Arcade crops or scales a card: the image is exactly 16:9, as the Arcade asks |
 
 ## The line colors of the loss trace
 

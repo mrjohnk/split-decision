@@ -32,8 +32,8 @@ creator:                     # (HUMAN) every field here is the owner's to fill
 
 build:
   started: "2026-11-19T14:07:13Z"    # git init and specify init
-  finished: "2026-11-19T21:33:45Z"            # the last check, the fresh-copy run after the owner's second review; anything after it is not included
-  wall_time: "7h26m32s"           # from started to finished, both read from the session clock. It includes about 4h26m, from 16:18 to 20:44, in which the build agent was idle and waiting for the owner's review: about 3 hours of work
+  finished: "2026-11-19T22:33:52Z"            # the last check, the fresh-copy run after the Arcade card and the touch check were added; anything after it is not included
+  wall_time: "8h26m39s"           # from started to finished, both read from the session clock. It includes about 4h39m in which the build agent was idle and waiting for the owner (16:18 to 20:44, and 21:38 to 21:51): about 3 hours 50 minutes of work
   spec_driven:
     framework: "GitHub Spec Kit"
     framework_version: "specify CLI 1.4.3.dev0"
