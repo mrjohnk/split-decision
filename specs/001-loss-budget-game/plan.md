@@ -112,9 +112,10 @@ tests/
     └── answer-key.json      The specification's hand-worked results, transcribed
 tools/
 ├── oracle.py                Independent recomputation of the answer key (Python)
-└── e2e.py                   Browser checks of the acceptance scenarios (Playwright)
+├── e2e.py                   Browser checks of the acceptance scenarios (Playwright)
+└── card.html                Draws the Arcade card with the game's engine; not part of the game
 assets/
-├── card.webp                16:9 card image, captured from the running game
+├── card.webp                16:9 card image, drawn by tools/card.html and captured in headless Chrome
 ├── favicon.svg              The splitter mark
 └── fonts/                   Barlow and Barlow Condensed (woff2) with their OFL license texts
 docs/
@@ -174,6 +175,17 @@ Recorded on 2026-11-19. The build agent had left one open point with the first r
 | 20 | Feedback named each ONT's loss and the limit of the loss window | It names the loss, the receive level, the limit and the difference, and each ledger ends with the level sum | FR-010, SC-002 | contracts/ui.md; engine/feedback.js |
 | 21 | Rounds as re-worked for the 8 to 28 dB loss window | All six rounds, the three examples and B1 to B4 re-worked by hand. Round 1-2 is a new lesson; round 3-1 is four shops on a 1:4 with 3, 10 and 25 dB attenuators; the level 3 example uses 15 dB | The usable loss moved by 5 dB, and no round kept exactly one answer | spec.md, Hand-worked Cases, D16 |
 | 22 | The fiber value "for both directions" | The same value, 0.5 dB/km, now said to be the upstream figure used for a downstream level | The owner did not change the loss card; the simplification must still be stated | spec.md D4; research.md R-02 |
+
+## Changes made after the owner's answers
+
+Recorded on 2026-11-19. The owner confirmed the launch power and kept the loss card (decision D17), which changed no file of the game. He also asked how the card image compares with the other cards in the Arcade.
+
+| # | Before | Now | Why | Where it is recorded |
+| --- | --- | --- | --- | --- |
+| 23 | The card image was a screenshot of round 2-1, taken by `tools/e2e.py --card` | The card is drawn by `tools/card.html`, a page outside the game that uses the game's engine, content file, style sheet and typefaces, and is captured by `tools/e2e.py --card`. The README's screenshot is still taken from the running game | Beside the Arcade's other cards the screenshot was the plainest, and it cannot be read at card size | spec.md D18, FR-030; research.md R-12 |
+| 24 | The card's shape and size were printed by the capture and not checked | Browser check `CARD`: the page's three levels and states equal the hand-worked ones, its words are the game's, it asks for nothing outside the game's folder, and the stored image is 16:9, at least 1280 pixels wide and under 1 MB | FR-030 | tools/e2e.py |
+
+No change to the engine, the content or the page of the game.
 
 ## Implementation order
 

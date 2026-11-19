@@ -127,6 +127,22 @@ The owner closed the open point of pass 3 (G5): 8 and 28 are ONT receive levels,
 
 **Metrics (pass 4):** 38 requirements (29 functional, 9 success criteria), all cited by at least one task; 71 tasks; 0 critical findings; 2 open points for the owner (H2 and H5).
 
+## Pass 5, after the owner's answers (2026-11-19)
+
+The owner closed H2 and H5, and asked how the Arcade card compares with the others. The card became a drawing made by the engine (decision D18, FR-030). This pass was made on the amended specification, plan and tasks, before the card page or its check were added to the repository. A first sketch of the page existed by then: it was drawn to find out whether a stronger card was possible, before the decision was written down.
+
+| ID | Category | Severity | Location(s) | Summary | What was done |
+|----|----------|----------|-------------|---------|---------------|
+| I1 | Coverage | MEDIUM | spec.md; plan.md | The Arcade requires a card image and task T044 made one, but no requirement named it and nothing checked its shape or its size | FR-030 added; browser check `CARD` planned (T076) |
+| I2 | Constitution | MEDIUM | constitution, Principle I; contracts/content.md | A card with levels on it could carry numbers typed for the picture. Principle I wants expected results recorded independently of the implementation, and the content contract allows no hand-typed dB or dBm value | The card page takes every level, limit and split from the engine and the content file. Its work order is hand-worked in the specification, so the check has expected values that the page did not produce |
+| I3 | Inconsistency | LOW | plan.md, project tree; README, credits; ARCADE.md | Three places say that the card is a capture of the running game | plan.md corrected in this pass; README and `ARCADE.md` to be corrected with the card (T079) |
+| I4 | Ambiguity | LOW | spec.md D18 | The card shows three designs on one trace, which the game never draws, so it could be taken for a screenshot | Stated in research R-12 and in the image's description; the work order is not one of the six rounds, so no result of the game is printed on the card |
+| I5 | Underspecification | LOW | tools/e2e.py | Nothing checks that the stored image is the page's current drawing. A comparison of pixels would differ from one machine to another by the rendering of type | Left unchecked by a script, and recorded as such: the image is written by `tools/e2e.py --card`, and each capture is recorded in docs/verification.md |
+
+**Constitution Alignment Issues:** none. The constitution needed no amendment: nothing about the game changed.
+
+**Metrics (pass 5):** 39 requirements (30 functional, 9 success criteria), all cited by at least one task; 79 tasks; 0 critical findings; no open point.
+
 ## Next Actions
 
 Implementation may begin. Two items stay with the owner: timing a first playthrough (SC-004) and saying what each level taught (SC-008).
@@ -136,3 +152,5 @@ After pass 3, three items stayed with the owner: the two above, and the open poi
 After pass 4, three items stay with the owner: timing a first playthrough (SC-004), saying what each level taught (SC-008), and the open points H2 (the sign of the launch power) and H5 (the fiber value, now that the level checked is a downstream one).
 
 The owner answered both open points on 2026-11-19 at 21:51 UTC. H2: plus five is right. H5: keep the card as it is, recorded as decision D17. Neither answer changes the game. Two items stay with him: timing a first playthrough (SC-004) and saying what each level taught (SC-008).
+
+After pass 5, one more choice is his: which card ships, the drawing or the screenshot (decision D18).

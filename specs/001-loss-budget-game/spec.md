@@ -42,10 +42,11 @@ The build agent had recorded an open point: 8 and 28 could be path loss or recei
 
 ### Session 2026-11-19, the owner's answers after the second review
 
-The second review left two points with the owner. The build agent put them to him as two numbered questions, and he answered both in one message. Neither answer changes the game. They close open points, so they are recorded here first and then in every document that had called the points open.
+The second review left two points with the owner. The build agent put them to him as two numbered questions, and he answered both in one message, with a question of his own about the Arcade card. Neither answer changes the game, and neither does the card: the files the game is played from are as they were after the second review. The answers close open points, so they are recorded here first and then in every document that had called the points open.
 
 - Q: Is the launch power plus five or minus five? → A (owner): plus five is right. Decision D14 stands as it was applied, +5 dBm, and its open point is closed.
 - Q: The loss card's fiber value, 0.5 dB/km, is the upstream figure, and the answers of rounds 1-1 and 2-1 rest on it. Keep it as a conservative planning number, or use the value you plan with? → A (owner): keep the card as it is. Applied as decision D17: the loss card stays as it is. The question was about the fiber value. The build agent takes his plural to cover the card as it stands, and notes that the connector, splice and splitter values were not put to him one by one.
+- Q (owner): He asked to see the card image beside the other cards in the Arcade. → A (build agent): yes, and it compared badly. Beside the 13 of the Arcade's 17 cards that could be obtained (research R-12) it was the plainest: a screenshot of a whole work order, with no word on it large enough to read at the size the Arcade shows a card. The owner had said of the Arcade earlier: the plan need not change unless the other games gave a reason to do better. Applied as decision D18 and requirement FR-030: the card is a drawing made for its purpose by the game's own engine. Which card ships remains the owner's choice, so the screenshot stays in the repository as `docs/gameplay.png`, which meets the Arcade's rules for a card as well.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -161,6 +162,10 @@ As a keyboard user, I want to inspect the challenge, choose, submit, get help an
 - **FR-026**: Inside the window, too dark and too bright MUST each be written in words and marked with a distinct shape; color MUST NOT be the only signal.
 - **FR-027**: In a window 320 CSS pixels wide the round MUST remain usable: dense tables MAY scroll inside their own labeled container, and the action buttons MUST be reachable without scrolling the page sideways.
 - **FR-028**: The game MUST play from its own static files only. It MUST NOT need an account, a backend, a live device, a model or an API key, and MUST NOT request anything from another origin.
+
+**Packaging**
+
+- **FR-030** *(added by decision D18)*: The repository MUST carry one card image for the Arcade at the path `ARCADE.md` names: 16:9, in WebP, PNG or JPEG, and under 1 MB. Every level, limit and split shown on it MUST come from the game's engine and content file, never from a number typed for the image, and no image generator may be used to make it.
 
 ### Key Entities
 
@@ -328,6 +333,19 @@ Each briefing's example is computed by the same evaluator as the rounds. Its num
 | Level 2 | OLT port → 14.0 km, 4 connectors, 2 splices → installed 1:32 (17.5) → ONT X: 0.8 km, 2 connectors, 1 splice; ONT Y: 5.0 km, 2 connectors, 3 splices | X: 14.8 km (7.4) + 6 connectors (3.0) + 3 splices (0.3) + 17.5 = 28.2. Y: 19.0 km (9.5) + 6 connectors (3.0) + 5 splices (0.5) + 17.5 = 30.5 | X −23.2. Y −25.5, which is 2.5 above the dark limit: less than the 3.5 a larger splitter would add |
 | Level 3 | OLT port with a 15 dB attenuator → 1.0 km, 2 connectors → installed 1:2 (3.5) → 0.0 km, 1 connector → ONT X | 1.0 km (0.5) + 3 connectors (1.5) + 3.5 = 5.5 as drawn; with the attenuator 20.5 | −0.5 as drawn, above the bright limit by 7.5; −15.5 with the attenuator |
 
+### The Arcade card's work order
+
+The card image shows three designs of one route on a single trace. The game never draws that, and a round of the game shown that way would print its result on the card, so the card has a work order of its own. It is not part of the game and is never graded. It is worked here by hand so that the image can be checked like everything else (FR-030, browser check `CARD`).
+
+Plant: OLT port → 12.0 km, 4 connectors, 4 splices → splitter (chosen) → 6.0 km, 4 connectors, 6 splices → ONT A.
+ONT A: fiber 18.0 km (9.0), 8 connectors (4.0), 10 splices (1.0). Before the choice: 14.0. The light reaches the splitter at +5 − (6.0 + 2.0 + 0.4) = −3.4.
+
+| Case | Option | Homes | ONT A loses | ONT A receives | Outcome |
+| --- | --- | --- | --- | --- | --- |
+| card/o16 | 1:16 splitter (14.0) | 16 | 28.0 | −23.0, inside | valid-not-best |
+| card/o32 | 1:32 splitter (17.5) | 32 | 31.5 | −26.5, inside | best-valid |
+| card/o64 | 1:64 splitter (21.0) | 64 | 35.0 | −30.0, below the dark limit by 2.0 | too-dark |
+
 ### Boundary and unsupported-content cases
 
 | Case | Input state | Player action | Expected result | Why / source |
@@ -370,3 +388,4 @@ The owner asked the build agent to make the design calls from the workshop's def
 | D15 | Outcome codes too-dark, too-bright and dark-and-bright, and ONT states dark and bright, replace over-max, under-min, over-and-under, over and under. The two limits are called the dark limit and the bright limit | With negative levels "minimum" and "maximum" invite mistakes: the ONT that is too dark is under its limit, where before it was over one |
 | D16 | Round 1-2 is the street of round 1-1 on a feeder 6 km shorter. Every option is inside the window and the largest is the answer | With a +5 dBm launch and a −28 dBm dark limit a 1:32 reaches any route within 20 km, so the first version's lesson ("only a 1:16 fits a long route") cannot be built honestly. The new lesson: the route decides, so do not stop at what fitted last time. The misconception "only the fiber and the splitter matter" moved to round 1-1's 1:64 option |
 | D17 | **Owner's decision, 2026-11-19, after the second review.** The loss card keeps its values: fiber 0.5 dB/km, connector 0.5 dB, splice 0.1 dB, 3.5 dB per two-way split | The owner: keep the card as it is, in answer to the question whether the upstream fiber value should stay now that the level checked is a downstream one. The game goes on telling the player that it reads a little dark on long routes (D4) |
+| D18 | The Arcade card is a drawing made for the purpose, not a screenshot: the game's splitter mark at the scale of its own loss trace. One fiber leaves the OLT port at the launch power; the splitter, in conduit orange, spans the fall in level across it; three designs (1:16, 1:32, 1:64) of a work order made for the card leave it and end inside the receive window or below it. The title, the masthead's line, the tagline, the window and the state shapes are the game's. `tools/card.html` draws it with the game's engine, content file, style sheet and typefaces, and `tools/e2e.py --card` captures it in headless Chrome | The owner asked how the card compares with the others in the Arcade. Beside 13 of them it was the plainest, a full-page screenshot that cannot be read at card size (research R-12). No image generator was available or wanted, so the game draws its own card. The screenshot stays as `docs/gameplay.png`, 16:9 and under 1 MB: the owner can make it the card again by changing `card_image` in `ARCADE.md` |
