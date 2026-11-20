@@ -11,7 +11,7 @@ A project from **NAF AC6 — Loop Engineering, Spec-Driven Development & the Fut
 | Status | Playable. Verified by automated checks in headless Chrome. The owner has played it and reported no fault; it has not been timed (see [Verification](#verification)) |
 | Networking topic | Optical loss budgeting for a PON: path loss on the single fiber, launch power and the ONT's receive level, the receive window, splitters in one and two stages, attenuators |
 | Typical session | 10 to 15 minutes is the target. It has not been timed with a person |
-| Live demo | Not published yet |
+| Live demo | [https://mrjohnk.github.io/split-decision/](https://mrjohnk.github.io/split-decision/) |
 | Built by | John Kicklighter, with Claude Code (model `claude-fable-5-2`) as the build agent |
 
 ![Work order 2-1, Palo Verde Loop: the plant with a 1:64 splitter chosen, three design options, and the loss trace showing ONT C just below the receive window](docs/gameplay.png)
@@ -143,7 +143,7 @@ The unit tests also run in the browser: start the local server and open **http:/
 | A first-time player finishes in 10 to 15 minutes (SC-004) | **Not run** | Needs a person. Waiting for the owner |
 | A teammate can say what each level taught (SC-008) | **Not run** | Needs a person. Waiting for the owner |
 | Firefox, Safari, a real phone, a screen reader | **Not run** | Only headless Chrome was available to the build |
-| Published demo | Not run | Not published |
+| Published demo | Opened, not played through | On 2026-11-20 UTC the published page and its content file were fetched from https://mrjohnk.github.io/split-decision/ and matched the repository: three levels, six work orders, +5 dBm, −28 and −8 dBm. The browser checks above were not repeated against it |
 
 ## Known limitations and next steps
 

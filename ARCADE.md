@@ -16,13 +16,13 @@ game:
   levels: 3                    # three levels of two work orders each: six rounds
   card_image: "assets/card.webp"
   card_image_alt: "The game's loss trace drawn large on its dark instrument panel: light leaves the OLT port at +5 dBm, falls to an orange splitter and leaves it as three designs, with 1:16 and 1:32 ending inside the receive window and 1:64 ending below it, too dark; the title Split Decision is at the top right."
-  repo: ""                     # (HUMAN) the public GitHub URL, once the repository exists
+  repo: "https://github.com/mrjohnk/split-decision"
   repo_path: ""
   license: "Apache-2.0"
 
 creator:                     # (HUMAN) every field here is the owner's to fill
   name: "John Kicklighter"
-  github: ""
+  github: "mrjohnk"
   location: ""
   organization: ""
   links: []
@@ -60,7 +60,7 @@ runtime:
   stack: [HTML, CSS, JavaScript ES modules, inline SVG]
   start: "python3 -m http.server 8000 --bind 127.0.0.1"
   url_after_start: "http://127.0.0.1:8000"
-  hosted_url: ""
+  hosted_url: "https://mrjohnk.github.io/split-decision/"
   static_root: "."
   requires_install: false
   requires_network: false
